@@ -22,6 +22,7 @@ function App() {
   >("arrange");
   const [userId, setUserId] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [draftContent, setDraftContent] = useState("");
 
   const addComment = (content: string, attachments: Attachment[]) => {
     const comment: Comment = {
@@ -35,6 +36,7 @@ function App() {
     };
     setComments([...comments, comment]);
     setAttachments([]); // Clear attachments after posting
+    setDraftContent(""); // Clear draft content after posting
   };
 
   const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,6 +102,7 @@ function App() {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">
             Comment Manager
           </h1>
+
           <div className="mb-8">
             <CommentEditor
               onSubmit={addComment}
@@ -108,9 +111,12 @@ function App() {
               attachments={attachments}
               onAttachmentUpload={handleAttachmentUpload}
               onAttachmentRemove={handleAttachmentRemove}
+              content={draftContent}
+              setContent={setDraftContent}
             />
           </div>
-          <div className="flex">
+
+          <div className="flex mb-4">
             <button
               onClick={() => setActiveTab("arrange")}
               className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
