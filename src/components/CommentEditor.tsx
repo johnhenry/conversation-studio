@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { MessageSquarePlus, X } from "lucide-react";
+import { MessageSquarePlus, X, File } from "lucide-react";
 import MarkdownPreview from "./MarkdownPreview";
+import { Comment as CommentType, Attachment } from "../types";
 
 interface CommentEditorProps {
-  onSubmit: (content: string) => void;
+  onSubmit: (content: string, attachments: CommentType["attachments"]) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
-  attachments: File[];
+  attachments: CommentType["attachments"];
   onAttachmentUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAttachmentRemove: (index: number) => void;
   initialContent?: string;
@@ -28,20 +29,44 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   const handleSubmit = () => {
     if (!content.trim()) return;
-    onSubmit(content);
+    onSubmit(content, attachments);
     setContent("");
+  };
+
+  const renderAttachment = (attachment: Attachment) => {
+    if (attachment.type?.startsWith("image/")) {
+      return (
+        <div key={attachment.url} className="mt-2">
+          <img src={attachment.url} alt={attachment.name || "Attachment"} />
+          {attachment.name && <p className="text-xs mt-1">{attachment.name}</p>}
+        </div>
+      );
+    } else if (attachment.type) {
+      return (
+        <div key={attachment.url} className="mt-2 flex items-center">
+          <File size={20} className="mr-2" />
+          <a href={attachment.url} className="text-blue-500">
+            {attachment.name || attachment.url}
+          </a>
+        </div>
+      );
+    } else {
+      return null; // Handle cases where attachment type is not provided
+    }
   };
 
   return (
     <div className="space-y-2">
       <div className="flex gap-2 mb-2">
-        <input
-          type="text"
-          placeholder="User ID"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-          className="border rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        {!isPreview && (
+          <input
+            type="text"
+            placeholder="User ID"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            className="border rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        )}
       </div>
       <div className="flex gap-2 mb-2">
         <button
@@ -66,6 +91,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         {isPreview ? (
           <div className="border rounded-lg p-3 bg-gray-50">
             <MarkdownPreview content={content} />
+            {attachments.map((attachment) => renderAttachment(attachment))}
+            <p className="font-bold">User ID: {userId}</p>
           </div>
         ) : (
           <textarea
@@ -81,37 +108,40 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           />
         )}
       </div>
-      <div>
-        <label htmlFor="attachments" className="block mb-1">
-          Attachments:
-        </label>
-        <input
-          type="file"
-          id="attachments"
-          multiple
-          onChange={onAttachmentUpload}
-          className="mb-2"
-        />
-        <ul>
-          {attachments.map((attachment, index) => (
-            <li key={index} className="flex items-center">
-              <span className="mr-2">{attachment.name}</span>
-              <button
-                onClick={() => onAttachmentRemove(index)}
-                title={`Remove ${attachment.name}`}
-              >
-                <X size={16} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {!isPreview && (
+        <div>
+          <label htmlFor="attachments" className="block mb-1">
+            Attachments:
+          </label>
+          <input
+            type="file"
+            id="attachments"
+            multiple
+            onChange={onAttachmentUpload}
+            className="mb-2"
+          />
+          <ul>
+            {attachments.map((attachment, index) => (
+              <li key={index} className="flex items-center">
+                <span className="mr-2">{attachment.name}</span>
+                <button
+                  onClick={() => onAttachmentRemove(index)}
+                  title={`Remove ${attachment.name}`}
+                >
+                  <X size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex justify-between items-center text-sm text-gray-500">
         <span>Supports Markdown. Press Ctrl+Enter to submit.</span>
         <button
           onClick={handleSubmit}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          disabled={!content.trim()}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <MessageSquarePlus size={20} />
           {buttonText}

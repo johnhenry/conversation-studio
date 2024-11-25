@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowUp } from "lucide-react";
+import { Trash2, GripVertical, ArrowUp, File } from "lucide-react";
 import { Comment as CommentType } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -43,6 +43,33 @@ const Comment: React.FC<CommentProps> = ({
     onDrop(e, comment.id);
   };
 
+  const renderAttachment = (attachment: {
+    url: string;
+    type?: string;
+    name: string;
+    file: File;
+  }) => {
+    if (attachment.type?.startsWith("image/")) {
+      return (
+        <div key={attachment.url} className="mt-2">
+          <img src={attachment.url} alt={attachment.name || "Attachment"} />
+          {attachment.name && <p className="text-xs mt-1">{attachment.name}</p>}
+        </div>
+      );
+    } else if (attachment.type) {
+      return (
+        <div key={attachment.url} className="mt-2 flex items-center">
+          <File size={20} className="mr-2" />
+          <a href={attachment.url} className="text-blue-500">
+            {attachment.name || attachment.url}
+          </a>
+        </div>
+      );
+    } else {
+      return null; // Handle cases where attachment type is not provided
+    }
+  };
+
   return (
     <div
       draggable
@@ -71,15 +98,9 @@ const Comment: React.FC<CommentProps> = ({
             <p>Content Hash: {comment.contentHash}</p>
           </div>
           <MarkdownPreview content={comment.content} />
-          {comment.attachments.map((attachment) => (
-            <div key={attachment.url}>
-              {attachment.type === "image" ? (
-                <img src={attachment.url} alt="Attachment" />
-              ) : (
-                <a href={attachment.url}>{attachment.url}</a>
-              )}
-            </div>
-          ))}
+          {comment.attachments.map((attachment) =>
+            renderAttachment(attachment)
+          )}
           {comment.children.length > 0 && (
             <div className="mt-1 text-sm text-gray-500">
               {comment.children.length}{" "}

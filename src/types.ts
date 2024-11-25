@@ -1,14 +1,17 @@
 export interface Comment {
   id: string;
-  content: string;
-  children: Comment[];
   userId: string;
   timestamp: number;
+  content: string;
   contentHash: string;
   attachments: Attachment[];
+  children: Comment[];
+  parentId?: string | null;
 }
 
 export interface Attachment {
-  type: string;
   url: string;
+  type?: string;
+  name: string;
+  file: File;
 }

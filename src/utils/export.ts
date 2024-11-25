@@ -6,15 +6,42 @@ const generateBoundary = (): string => {
   return "----Boundary" + Math.random().toString(36).substring(2);
 };
 
-export const exportCommentsText = (comments: Comment[], level = 0): string => {
-  return comments
-    .map((comment) => {
+const toBase64 = (file: File): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+export const exportCommentsText = async (
+  comments: Comment[],
+  level = 0
+): Promise<string> => {
+  const processedComments = await Promise.all(
+    comments.map(async (comment) => {
       const indent = "\t".repeat(level);
       let commentText = `${indent}User-Id: ${comment.userId}\n`;
       commentText += `${indent}Hash: ${comment.contentHash}\n`;
       commentText += `${indent}Timestamp: ${comment.timestamp}\n`;
 
-      if (comment.attachments && comment.attachments.length > 0) {
+      const base64Attachments = await Promise.all(
+        comment.attachments.map(async (attachment) => {
+          try {
+            const base64Data = await toBase64(attachment.file);
+            return {
+              ...attachment,
+              url: base64Data,
+            };
+          } catch (error) {
+            console.error("Error converting to Base64:", error);
+            return attachment;
+          }
+        })
+      );
+
+      if (base64Attachments && base64Attachments.length > 0) {
         const boundary = generateBoundary();
         commentText += `${indent}Content-Type: multipart/mixed; boundary="${boundary}"\n\n`;
 
@@ -22,7 +49,7 @@ export const exportCommentsText = (comments: Comment[], level = 0): string => {
         commentText += `${indent}Content-Type: text/plain; charset="UTF-8"\r\n\n`;
         commentText += `${indent}${comment.content}\r\n\n`;
 
-        comment.attachments.forEach((attachment) => {
+        base64Attachments.forEach((attachment) => {
           commentText += `${indent}--${boundary}\r\n`;
           commentText += `${indent}Content-Type: ${attachment.type}\r\n`;
           commentText += `${indent}Content-Location: ${attachment.url}\r\n\n`;
@@ -34,18 +61,67 @@ export const exportCommentsText = (comments: Comment[], level = 0): string => {
 
       const childrenText =
         comment.children.length > 0
-          ? exportCommentsText(comment.children, level + 1)
+          ? await exportCommentsText(comment.children, level + 1)
           : "";
       return commentText + childrenText;
     })
-    .join("");
+  );
+
+  return processedComments.join("");
 };
 
-export const exportCommentsJSON = (comments: Comment[]): string => {
-  return JSON.stringify(comments, null, 2);
+export const exportCommentsJSON = async (
+  comments: Comment[]
+): Promise<string> => {
+  const commentsWithBase64 = await Promise.all(
+    comments.map(async (comment) => {
+      const base64Attachments = await Promise.all(
+        comment.attachments.map(async (attachment) => {
+          try {
+            return await toBase64(attachment.file);
+          } catch (error) {
+            console.error("Error converting to base64: ", error);
+            return "";
+          }
+        })
+      );
+      return {
+        ...comment,
+        attachments: base64Attachments,
+      };
+    })
+  );
+
+  return JSON.stringify(commentsWithBase64, null, 2);
 };
 
-export const exportCommentsXML = (comments: Comment[]): string => {
+export const exportCommentsXML = async (
+  comments: Comment[]
+): Promise<string> => {
+  const commentsWithBase64 = await Promise.all(
+    comments.map(async (comment) => {
+      const base64Attachments = await Promise.all(
+        comment.attachments.map(async (attachment) => {
+          try {
+            const base64Data = await toBase64(attachment.file);
+            return {
+              ...attachment,
+              url: base64Data,
+            };
+          } catch (error) {
+            console.error("Error converting to Base64:", error);
+            return attachment;
+          }
+        })
+      );
+
+      return {
+        ...comment,
+        attachments: base64Attachments,
+      };
+    })
+  );
+
   const builder = create({
     version: "1.0",
     encoding: "UTF-8",
@@ -64,8 +140,10 @@ export const exportCommentsXML = (comments: Comment[]): string => {
     const attachmentsElement = commentElement.ele("attachments");
     comment.attachments.forEach((attachment) => {
       const attachmentElement = attachmentsElement.ele("attachment");
-      attachmentElement.ele("type").txt(attachment.type);
+
+      attachmentElement.ele("type").txt(attachment.type || "");
       attachmentElement.ele("url").txt(attachment.url);
+      attachmentElement.ele("name").txt(attachment.name);
     });
 
     if (comment.children) {
@@ -76,7 +154,9 @@ export const exportCommentsXML = (comments: Comment[]): string => {
     }
   };
 
-  comments.forEach((comment) => processComment(comment, commentsElement));
+  commentsWithBase64.forEach((comment) =>
+    processComment(comment, commentsElement)
+  );
 
   return builder.end({ prettyPrint: true });
 };
