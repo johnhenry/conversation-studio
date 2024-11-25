@@ -15,6 +15,13 @@ const toBase64 = (file: File): Promise<string> => {
   });
 };
 
+const truncateBase64 = (base64: string, maxLength: number): string => {
+  if (base64.length > maxLength) {
+    return base64.substring(0, maxLength) + "...";
+  }
+  return base64;
+};
+
 export const exportComments = async (
   comments: Comment[],
   format: ExportFormat
@@ -48,7 +55,7 @@ export const exportCommentsText = async (
             const base64Data = await toBase64(attachment.file);
             return {
               ...attachment,
-              url: base64Data,
+              url: truncateBase64(base64Data, 100),
             };
           } catch (error) {
             console.error("Error converting to Base64:", error);
@@ -99,7 +106,7 @@ export const exportCommentsJSON = async (
             return {
               name: attachment.name,
               type: attachment.type || "",
-              content: content,
+              content: truncateBase64(content, 100),
             };
           } catch (error) {
             console.error("Error converting to base64: ", error);
@@ -132,7 +139,7 @@ export const exportCommentsXML = async (
             const base64Data = await toBase64(attachment.file);
             return {
               ...attachment,
-              url: base64Data,
+              url: truncateBase64(base64Data, 100),
             };
           } catch (error) {
             console.error("Error converting to Base64:", error);
