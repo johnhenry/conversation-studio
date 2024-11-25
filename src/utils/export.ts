@@ -13,20 +13,23 @@ export const exportCommentsText = (comments: Comment[], level = 0): string => {
       let commentText = `${indent}User-Id: ${comment.userId}\n`;
       commentText += `${indent}Hash: ${comment.contentHash}\n`;
       commentText += `${indent}Timestamp: ${comment.timestamp}\n`;
-      commentText += `${indent}\n`;
-      commentText += `${indent}${comment.content}\n`;
 
-      if (comment.attachments.length > 0) {
+      if (comment.attachments && comment.attachments.length > 0) {
         const boundary = generateBoundary();
-        commentText += `${indent}Attachments: ${comment.attachments.length}\n`;
-        commentText += `${indent}Boundary: ${boundary}\n`;
+        commentText += `${indent}Content-Type: multipart/mixed; boundary="${boundary}"\n\n`;
+
+        commentText += `${indent}--${boundary}\n`;
+        commentText += `${indent}Content-Type: text/plain; charset="UTF-8"\n\n`;
+        commentText += `${indent}${comment.content}\n\n`;
 
         comment.attachments.forEach((attachment) => {
-          commentText += `${indent}----${boundary}\n`;
-          commentText += `${indent}Type: ${attachment.type}\n`;
-          commentText += `${indent}Url: ${attachment.url}\n`;
-          commentText += `${indent}----${boundary}\n`;
+          commentText += `${indent}--${boundary}\n`;
+          commentText += `${indent}Content-Type: ${attachment.type}\n`;
+          commentText += `${indent}Content-Location: ${attachment.url}\n\n`;
         });
+        commentText += `${indent}--${boundary}--\n`;
+      } else {
+        commentText += `\n${indent}${comment.content}\n`;
       }
 
       const childrenText =
