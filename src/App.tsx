@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
 import { Comment, Attachment, ExportFormat } from "./types";
-import { exportComments } from "./utils/export";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 
@@ -106,13 +105,7 @@ function App() {
       case "text":
       case "json":
       case "xml":
-        return (
-          <ExportPreview
-            comments={comments}
-            format={activeTab}
-            exportFn={exportComments}
-          />
-        );
+        return <ExportPreview comments={comments} format={activeTab} />;
       default:
         return null;
     }

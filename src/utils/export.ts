@@ -38,9 +38,49 @@ export const exportComments = async (
   }
 };
 
+const processAttachments = async (
+  attachments: { file: File; name: string; type?: string; url: string }[],
+  truncate: boolean = true
+) => {
+  return await Promise.all(
+    attachments.map(async (attachment) => {
+      try {
+        const base64Data = await toBase64(attachment.file);
+        return {
+          ...attachment,
+          url: truncate ? truncateBase64(base64Data, 100) : base64Data,
+          type: attachment.type || "",
+        };
+      } catch (error) {
+        console.error("Error converting to Base64:", error);
+        return { ...attachment, type: attachment.type || "" };
+      }
+    })
+  );
+};
+
+const processCommentsWithAttachments = async (
+  comments: Comment[],
+  truncate: boolean = true
+) => {
+  return await Promise.all(
+    comments.map(async (comment) => {
+      const base64Attachments = await processAttachments(
+        comment.attachments,
+        truncate
+      );
+      return {
+        ...comment,
+        attachments: base64Attachments,
+      };
+    })
+  );
+};
+
 export const exportCommentsText = async (
   comments: Comment[],
-  level = 0
+  level = 0,
+  truncate: boolean = true
 ): Promise<string> => {
   const processedComments = await Promise.all(
     comments.map(async (comment) => {
@@ -49,19 +89,9 @@ export const exportCommentsText = async (
       commentText += `${indent}Hash: ${comment.contentHash}\n`;
       commentText += `${indent}Timestamp: ${comment.timestamp}\n`;
 
-      const base64Attachments = await Promise.all(
-        comment.attachments.map(async (attachment) => {
-          try {
-            const base64Data = await toBase64(attachment.file);
-            return {
-              ...attachment,
-              url: truncateBase64(base64Data, 100),
-            };
-          } catch (error) {
-            console.error("Error converting to Base64:", error);
-            return attachment;
-          }
-        })
+      const base64Attachments = await processAttachments(
+        comment.attachments,
+        truncate
       );
 
       if (base64Attachments && base64Attachments.length > 0) {
@@ -85,7 +115,7 @@ export const exportCommentsText = async (
 
       const childrenText =
         comment.children.length > 0
-          ? await exportCommentsText(comment.children, level + 1)
+          ? await exportCommentsText(comment.children, level + 1, truncate)
           : "";
       return commentText + childrenText;
     })
@@ -95,64 +125,24 @@ export const exportCommentsText = async (
 };
 
 export const exportCommentsJSON = async (
-  comments: Comment[]
+  comments: Comment[],
+  truncate: boolean = true
 ): Promise<string> => {
-  const commentsWithBase64 = await Promise.all(
-    comments.map(async (comment) => {
-      const base64Attachments = await Promise.all(
-        comment.attachments.map(async (attachment) => {
-          try {
-            const content = await toBase64(attachment.file);
-            return {
-              name: attachment.name,
-              type: attachment.type || "",
-              content: truncateBase64(content, 100),
-            };
-          } catch (error) {
-            console.error("Error converting to base64: ", error);
-            return {
-              name: attachment.name,
-              type: attachment.type || "",
-              content: "",
-            };
-          }
-        })
-      );
-      return {
-        ...comment,
-        attachments: base64Attachments,
-      };
-    })
+  const commentsWithBase64 = await processCommentsWithAttachments(
+    comments,
+    truncate
   );
 
   return JSON.stringify(commentsWithBase64, null, 2);
 };
 
 export const exportCommentsXML = async (
-  comments: Comment[]
+  comments: Comment[],
+  truncate: boolean = true
 ): Promise<string> => {
-  const commentsWithBase64 = await Promise.all(
-    comments.map(async (comment) => {
-      const base64Attachments = await Promise.all(
-        comment.attachments.map(async (attachment) => {
-          try {
-            const base64Data = await toBase64(attachment.file);
-            return {
-              ...attachment,
-              url: truncateBase64(base64Data, 100),
-            };
-          } catch (error) {
-            console.error("Error converting to Base64:", error);
-            return attachment;
-          }
-        })
-      );
-
-      return {
-        ...comment,
-        attachments: base64Attachments,
-      };
-    })
+  const commentsWithBase64 = await processCommentsWithAttachments(
+    comments,
+    truncate
   );
 
   const builder = create({

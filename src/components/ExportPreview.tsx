@@ -1,29 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Download, Copy } from "lucide-react";
 import { Comment, ExportFormat } from "../types";
+import {
+  exportComments,
+  exportCommentsJSON,
+  exportCommentsText,
+  exportCommentsXML,
+} from "../utils/export";
 
 interface ExportPreviewProps {
   comments: Comment[];
   format: ExportFormat;
-  exportFn: (comments: Comment[], format: ExportFormat) => Promise<string>;
 }
 
-const ExportPreview: React.FC<ExportPreviewProps> = ({
-  comments,
-  format,
-  exportFn,
-}) => {
+const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
   const [data, setData] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const exportedData = await exportFn(comments, format);
+      const exportedData = await exportComments(comments, format);
       setData(exportedData);
     };
 
     fetchData();
-  }, [comments, format, exportFn]);
+  }, [comments, format]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -34,7 +35,19 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
   }, [data]);
 
   const handleDownload = async () => {
-    const exportedData = await exportFn(comments, format);
+    let exportedData = "";
+    switch (format) {
+      case "text":
+        exportedData = await exportCommentsText(comments, 0, false);
+        break;
+      case "json":
+        exportedData = await exportCommentsJSON(comments, false);
+        break;
+      case "xml":
+        exportedData = await exportCommentsXML(comments, false);
+        break;
+    }
+
     const blob = new Blob([exportedData], { type: `application/${format}` });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -45,7 +58,18 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
   };
 
   const handleCopy = async () => {
-    const exportedData = await exportFn(comments, format);
+    let exportedData = "";
+    switch (format) {
+      case "text":
+        exportedData = await exportCommentsText(comments, 0, false);
+        break;
+      case "json":
+        exportedData = await exportCommentsJSON(comments, false);
+        break;
+      case "xml":
+        exportedData = await exportCommentsXML(comments, false);
+        break;
+    }
     navigator.clipboard.writeText(exportedData);
   };
 
