@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import { Download } from 'lucide-react';
-import CommentTree from './components/CommentTree';
-import CommentEditor from './components/CommentEditor';
-import { Comment } from './types';
-import { exportComments } from './utils/export';
+import React, { useState } from "react";
+import { Download } from "lucide-react";
+import CommentTree from "./components/CommentTree";
+import CommentEditor from "./components/CommentEditor";
+import { Comment } from "./types";
+import { exportCommentsText } from "./utils/export";
+import ExportPreview from "./components/ExportPreview";
+
+// Placeholder hash function - replace with a more robust implementation
+const generateContentHash = (content: string): string => {
+  return "hash-" + content.length.toString();
+};
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -13,17 +19,21 @@ function App() {
       id: Date.now().toString(),
       content,
       children: [],
+      userId: "user-" + Math.floor(Math.random() * 1000), // Placeholder user ID
+      timestamp: Date.now(),
+      contentHash: generateContentHash(content),
+      attachments: [],
     };
     setComments([...comments, comment]);
   };
 
   const handleExport = () => {
-    const text = exportComments(comments);
-    const blob = new Blob([text], { type: 'text/plain' });
+    const text = exportCommentsText(comments);
+    const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'comments.txt';
+    a.download = "comments.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -33,7 +43,9 @@ function App() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Comment Manager</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Comment Manager
+            </h1>
             <button
               onClick={handleExport}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
@@ -42,12 +54,13 @@ function App() {
               Export
             </button>
           </div>
-          
+
           <div className="mb-8">
             <CommentEditor onSubmit={addComment} />
           </div>
 
           <div className="space-y-4">
+            <ExportPreview comments={comments} />
             {comments.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 No comments yet. Add one to get started!

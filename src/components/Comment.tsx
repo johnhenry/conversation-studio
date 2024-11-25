@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Trash2, GripVertical, ArrowUp } from 'lucide-react';
-import { Comment as CommentType } from '../types';
-import MarkdownPreview from './MarkdownPreview';
+import React, { useState } from "react";
+import { Trash2, GripVertical, ArrowUp } from "lucide-react";
+import { Comment as CommentType } from "../types";
+import MarkdownPreview from "./MarkdownPreview";
 
 interface CommentProps {
   comment: CommentType;
@@ -9,7 +9,6 @@ interface CommentProps {
   onDragStart: (e: React.DragEvent, comment: CommentType) => void;
   onDrop: (e: React.DragEvent, targetId: string) => void;
   onPopUp: (id: string) => void;
-  level: number;
   canPopUp: boolean;
 }
 
@@ -19,7 +18,6 @@ const Comment: React.FC<CommentProps> = ({
   onDragStart,
   onDrop,
   onPopUp,
-  level,
   canPopUp,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -53,20 +51,39 @@ const Comment: React.FC<CommentProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={`
-        relative p-4 rounded-lg border shadow-sm transition-all duration-200
-        ${isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'}
-        hover:border-blue-300 group
-      `}
+                relative p-4 rounded-lg border shadow-sm transition-all duration-200
+                ${
+                  isDragOver
+                    ? "border-blue-400 bg-blue-50"
+                    : "border-gray-200 bg-white"
+                }
+                hover:border-blue-300 group
+            `}
     >
       <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
         <GripVertical size={18} className="text-gray-400" />
       </div>
       <div className="flex justify-between items-start gap-4 pl-6">
         <div className="flex-1">
+          <div>
+            <p className="font-bold">User ID: {comment.userId}</p>
+            <p>Timestamp: {new Date(comment.timestamp).toLocaleString()}</p>
+            <p>Content Hash: {comment.contentHash}</p>
+          </div>
           <MarkdownPreview content={comment.content} />
+          {comment.attachments.map((attachment) => (
+            <div key={attachment.url}>
+              {attachment.type === "image" ? (
+                <img src={attachment.url} alt="Attachment" />
+              ) : (
+                <a href={attachment.url}>{attachment.url}</a>
+              )}
+            </div>
+          ))}
           {comment.children.length > 0 && (
             <div className="mt-1 text-sm text-gray-500">
-              {comment.children.length} {comment.children.length === 1 ? 'reply' : 'replies'}
+              {comment.children.length}{" "}
+              {comment.children.length === 1 ? "reply" : "replies"}
             </div>
           )}
         </div>
