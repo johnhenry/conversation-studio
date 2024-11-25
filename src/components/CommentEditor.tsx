@@ -32,6 +32,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
   const [contentHash, setContentHash] = useState("");
+  const [previewUserId, setPreviewUserId] = useState(""); // Store preview user ID
+
+  useEffect(() => {
+    // Calculate preview user ID once
+    setPreviewUserId(userId || "user-" + Math.floor(Math.random() * 1000));
+  }, [userId]);
 
   const handleSubmit = () => {
     onSubmit(content, attachments);
@@ -63,7 +69,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     id: Date.now().toString(),
     content,
     children: [],
-    userId: userId || "user-" + Math.floor(Math.random() * 1000),
+    userId: previewUserId, // Use previewUserId
     timestamp: Date.now(),
     contentHash: contentHash,
     attachments,
@@ -95,7 +101,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     });
 
     updatePreviewData();
-  }, [activeTab, content, userId, attachments, contentHash, renderAttachment]); // Add renderAttachment to dependency array
+  }, [
+    activeTab,
+    content,
+    userId,
+    attachments,
+    contentHash,
+    renderAttachment,
+    previewUserId,
+  ]); // Add previewUserId to dependency array
 
   const renderContent = () => {
     switch (activeTab) {
