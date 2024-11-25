@@ -18,16 +18,16 @@ export const exportCommentsText = (comments: Comment[], level = 0): string => {
         const boundary = generateBoundary();
         commentText += `${indent}Content-Type: multipart/mixed; boundary="${boundary}"\n\n`;
 
-        commentText += `${indent}--${boundary}\n`;
-        commentText += `${indent}Content-Type: text/plain; charset="UTF-8"\n\n`;
-        commentText += `${indent}${comment.content}\n\n`;
+        commentText += `${indent}--${boundary}\r\n`;
+        commentText += `${indent}Content-Type: text/plain; charset="UTF-8"\r\n\n`;
+        commentText += `${indent}${comment.content}\r\n\n`;
 
         comment.attachments.forEach((attachment) => {
-          commentText += `${indent}--${boundary}\n`;
-          commentText += `${indent}Content-Type: ${attachment.type}\n`;
-          commentText += `${indent}Content-Location: ${attachment.url}\n\n`;
+          commentText += `${indent}--${boundary}\r\n`;
+          commentText += `${indent}Content-Type: ${attachment.type}\r\n`;
+          commentText += `${indent}Content-Location: ${attachment.url}\r\n\n`;
         });
-        commentText += `${indent}--${boundary}--\n`;
+        commentText += `${indent}--${boundary}--\r\n`;
       } else {
         commentText += `\n${indent}${comment.content}\n`;
       }
