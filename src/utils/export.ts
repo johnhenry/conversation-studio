@@ -1,4 +1,4 @@
-import { Comment } from "../types";
+import { Comment, ExportFormat } from "../types";
 import { create } from "xmlbuilder2";
 import type { XMLBuilder } from "xmlbuilder2/lib/interfaces";
 
@@ -13,6 +13,22 @@ const toBase64 = (file: File): Promise<string> => {
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = (error) => reject(error);
   });
+};
+
+export const exportComments = async (
+  comments: Comment[],
+  format: ExportFormat
+): Promise<string> => {
+  switch (format) {
+    case "text":
+      return exportCommentsText(comments);
+    case "json":
+      return exportCommentsJSON(comments);
+    case "xml":
+      return exportCommentsXML(comments);
+    default:
+      return "";
+  }
 };
 
 export const exportCommentsText = async (

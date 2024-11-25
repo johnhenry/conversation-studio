@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquarePlus, X, File } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
-import Comment from "./Comment";
-import {
-  exportCommentsText,
-  exportCommentsJSON,
-  exportCommentsXML,
-} from "../utils/export";
+import CommentTree from "./CommentTree";
+import { exportComments } from "../utils/export";
 
 interface CommentEditorProps {
   onSubmit: (content: string, attachments: CommentType["attachments"]) => void;
@@ -35,6 +31,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
+  const [contentHash, setContentHash] = useState("");
 
   const handleSubmit = () => {
     onSubmit(content, attachments);
@@ -68,22 +65,17 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     children: [],
     userId: userId || "user-" + Math.floor(Math.random() * 1000),
     timestamp: Date.now(),
-    contentHash: "",
+    contentHash: contentHash,
     attachments,
+    deleted: false,
+    renderAttachment,
   };
 
   useEffect(() => {
     const updatePreviewData = async () => {
       if (activeTab === "text" || activeTab === "json" || activeTab === "xml") {
-        const exportFn =
-          activeTab === "text"
-            ? exportCommentsText
-            : activeTab === "json"
-            ? exportCommentsJSON
-            : exportCommentsXML;
-
         try {
-          const data = await exportFn([previewComment]);
+          const data = await exportComments([previewComment], activeTab);
           setPreviewData(data);
         } catch (error) {
           console.error("Error generating preview:", error);
@@ -92,8 +84,18 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       }
     };
 
+    const encoder = new TextEncoder();
+    const data = encoder.encode(content);
+    crypto.subtle.digest("SHA-256", data).then((hashBuffer) => {
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      setContentHash(hashHex.substring(0, 7));
+    });
+
     updatePreviewData();
-  }, [activeTab, content, userId, attachments]);
+  }, [activeTab, content, userId, attachments, contentHash, renderAttachment]); // Add renderAttachment to dependency array
 
   const renderContent = () => {
     switch (activeTab) {
@@ -155,13 +157,11 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       case "preview":
         return (
           <div className="border rounded-lg p-3 bg-gray-50">
-            <Comment
-              comment={previewComment}
-              onDelete={() => {}}
-              onDragStart={() => {}}
-              onDrop={() => {}}
-              onPopUp={() => {}}
-              canPopUp={false}
+            <CommentTree
+              comments={[previewComment]}
+              updateComments={() => {}}
+              level={0}
+              isPreview={true}
               renderAttachment={renderAttachment}
             />
           </div>

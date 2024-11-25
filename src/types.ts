@@ -7,6 +7,8 @@ export interface Comment {
   attachments: Attachment[];
   children: Comment[];
   parentId?: string | null;
+  deleted?: boolean;
+  renderAttachment?: (attachment: Attachment) => React.ReactNode | null; // Add renderAttachment to CommentType
 }
 
 export interface Attachment {
@@ -15,3 +17,5 @@ export interface Attachment {
   name: string;
   file: File;
 }
+
+export type ExportFormat = "text" | "json" | "xml";

@@ -11,6 +11,8 @@ interface CommentProps {
   onPopUp: (id: string) => void;
   canPopUp: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
+  showDelete: boolean;
+  level: number; // Add level prop
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -21,6 +23,8 @@ const Comment: React.FC<CommentProps> = ({
   onPopUp,
   canPopUp,
   renderAttachment,
+  showDelete,
+  level, // Add level prop
 }) => {
   return (
     <div
@@ -36,6 +40,7 @@ const Comment: React.FC<CommentProps> = ({
         onDrop(e, comment.id);
       }}
       className={`relative p-4 rounded-lg border shadow-sm transition-all duration-200 border-gray-200 bg-white hover:border-blue-300 group`}
+      style={{ marginLeft: `${level * 20}px` }} // Add indentation based on level
     >
       <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
         <GripVertical size={18} className="text-gray-400" />
@@ -68,13 +73,15 @@ const Comment: React.FC<CommentProps> = ({
               <ArrowUp size={18} />
             </button>
           )}
-          <button
-            onClick={() => onDelete(comment.id)}
-            title="Delete comment"
-            className="text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50"
-          >
-            <Trash2 size={18} />
-          </button>
+          {showDelete && (
+            <button
+              onClick={() => onDelete(comment.id)}
+              title="Delete comment"
+              className="text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       </div>
     </div>

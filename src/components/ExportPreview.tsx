@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Download } from "lucide-react";
-import { Comment } from "../types";
+import { Comment, ExportFormat } from "../types";
 
 interface ExportPreviewProps {
   comments: Comment[];
-  format: "text" | "json" | "xml";
-  exportFn: (comments: Comment[]) => Promise<string>;
+  format: ExportFormat;
+  exportFn: (comments: Comment[], format: ExportFormat) => Promise<string>;
 }
 
 const ExportPreview: React.FC<ExportPreviewProps> = ({
@@ -18,7 +18,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      const exportedData = await exportFn(comments);
+      const exportedData = await exportFn(comments, format);
       setData(exportedData);
     };
 
@@ -27,14 +27,14 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "0px"; // Reset height to calculate actual height
+      textareaRef.current.style.height = "0px";
       const scrollHeight = textareaRef.current.scrollHeight;
       textareaRef.current.style.height = scrollHeight + "px";
     }
   }, [data]);
 
   const handleDownload = async () => {
-    const exportedData = await exportFn(comments);
+    const exportedData = await exportFn(comments, format);
     const blob = new Blob([exportedData], { type: `application/${format}` });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
