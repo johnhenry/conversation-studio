@@ -3,7 +3,7 @@ import { create } from "xmlbuilder2";
 import type { XMLBuilder } from "xmlbuilder2/lib/interfaces";
 
 const generateBoundary = (): string => {
-  return "----WebKitFormBoundary" + Math.random().toString(36).substring(2);
+  return "----Boundary" + Math.random().toString(36).substring(2);
 };
 
 export const exportCommentsText = (comments: Comment[], level = 0): string => {

@@ -1,30 +1,18 @@
-Let's think of ways that we could improve this...
-I addition to the main textual content, comments should have:
+## Attachments
 
-## Comment Content and Metadata
+In the Text, JSON, and XML formats, attachments should be rendered using base64.
+In the Preview, and Arrange views, attachments should be rendered as images if they are images, othewise an icon.
+Attachments, should have an optional name.
 
-1.  - an associate user id
-2.  - a timestamp
-3.  - associated content hash
-4.  - an array of attachments -- if the attachment in an image, it's rendered
-5.  - any other metadata that makes sense
+## Control Placement
 
-## Complex Textual Representation
+The Preview view should preview the whole comment, inculding attachments and metadata as though it were in the arrange view.
 
-The text representation currently just represents the content. We should have it in a representation like this, similar to a HTTP request:
+The User ID input box and the Attachment button should exist as be part of the Edit view and thus hidden in the Preview view.
 
-```
-User-Id: <user id>
-Hash: <content hash>
-Timestamp: <timestamp>
+The Arrange, Text, JSON, and XML buttons should be right above the main view.
 
-<content>
-```
+Within each view,
 
-Replies can still be nested using indentation and attachments are represented similar to multipart http requests using a random Boundary header.
-
-## Live Preview
-
-There should be a way to live preview the textual format in addition to being abot to download it.
-
-In addition to the textual representation, there should be a way to export the comments as a JSON object and an XML object.
+- the data should default to being taller.
+- The download button should be below the data and feature the format name(e.g. Download Text, Download JSON, Download XML)

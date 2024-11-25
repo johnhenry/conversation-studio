@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Download } from "lucide-react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
-import { Comment } from "./types";
+import { Comment, Attachment } from "./types";
 import {
   exportCommentsText,
   exportCommentsJSON,
   exportCommentsXML,
 } from "./utils/export";
 import * as crypto from "crypto-js";
+import ExportPreview from "./components/ExportPreview";
 
 const generateContentHash = (content: string): string => {
   const hash = crypto.SHA256(content);
@@ -17,20 +17,27 @@ const generateContentHash = (content: string): string => {
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [exportPreview, setExportPreview] = useState<string>("");
-  const [showPreview, setShowPreview] = useState(false);
+  const [activeTab, setActiveTab] = useState<
+    "arrange" | "text" | "json" | "xml"
+  >("arrange");
+  const [userId, setUserId] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const addComment = (content: string) => {
     const comment: Comment = {
       id: Date.now().toString(),
       content,
       children: [],
-      userId: "user-" + Math.floor(Math.random() * 1000),
+      userId: userId || "user-" + Math.floor(Math.random() * 1000),
       timestamp: Date.now(),
       contentHash: generateContentHash(content),
-      attachments: [],
+      attachments: attachments.map((file) => ({
+        type: file.type,
+        url: URL.createObjectURL(file),
+      })),
     };
     setComments([...comments, comment]);
+    setAttachments([]); // Clear attachments after posting
   };
 
   const handleExport = (format: "text" | "json" | "xml") => {
@@ -47,18 +54,25 @@ function App() {
         break;
     }
 
-    if (format === "text") {
-      setExportPreview(data);
-      setShowPreview(!showPreview);
-    } else {
-      const blob = new Blob([data], { type: `application/${format}` });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `comments.${format}`;
-      a.click();
-      URL.revokeObjectURL(url);
+    const blob = new Blob([data], { type: `application/${format}` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `comments.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachments([...attachments, ...Array.from(e.target.files)]);
     }
+  };
+
+  const handleAttachmentRemove = (index: number) => {
+    const newAttachments = [...attachments];
+    newAttachments.splice(index, 1);
+    setAttachments(newAttachments);
   };
 
   return (
@@ -70,56 +84,88 @@ function App() {
               Comment Manager
             </h1>
             <div>
-              <div>
+              <div className="flex">
                 <button
-                  onClick={() => handleExport("text")}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 mr-2"
+                  onClick={() => setActiveTab("arrange")}
+                  className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
+                    activeTab === "arrange" ? "bg-gray-200" : ""
+                  }`}
                 >
-                  <Download size={20} />
+                  Arrange
+                </button>
+                <button
+                  onClick={() => setActiveTab("text")}
+                  className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
+                    activeTab === "text" ? "bg-gray-200" : ""
+                  }`}
+                >
                   Text
                 </button>
                 <button
-                  onClick={() => handleExport("json")}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mr-2"
+                  onClick={() => setActiveTab("json")}
+                  className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
+                    activeTab === "json" ? "bg-gray-200" : ""
+                  }`}
                 >
-                  <Download size={20} />
                   JSON
                 </button>
                 <button
-                  onClick={() => handleExport("xml")}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                  onClick={() => setActiveTab("xml")}
+                  className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors ${
+                    activeTab === "xml" ? "bg-gray-200" : ""
+                  }`}
                 >
-                  <Download size={20} />
                   XML
                 </button>
               </div>
-              {showPreview && (
-                <textarea
-                  className="w-full mt-2"
-                  placeholder="Exported data will appear here"
-                  value={exportPreview}
-                  readOnly
-                />
-              )}
             </div>
           </div>
 
           <div className="mb-8">
-            <CommentEditor onSubmit={addComment} />
+            <CommentEditor
+              onSubmit={addComment}
+              userId={userId}
+              setUserId={setUserId}
+              attachments={attachments}
+              onAttachmentUpload={handleAttachmentUpload}
+              onAttachmentRemove={handleAttachmentRemove}
+            />
           </div>
 
           <div className="space-y-4">
-            {comments.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                No comments yet. Add one to get started!
+            {activeTab === "arrange" && (
+              <div>
+                {comments.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    No comments yet. Add one to get started!
+                  </div>
+                ) : (
+                  <CommentTree
+                    comments={comments}
+                    updateComments={setComments}
+                    level={0}
+                    rootComments={comments}
+                    rootUpdateComments={setComments}
+                  />
+                )}
               </div>
-            ) : (
-              <CommentTree
-                comments={comments}
-                updateComments={setComments}
-                level={0}
-                rootComments={comments}
-                rootUpdateComments={setComments}
+            )}
+            {activeTab === "text" && (
+              <ExportPreview
+                data={exportCommentsText(comments)}
+                onDownload={() => handleExport("text")}
+              />
+            )}
+            {activeTab === "json" && (
+              <ExportPreview
+                data={exportCommentsJSON(comments)}
+                onDownload={() => handleExport("json")}
+              />
+            )}
+            {activeTab === "xml" && (
+              <ExportPreview
+                data={exportCommentsXML(comments)}
+                onDownload={() => handleExport("xml")}
               />
             )}
           </div>

@@ -1,47 +1,24 @@
-import React, { useState } from "react";
-import { Comment } from "../types";
-import {
-  exportCommentsText,
-  exportCommentsJSON,
-  exportCommentsXML,
-} from "../utils/export";
+import React from "react";
+import { Download } from "lucide-react";
 
 interface ExportPreviewProps {
-  comments: Comment[];
+  data: string;
+  onDownload: () => void;
 }
 
-const ExportPreview: React.FC<ExportPreviewProps> = ({ comments }) => {
-  const [format, setFormat] = useState<"text" | "json" | "xml">("text");
-  const [exportedData, setExportedData] = useState("");
-
-  const handleExport = () => {
-    let data = "";
-    switch (format) {
-      case "text":
-        data = exportCommentsText(comments);
-        break;
-      case "json":
-        data = exportCommentsJSON(comments);
-        break;
-      case "xml":
-        data = exportCommentsXML(comments);
-        break;
-    }
-
-    setExportedData(data);
-  };
-
+const ExportPreview: React.FC<ExportPreviewProps> = ({ data, onDownload }) => {
   return (
     <div>
-      <div>
-        <button onClick={() => setFormat("text")}>Text</button>
-        <button onClick={() => setFormat("json")}>JSON</button>
-        <button onClick={() => setFormat("xml")}>XML</button>
-        <button onClick={handleExport}>Export</button>
-      </div>
+      <button
+        onClick={onDownload}
+        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+      >
+        <Download size={20} /> Download
+      </button>
       <textarea
+        className="w-full mt-2"
         placeholder="Exported data will appear here"
-        value={exportedData}
+        value={data}
         readOnly
       />
     </div>

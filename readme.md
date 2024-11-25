@@ -1,6 +1,19 @@
 # Comment Manager
 
-This is a simple comment manager that allows you to add, delete, view, and (re)arrange comments.
+This is a simple comment manager that allows you to add, delete, view, rearrange, and export comments.
+
+## Features
+
+- **Add, Delete, View Comments:** Basic comment management functionalities.
+- **Rearrange Comments:** Drag and drop comments to create replies or move them to the top level. Comments below the top level have a button to move them up a level. All replies move with their parent comment.
+- **Comment Metadata:** Comments now include associated user ID, timestamp, and content hash.
+- **Export Options:** Export comments in various formats:
+  - **Text:** A nested textual representation, including metadata and attachments.
+  - **JSON:** A JSON object representing the comment structure.
+  - **XML:** An XML document representing the comment structure.
+- **Live Preview and Download:** Preview and download exported data in Text, JSON, or XML formats.
+- **User ID Input:** Specify a user ID when adding a comment. A random ID is generated if left blank.
+- **Attachment Uploads:** Upload, view, and remove attachments before posting a comment. Images are rendered in the preview.
 
 ## Arrangement
 
@@ -13,8 +26,8 @@ Whenever a comment moves, all of its replies move with it.
 
 ## Rendering
 
-Comments are rendered as HTML using Markdown.
+Comments are rendered as HTML using Markdown. A "Preview" view lets you see the rendered Markdown before posting.
 
-In addition to the standard "Edit" view for editing raw Markdown before posting, there's a "Preview" view that lets you see the rendered Markdown before posting.
+## Exporting
 
-An export button allows you to export the comments as a nested textual representation.
+The application now features four tabs: "Arrange", "Text", "JSON", and "XML". Clicking on a tab displays the corresponding view. The "Text", "JSON", and "XML" tabs provide download buttons to export the comments in the respective format.
