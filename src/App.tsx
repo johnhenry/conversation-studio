@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
-import { Comment, Attachment } from "./types";
-import {
-  exportCommentsText,
-  exportCommentsJSON,
-  exportCommentsXML,
-} from "./utils/export";
+import { Comment, Attachment, ExportFormat } from "./types";
+import { exportComments } from "./utils/export";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 
@@ -17,12 +13,44 @@ const generateContentHash = (content: string): string => {
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeTab, setActiveTab] = useState<
-    "arrange" | "text" | "json" | "xml"
-  >("arrange");
+  const [activeTab, setActiveTab] = useState<ExportFormat | "arrange">(
+    "arrange"
+  );
   const [userId, setUserId] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [draftContent, setDraftContent] = useState("");
+
+  const renderAttachment = (attachment: Attachment) => {
+    if (attachment.type && attachment.type.startsWith("image/")) {
+      return (
+        <div key={attachment.url} className="mt-2">
+          <img
+            src={attachment.url}
+            alt={attachment.name}
+            className="max-w-full h-auto rounded-lg border border-gray-200"
+            style={{ maxHeight: "200px" }}
+          />
+          <div className="text-sm text-gray-500 mt-1">{attachment.name}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={attachment.url}
+        className="mt-2 p-2 border rounded-lg border-gray-200 bg-gray-50"
+      >
+        <a
+          href={attachment.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-700 flex items-center gap-2"
+        >
+          📎 {attachment.name}
+        </a>
+      </div>
+    );
+  };
 
   const addComment = (content: string, attachments: Attachment[]) => {
     const comment: Comment = {
@@ -72,6 +100,7 @@ function App() {
             level={0}
             rootComments={comments}
             rootUpdateComments={setComments}
+            renderAttachment={renderAttachment}
           />
         );
       case "text":
@@ -81,13 +110,7 @@ function App() {
           <ExportPreview
             comments={comments}
             format={activeTab}
-            exportFn={
-              activeTab === "text"
-                ? exportCommentsText
-                : activeTab === "json"
-                ? exportCommentsJSON
-                : exportCommentsXML
-            }
+            exportFn={exportComments}
           />
         );
       default:
