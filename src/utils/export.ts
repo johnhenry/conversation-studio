@@ -68,6 +68,7 @@ export const exportCommentsText = async (
         base64Attachments.forEach((attachment) => {
           commentText += `${indent}--${boundary}\r\n`;
           commentText += `${indent}Content-Type: ${attachment.type}\r\n`;
+          commentText += `${indent}Content-Disposition: attachment; filename="${attachment.name}"\r\n`;
           commentText += `${indent}Content-Location: ${attachment.url}\r\n\n`;
         });
         commentText += `${indent}--${boundary}--\r\n`;
@@ -94,10 +95,19 @@ export const exportCommentsJSON = async (
       const base64Attachments = await Promise.all(
         comment.attachments.map(async (attachment) => {
           try {
-            return await toBase64(attachment.file);
+            const content = await toBase64(attachment.file);
+            return {
+              name: attachment.name,
+              type: attachment.type || "",
+              content: content,
+            };
           } catch (error) {
             console.error("Error converting to base64: ", error);
-            return "";
+            return {
+              name: attachment.name,
+              type: attachment.type || "",
+              content: "",
+            };
           }
         })
       );
