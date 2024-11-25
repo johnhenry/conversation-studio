@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Download } from "lucide-react";
+import { Download, Copy } from "lucide-react";
 import { Comment, ExportFormat } from "../types";
 
 interface ExportPreviewProps {
@@ -44,6 +44,11 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const handleCopy = async () => {
+    const exportedData = await exportFn(comments, format);
+    navigator.clipboard.writeText(exportedData);
+  };
+
   return (
     <div className="flex flex-col h-full">
       <textarea
@@ -53,12 +58,20 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
         value={data}
         readOnly
       />
-      <button
-        onClick={handleDownload}
-        className="px-4 py-2 mt-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 self-end disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <Download size={20} /> Download {format}
-      </button>
+      <div className="flex justify-end mt-2 gap-2">
+        <button
+          onClick={handleCopy}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Copy size={20} /> Copy {format}
+        </button>
+        <button
+          onClick={handleDownload}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download size={20} /> Download {format}
+        </button>
+      </div>
     </div>
   );
 };
