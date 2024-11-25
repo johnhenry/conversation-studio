@@ -1,4 +1,4 @@
-# Comment Manager
+# Conversation Manager
 
 This is a simple comment manager that allows you to add, delete, view, rearrange, and export comments.
 
