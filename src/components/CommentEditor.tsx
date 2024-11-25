@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { MessageSquarePlus, X, File } from "lucide-react";
-import MarkdownPreview from "./MarkdownPreview";
 import { Comment as CommentType, Attachment } from "../types";
+import {
+  exportCommentsText,
+  exportCommentsJSON,
+  exportCommentsXML,
+} from "../utils/export";
+import Comment from "./Comment";
 
 interface CommentEditorProps {
   onSubmit: (content: string, attachments: CommentType["attachments"]) => void;
@@ -26,11 +31,54 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 }) => {
   const [content, setContent] = useState(initialContent);
   const [isPreview, setIsPreview] = useState(false);
+  const [previewFormat, setPreviewFormat] = useState<
+    "text" | "json" | "xml" | null
+  >(null);
+  const previewRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = () => {
-    if (!content.trim()) return;
     onSubmit(content, attachments);
     setContent("");
+  };
+
+  const handlePreview = async (format: "text" | "json" | "xml") => {
+    const comment: CommentType = {
+      id: Date.now().toString(),
+      content,
+      children: [],
+      userId: userId || "user-" + Math.floor(Math.random() * 1000),
+      timestamp: Date.now(),
+      contentHash: "",
+      attachments,
+    };
+
+    let previewData = "";
+    try {
+      switch (format) {
+        case "text":
+          previewData = await exportCommentsText([comment]);
+          break;
+        case "json":
+          previewData = await exportCommentsJSON([comment]);
+          break;
+        case "xml":
+          previewData = await exportCommentsXML([comment]);
+          break;
+      }
+    } catch (error) {
+      console.error("Error generating preview:", error);
+    }
+
+    // Only set previewFormat if not in preview mode
+    if (!isPreview) {
+      setPreviewFormat(format);
+    }
+
+    if (previewRef.current) {
+      previewRef.current.value = previewData;
+      previewRef.current.style.height = "0px";
+      previewRef.current.style.height = previewRef.current.scrollHeight + "px";
+    }
   };
 
   const renderAttachment = (attachment: Attachment) => {
@@ -51,26 +99,28 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         </div>
       );
     } else {
-      return null; // Handle cases where attachment type is not provided
+      return null;
     }
+  };
+
+  const previewComment: CommentType = {
+    id: Date.now().toString(),
+    content,
+    children: [],
+    userId: userId || "user-" + Math.floor(Math.random() * 1000),
+    timestamp: Date.now(),
+    contentHash: "",
+    attachments,
   };
 
   return (
     <div className="space-y-2">
       <div className="flex gap-2 mb-2">
-        {!isPreview && (
-          <input
-            type="text"
-            placeholder="User ID"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            className="border rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        )}
-      </div>
-      <div className="flex gap-2 mb-2">
         <button
-          onClick={() => setIsPreview(false)}
+          onClick={() => {
+            setIsPreview(false);
+            setPreviewFormat(null); // Clear preview format when switching to edit mode
+          }}
           className={`px-3 py-1 rounded ${
             !isPreview ? "bg-blue-100 text-blue-700" : "bg-gray-100"
           }`}
@@ -85,15 +135,63 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         >
           Preview
         </button>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => handlePreview("text")}
+            className="px-3 py-1 rounded bg-gray-100"
+          >
+            Preview Text
+          </button>
+          <button
+            onClick={() => handlePreview("json")}
+            className="px-3 py-1 rounded bg-gray-100"
+          >
+            Preview JSON
+          </button>
+          <button
+            onClick={() => handlePreview("xml")}
+            className="px-3 py-1 rounded bg-gray-100"
+          >
+            Preview XML
+          </button>
+        </div>
+      </div>
+      <div className="flex gap-2 mb-2">
+        {!isPreview && !previewFormat && (
+          <label htmlFor="userIdInput" title="Enter your user ID">
+            User ID:
+            <input
+              type="text"
+              id="userIdInput"
+              placeholder="User ID"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              className="border rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </label>
+        )}
       </div>
 
       <div className="min-h-[100px]">
         {isPreview ? (
           <div className="border rounded-lg p-3 bg-gray-50">
-            <MarkdownPreview content={content} />
-            {attachments.map((attachment) => renderAttachment(attachment))}
-            <p className="font-bold">User ID: {userId}</p>
+            <Comment
+              comment={previewComment}
+              onDelete={() => {}}
+              onDragStart={() => {}}
+              onDrop={() => {}}
+              onPopUp={() => {}}
+              canPopUp={false}
+              renderAttachment={renderAttachment}
+            />
           </div>
+        ) : previewFormat ? (
+          <textarea
+            ref={previewRef}
+            className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            readOnly
+          />
         ) : (
           <textarea
             value={content}
@@ -108,18 +206,19 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           />
         )}
       </div>
-      {!isPreview && (
+      {!isPreview && !previewFormat && (
         <div>
-          <label htmlFor="attachments" className="block mb-1">
+          <label htmlFor="attachments" title="Choose files to attach">
             Attachments:
+            <input
+              type="file"
+              id="attachments"
+              multiple
+              onChange={onAttachmentUpload}
+              className="mb-2 block"
+              aria-label="Choose files to attach"
+            />
           </label>
-          <input
-            type="file"
-            id="attachments"
-            multiple
-            onChange={onAttachmentUpload}
-            className="mb-2"
-          />
           <ul>
             {attachments.map((attachment, index) => (
               <li key={index} className="flex items-center">
@@ -140,7 +239,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         <span>Supports Markdown. Press Ctrl+Enter to submit.</span>
         <button
           onClick={handleSubmit}
-          disabled={!content.trim()}
+          disabled={!content.trim() && attachments.length === 0}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <MessageSquarePlus size={20} />

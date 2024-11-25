@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Download } from "lucide-react";
 import { Comment } from "../types";
 
@@ -14,6 +14,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
   exportFn,
 }) => {
   const [data, setData] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,6 +24,14 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
 
     fetchData();
   }, [comments, format, exportFn]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "0px"; // Reset height to calculate actual height
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = scrollHeight + "px";
+    }
+  }, [data]);
 
   const handleDownload = async () => {
     const exportedData = await exportFn(comments);
@@ -38,7 +47,8 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({
   return (
     <div className="flex flex-col h-full">
       <textarea
-        className="w-full flex-grow border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        ref={textareaRef}
+        className="w-full flex-grow border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
         placeholder="Exported data will appear here"
         value={data}
         readOnly

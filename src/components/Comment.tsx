@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowUp, File } from "lucide-react";
-import { Comment as CommentType } from "../types";
+import React from "react";
+import { Trash2, GripVertical, ArrowUp } from "lucide-react";
+import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
 interface CommentProps {
@@ -10,6 +10,7 @@ interface CommentProps {
   onDrop: (e: React.DragEvent, targetId: string) => void;
   onPopUp: (id: string) => void;
   canPopUp: boolean;
+  renderAttachment: (attachment: Attachment) => React.ReactNode | null;
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -19,73 +20,22 @@ const Comment: React.FC<CommentProps> = ({
   onDrop,
   onPopUp,
   canPopUp,
+  renderAttachment,
 }) => {
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    const relatedTarget = e.relatedTarget as HTMLElement;
-    if (!e.currentTarget.contains(relatedTarget)) {
-      setIsDragOver(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-    onDrop(e, comment.id);
-  };
-
-  const renderAttachment = (attachment: {
-    url: string;
-    type?: string;
-    name: string;
-    file: File;
-  }) => {
-    if (attachment.type?.startsWith("image/")) {
-      return (
-        <div key={attachment.url} className="mt-2">
-          <img src={attachment.url} alt={attachment.name || "Attachment"} />
-          {attachment.name && <p className="text-xs mt-1">{attachment.name}</p>}
-        </div>
-      );
-    } else if (attachment.type) {
-      return (
-        <div key={attachment.url} className="mt-2 flex items-center">
-          <File size={20} className="mr-2" />
-          <a href={attachment.url} className="text-blue-500">
-            {attachment.name || attachment.url}
-          </a>
-        </div>
-      );
-    } else {
-      return null; // Handle cases where attachment type is not provided
-    }
-  };
-
   return (
     <div
       draggable
       onDragStart={(e) => onDragStart(e, comment)}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={`
-                relative p-4 rounded-lg border shadow-sm transition-all duration-200
-                ${
-                  isDragOver
-                    ? "border-blue-400 bg-blue-50"
-                    : "border-gray-200 bg-white"
-                }
-                hover:border-blue-300 group
-            `}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onDrop(e, comment.id);
+      }}
+      className={`relative p-4 rounded-lg border shadow-sm transition-all duration-200 border-gray-200 bg-white hover:border-blue-300 group`}
     >
       <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
         <GripVertical size={18} className="text-gray-400" />
