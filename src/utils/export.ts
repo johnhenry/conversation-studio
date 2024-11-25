@@ -88,7 +88,7 @@ export const exportCommentsText = async (
       let commentText = `${indent}User-Id: ${comment.userId}\n`;
       commentText += `${indent}Hash: ${comment.contentHash}\n`;
       commentText += `${indent}Timestamp: ${comment.timestamp}\n`;
-
+      commentText += `${indent}E-Tag: ${comment.id}\n`;
       const base64Attachments = await processAttachments(
         comment.attachments,
         truncate
@@ -132,7 +132,7 @@ export const exportCommentsJSON = async (
     comments,
     truncate
   );
-
+  console.log({ commentsWithBase64 });
   return JSON.stringify(commentsWithBase64, null, 2);
 };
 

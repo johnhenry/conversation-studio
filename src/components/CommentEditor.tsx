@@ -32,10 +32,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
   const [contentHash, setContentHash] = useState("");
-  const [previewUserId, setPreviewUserId] = useState(""); // Store preview user ID
+  const [previewUserId, setPreviewUserId] = useState("");
 
   useEffect(() => {
-    // Calculate preview user ID once
     setPreviewUserId(userId || "user-" + Math.floor(Math.random() * 1000));
   }, [userId]);
 
@@ -47,15 +46,24 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     if (attachment.type?.startsWith("image/")) {
       return (
         <div key={attachment.url} className="mt-2">
-          <img src={attachment.url} alt={attachment.name || "Attachment"} />
-          {attachment.name && <p className="text-xs mt-1">{attachment.name}</p>}
+          <img
+            src={attachment.url}
+            alt={attachment.name || "Attachment"}
+            className="max-w-full rounded-lg border border-gray-700"
+          />
+          {attachment.name && (
+            <p className="text-xs mt-1 text-gray-400">{attachment.name}</p>
+          )}
         </div>
       );
     } else if (attachment.type) {
       return (
         <div key={attachment.url} className="mt-2 flex items-center">
-          <File size={20} className="mr-2" />
-          <a href={attachment.url} className="text-blue-500">
+          <File size={20} className="mr-2 text-gray-400" />
+          <a
+            href={attachment.url}
+            className="text-blue-400 hover:text-blue-300"
+          >
             {attachment.name || attachment.url}
           </a>
         </div>
@@ -69,7 +77,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     id: Date.now().toString(),
     content,
     children: [],
-    userId: previewUserId, // Use previewUserId
+    userId: previewUserId,
     timestamp: Date.now(),
     contentHash: contentHash,
     attachments,
@@ -109,7 +117,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     contentHash,
     renderAttachment,
     previewUserId,
-  ]); // Add previewUserId to dependency array
+  ]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -117,7 +125,11 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         return (
           <>
             <div className="flex gap-2 mb-2">
-              <label htmlFor="userIdInput" title="Enter your user ID">
+              <label
+                htmlFor="userIdInput"
+                className="text-gray-300"
+                title="Enter your user ID"
+              >
                 User ID:
                 <input
                   type="text"
@@ -125,7 +137,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   placeholder="User ID"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  className="border rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </label>
             </div>
@@ -133,14 +145,14 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment using Markdown..."
-              className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   handleSubmit();
                 }
               }}
             />
-            <div>
+            <div className="text-gray-300">
               <label htmlFor="attachments" title="Choose files to attach">
                 Attachments:
                 <input
@@ -148,17 +160,18 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="attachments"
                   multiple
                   onChange={onAttachmentUpload}
-                  className="mb-2 block"
+                  className="mb-2 block text-gray-400"
                   aria-label="Choose files to attach"
                 />
               </label>
-              <ul>
+              <ul className="space-y-1">
                 {attachments.map((attachment, index) => (
-                  <li key={index} className="flex items-center">
+                  <li key={index} className="flex items-center text-gray-400">
                     <span className="mr-2">{attachment.name}</span>
                     <button
                       onClick={() => onAttachmentRemove(index)}
                       title={`Remove ${attachment.name}`}
+                      className="text-gray-500 hover:text-red-400"
                     >
                       <X size={16} />
                     </button>
@@ -170,7 +183,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         );
       case "preview":
         return (
-          <div className="border rounded-lg p-3 bg-gray-50">
+          <div className="border border-gray-700 rounded-lg p-3 bg-[#1A1A1B]">
             <CommentTree
               comments={[previewComment]}
               updateComments={() => {}}
@@ -193,7 +206,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={previewData}
               readOnly
               aria-label={`${activeTab.toUpperCase()} Preview Output`}
-              className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+              className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
             />
           </div>
         );
@@ -207,40 +220,40 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setActiveTab("edit")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
-            activeTab === "edit" ? "bg-gray-200" : ""
+          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+            activeTab === "edit" ? "bg-gray-700" : "bg-gray-800"
           }`}
         >
           Edit
         </button>
         <button
           onClick={() => setActiveTab("preview")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
-            activeTab === "preview" ? "bg-gray-200" : ""
+          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+            activeTab === "preview" ? "bg-gray-700" : "bg-gray-800"
           }`}
         >
           Preview
         </button>
         <button
           onClick={() => setActiveTab("text")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
-            activeTab === "text" ? "bg-gray-200" : ""
+          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+            activeTab === "text" ? "bg-gray-700" : "bg-gray-800"
           }`}
         >
           Preview Text
         </button>
         <button
           onClick={() => setActiveTab("json")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors mr-2 ${
-            activeTab === "json" ? "bg-gray-200" : ""
+          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+            activeTab === "json" ? "bg-gray-700" : "bg-gray-800"
           }`}
         >
           Preview JSON
         </button>
         <button
           onClick={() => setActiveTab("xml")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors ${
-            activeTab === "xml" ? "bg-gray-200" : ""
+          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 ${
+            activeTab === "xml" ? "bg-gray-700" : "bg-gray-800"
           }`}
         >
           Preview XML
@@ -250,7 +263,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       <div className="min-h-[100px]">{renderContent()}</div>
 
       {activeTab === "edit" && (
-        <div className="flex justify-between items-center text-sm text-gray-500">
+        <div className="flex justify-between items-center text-sm text-gray-400">
           <span>Supports Markdown. Press Ctrl+Enter to submit.</span>
           <button
             onClick={handleSubmit}
