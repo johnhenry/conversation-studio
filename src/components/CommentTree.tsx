@@ -174,7 +174,6 @@ const CommentTree: React.FC<CommentTreeProps> = ({
 
   return (
     <div
-      className="space-y-4"
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -182,7 +181,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       onDrop={(e) => handleDrop(e)}
     >
       {comments.map((comment) => (
-        <div key={comment.id} className="space-y-4">
+        <div key={comment.id}>
           <Comment
             comment={comment}
             onDelete={deleteComment}

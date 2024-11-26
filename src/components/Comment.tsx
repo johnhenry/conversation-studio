@@ -71,10 +71,8 @@ const Comment: React.FC<CommentProps> = ({
       )}
 
       <div
-        className={`relative rounded-md bg-[#1A1A1B] hover:bg-[#222223] border transition-all duration-200 ${
-          isBeingRepliedTo
-            ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-30"
-            : "border-gray-700 hover:border-gray-600"
+        className={`relative bg-[#1A1A1B] hover:bg-[#222223] transition-all duration-200 ${
+          isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30" : ""
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
         {/* Drag handle */}
@@ -90,9 +88,20 @@ const Comment: React.FC<CommentProps> = ({
           <button
             onClick={() => onPopUp(comment.id)}
             title="Move up one level"
-            className="absolute right-2 top-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
+            className="absolute right-8 top-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
           >
             <ArrowUp size={16} />
+          </button>
+        )}
+
+        {/* Reply button */}
+        {showDelete && (
+          <button
+            onClick={() => onReply(comment.id)}
+            title="Reply"
+            className="absolute right-2 top-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
+          >
+            <MessageSquare size={16} />
           </button>
         )}
 
@@ -140,8 +149,8 @@ const Comment: React.FC<CommentProps> = ({
             )}
           </div>
 
-          {/* Reply count and button */}
-          <div className="mt-2 flex items-center justify-between">
+          {/* Reply count */}
+          <div className="mt-2">
             <div className="text-xs text-gray-500">
               {comment.children.length > 0 && (
                 <span>
@@ -150,15 +159,6 @@ const Comment: React.FC<CommentProps> = ({
                 </span>
               )}
             </div>
-            {showDelete && (
-              <button
-                onClick={() => onReply(comment.id)}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <MessageSquare size={14} />
-                Reply
-              </button>
-            )}
           </div>
         </div>
       </div>
