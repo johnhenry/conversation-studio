@@ -141,13 +141,6 @@ function App() {
   const handleReply = (commentId: string) => {
     setReplyToId(commentId);
     setShowEditor(true);
-    // Scroll the editor into view
-    setTimeout(() => {
-      const editorElement = document.querySelector(".comment-editor");
-      if (editorElement) {
-        editorElement.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,7 +200,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303]">
+    <div className="min-h-screen bg-[#030303] pb-[300px]">
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-8">
@@ -230,38 +223,15 @@ function App() {
               </button>
               <button
                 onClick={() => {
-                  setShowEditor(true);
+                  setShowEditor(!showEditor);
                   setReplyToId(undefined);
                 }}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                Add Comment
+                New Comment
               </button>
             </div>
           </div>
-
-          {showEditor && (
-            <div className="mb-8 comment-editor">
-              <CommentEditor
-                onSubmit={addComment}
-                userId={userId}
-                setUserId={setUserId}
-                attachments={attachments}
-                onAttachmentUpload={handleAttachmentUpload}
-                onAttachmentRemove={handleAttachmentRemove}
-                content={draftContent}
-                setContent={setDraftContent}
-                buttonText={replyToId ? "Reply" : "Add Comment"}
-                parentId={replyToId}
-                onCancel={() => {
-                  setShowEditor(false);
-                  setReplyToId(undefined);
-                  setDraftContent("");
-                  setAttachments([]);
-                }}
-              />
-            </div>
-          )}
 
           <div className="flex mb-4">
             <button
@@ -301,6 +271,31 @@ function App() {
           <div className="mt-4 min-h-[300px]">{renderContent()}</div>
         </div>
       </div>
+
+      {showEditor && (
+        <div className="fixed bottom-0 left-0 right-0 bg-[#030303] border-t border-gray-700 shadow-lg">
+          <div className="max-w-4xl mx-auto p-6">
+            <CommentEditor
+              onSubmit={addComment}
+              userId={userId}
+              setUserId={setUserId}
+              attachments={attachments}
+              onAttachmentUpload={handleAttachmentUpload}
+              onAttachmentRemove={handleAttachmentRemove}
+              content={draftContent}
+              setContent={setDraftContent}
+              buttonText={replyToId ? "Reply" : "Add Comment"}
+              parentId={replyToId}
+              onCancel={() => {
+                setShowEditor(false);
+                setReplyToId(undefined);
+                setDraftContent("");
+                setAttachments([]);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

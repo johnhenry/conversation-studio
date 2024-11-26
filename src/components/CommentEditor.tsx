@@ -224,8 +224,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2 mb-4">
+    <div className="bg-[#1A1A1B] rounded-lg shadow-lg">
+      <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
         <button
           onClick={() => setActiveTab("edit")}
           className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
@@ -268,8 +268,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         </button>
       </div>
 
-      <div className="min-h-[100px]">{renderContent()}</div>
-      <div className="flex justify-between items-center text-sm text-gray-400">
+      <div className="p-4">{renderContent()}</div>
+
+      <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
         <span>Supports Markdown. Press Ctrl+Enter to submit.</span>
         <div className="flex gap-2">
           {onCancel && (
