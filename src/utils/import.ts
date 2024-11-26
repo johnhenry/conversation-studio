@@ -47,145 +47,136 @@ interface ParsedAttachment extends Omit<Attachment, "file"> {
   type: string;
 }
 
-const parseTextComment = (content: string): Comment[] => {
+const parseMultipartContent = (content: string): Comment[] => {
   const comments: Comment[] = [];
-  const lines = content.split("\n");
+  const commentMap = new Map<string, Comment>();
+
+  // Find the boundary from the Content-Type header
+  const boundaryMatch = content.match(/boundary="([^"]+)"/);
+  if (!boundaryMatch) return [];
+
+  const boundary = boundaryMatch[1];
+  const parts = content
+    .split(new RegExp(`--${boundary}(?:--|\\n)`))
+    .filter(Boolean)
+    .filter((part) => part.trim().length > 0);
+
+  // Skip the first part if it's just the Content-Type header
+  const startIndex = parts[0].trim().startsWith("Content-Type:") ? 1 : 0;
+
   let currentComment: Partial<Comment> | null = null;
-  let currentBoundary: string | null = null;
-  let parentBoundary: string | null = null;
-  let parentId: string | null = null;
-  let currentAttachment: Partial<Attachment> | null = null;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  for (let i = startIndex; i < parts.length; i++) {
+    const part = parts[i].trim();
+    if (!part) continue;
 
-    if (line.startsWith("Content-Type: multipart/mixed; boundary=")) {
-      parentBoundary = currentBoundary;
-      currentBoundary = line.match(/boundary="([^"]+)"/)?.[1] || null;
+    // Check if this part contains a nested multipart content
+    const nestedBoundaryMatch = part.match(
+      /Content-Type: multipart\/mixed; boundary="([^"]+)"/
+    );
+
+    if (nestedBoundaryMatch) {
+      // This is a nested comment, recursively parse it
+      const nestedComments = parseMultipartContent(part);
+      if (nestedComments.length > 0) {
+        const nestedComment = nestedComments[0];
+
+        // If this nested comment has a parent ID, add it to the parent's children
+        const parentId = part.match(/Parent-Id: ([^\n]+)/)?.[1]?.trim();
+        if (parentId && commentMap.has(parentId)) {
+          const parent = commentMap.get(parentId)!;
+          parent.children.push(nestedComment);
+        } else {
+          comments.push(nestedComment);
+        }
+      }
       continue;
     }
 
-    if (
-      line.startsWith("--") &&
-      currentBoundary &&
-      line.includes(currentBoundary)
-    ) {
-      if (line.endsWith("--")) {
-        // End of multipart section
-        currentBoundary = parentBoundary;
-        parentBoundary = null;
+    // Check if this part is an attachment
+    if (part.includes("Content-Disposition: attachment;")) {
+      if (currentComment) {
+        const nameMatch = part.match(/filename="([^"]+)"/);
+        const typeMatch = part.match(/Content-Type: ([^\n]+)/);
+        const urlMatch = part
+          .split(/\r?\n\r?\n/)
+          .pop()
+          ?.trim();
+
+        if (nameMatch && typeMatch && urlMatch) {
+          currentComment.attachments?.push({
+            name: nameMatch[1],
+            type: typeMatch[1].trim(),
+            url: urlMatch,
+            file: new File([], nameMatch[1]),
+          });
+        }
+      }
+      continue;
+    }
+
+    // This must be a comment part
+    const lines = part.split("\n");
+    currentComment = {
+      id: "",
+      userId: "",
+      timestamp: 0,
+      contentHash: "",
+      content: "",
+      attachments: [],
+      children: [],
+    };
+
+    let metadataEnded = false;
+    const contentLines: string[] = [];
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      if (!trimmedLine) {
+        if (!metadataEnded && currentComment.id) {
+          metadataEnded = true;
+        }
         continue;
       }
 
-      // Save current attachment if exists
-      if (currentAttachment && currentComment?.attachments) {
-        currentComment.attachments.push({
-          name: currentAttachment.name || "",
-          url: currentAttachment.url || "",
-          type: currentAttachment.type || "",
-          file: new File([], currentAttachment.name || ""),
-        });
-        currentAttachment = null;
+      if (!metadataEnded) {
+        if (trimmedLine.startsWith("User-Id:")) {
+          currentComment.userId = trimmedLine
+            .substring("User-Id:".length)
+            .trim();
+        } else if (trimmedLine.startsWith("Hash:")) {
+          currentComment.contentHash = trimmedLine
+            .substring("Hash:".length)
+            .trim();
+        } else if (trimmedLine.startsWith("Timestamp:")) {
+          currentComment.timestamp = parseInt(
+            trimmedLine.substring("Timestamp:".length).trim()
+          );
+        } else if (trimmedLine.startsWith("Id:")) {
+          currentComment.id = trimmedLine.substring("Id:".length).trim();
+        }
+      } else {
+        contentLines.push(trimmedLine);
       }
-
-      if (currentComment) {
-        if (!currentComment.attachments) currentComment.attachments = [];
-        if (!currentComment.children) currentComment.children = [];
-        comments.push(currentComment as Comment);
-      }
-
-      currentComment = {
-        id: "",
-        userId: "",
-        timestamp: 0,
-        contentHash: "",
-        content: "",
-        attachments: [],
-        children: [],
-      };
-      continue;
     }
 
-    if (!currentComment) continue;
-
-    if (line.startsWith("Content-Disposition: reply; to=")) {
-      parentId = line.match(/to=([^;\s]+)/)?.[1] || null;
-      continue;
+    if (contentLines.length > 0) {
+      currentComment.content = contentLines.join("\n");
     }
 
-    if (line.startsWith("Content-Disposition: attachment;")) {
-      currentAttachment = {};
-      const filename = line.match(/filename="([^"]+)"/)?.[1];
-      if (filename) {
-        currentAttachment.name = filename;
-      }
-      continue;
-    }
-
-    if (
-      line.startsWith("Content-Type: ") &&
-      !line.includes("multipart/mixed")
-    ) {
-      if (currentAttachment) {
-        currentAttachment.type = line.substring("Content-Type: ".length);
-      }
-      continue;
-    }
-
-    if (line.startsWith("Content-Data: ")) {
-      if (currentAttachment) {
-        currentAttachment.url = line.substring("Content-Data: ".length);
-      }
-      continue;
-    }
-
-    if (line.startsWith("User-Id: ")) {
-      currentComment.userId = line.substring("User-Id: ".length);
-    } else if (line.startsWith("Hash: ")) {
-      currentComment.contentHash = line.substring("Hash: ".length);
-    } else if (line.startsWith("Timestamp: ")) {
-      currentComment.timestamp = parseInt(line.substring("Timestamp: ".length));
-    } else if (line.startsWith("E-Tag: ")) {
-      currentComment.id = line.substring("E-Tag: ".length);
-    } else if (line.length > 0 && !line.startsWith("Content-")) {
-      currentComment.content = line;
+    if (currentComment.id) {
+      const comment = currentComment as Comment;
+      commentMap.set(comment.id, comment);
+      comments.push(comment);
     }
   }
-
-  // Save last attachment if exists
-  if (currentAttachment && currentComment?.attachments) {
-    currentComment.attachments.push({
-      name: currentAttachment.name || "",
-      url: currentAttachment.url || "",
-      type: currentAttachment.type || "",
-      file: new File([], currentAttachment.name || ""),
-    });
-  }
-
-  // Save last comment if exists
-  if (currentComment) {
-    if (!currentComment.attachments) currentComment.attachments = [];
-    if (!currentComment.children) currentComment.children = [];
-    comments.push(currentComment as Comment);
-  }
-
-  // Process reply relationships
-  const commentMap = new Map<string, Comment>();
-  comments.forEach((comment) => commentMap.set(comment.id, comment));
-
-  comments.forEach((comment) => {
-    if (parentId && commentMap.has(parentId)) {
-      const parent = commentMap.get(parentId)!;
-      parent.children.push(comment);
-      // Remove from root level
-      const index = comments.indexOf(comment);
-      if (index > -1) {
-        comments.splice(index, 1);
-      }
-    }
-  });
 
   return comments;
+};
+
+const parseTextComment = (content: string): Comment[] => {
+  return parseMultipartContent(content);
 };
 
 const convertParsedToComment = (parsed: ParsedComment): Comment => {

@@ -57,53 +57,64 @@ const processCommentsWithAttachments = (
   });
 };
 
-export const exportCommentsText = async (
+const formatCommentText = (
+  comment: Comment,
+  truncate: boolean = true,
+  parentId?: string,
+  level: number = 0
+): string => {
+  const boundary = generateBoundary();
+  let commentText = `Content-Type: multipart/mixed; boundary="${boundary}"\n\n`;
+
+  // Comment metadata and content part
+  commentText += `--${boundary}\n`;
+  commentText += `Content-Type: text/plain; charset="UTF-8"\n`;
+  commentText += `User-Id: ${comment.userId}\n`;
+  commentText += `Hash: ${comment.contentHash}\n`;
+  commentText += `Timestamp: ${comment.timestamp}\n`;
+  commentText += `Id: ${comment.id}\n`;
+  if (parentId) {
+    commentText += `Parent-Id: ${parentId}\n`;
+  }
+  commentText += `\n${comment.content}\n`;
+
+  // Attachments
+  const processedAttachments = processAttachments(
+    comment.attachments,
+    truncate
+  );
+  for (const attachment of processedAttachments) {
+    commentText += `\n--${boundary}\n`;
+    commentText += `Content-Type: ${attachment.type}\n`;
+    commentText += `Content-Disposition: attachment; filename="${attachment.name}"\n`;
+    commentText += `Content-Transfer-Encoding: base64\n`;
+    commentText += `\n${attachment.url}\n`;
+  }
+
+  // Children
+  for (const child of comment.children) {
+    commentText += `\n--${boundary}\n`;
+    commentText += formatCommentText(child, truncate, comment.id, level + 1);
+  }
+
+  commentText += `\n--${boundary}--\n`;
+  return commentText;
+};
+
+export const exportCommentsText = (
   comments: Comment[],
   truncate: boolean = true
-): Promise<string> => {
-  const processedComments = comments.map((comment) => {
-    const mainBoundary = generateBoundary();
-    let commentText = `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n\n`;
+): string => {
+  const mainBoundary = generateBoundary();
+  let output = `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n`;
 
-    // Comment metadata and content part
-    commentText += `--${mainBoundary}\r\n`;
-    commentText += `Content-Type: text/plain; charset="UTF-8"\r\n`;
-    commentText += `User-Id: ${comment.userId}\n`;
-    commentText += `Hash: ${comment.contentHash}\n`;
-    commentText += `Timestamp: ${comment.timestamp}\n`;
-    commentText += `E-Tag: ${comment.id}\n\n`;
-    commentText += `${comment.content}\r\n`;
+  for (const comment of comments) {
+    output += `\n--${mainBoundary}\n`;
+    output += formatCommentText(comment, truncate);
+  }
 
-    // Attachments
-    const processedAttachments = processAttachments(
-      comment.attachments,
-      truncate
-    );
-    if (processedAttachments && processedAttachments.length > 0) {
-      for (const attachment of processedAttachments) {
-        commentText += `\r\n--${mainBoundary}\r\n`;
-        commentText += `Content-Type: ${attachment.type}\r\n`;
-        commentText += `Content-Disposition: attachment; filename="${attachment.name}"\r\n`;
-        commentText += `Content-Transfer-Encoding: base64\r\n`;
-        commentText += `Content-Data: ${attachment.url}\r\n\n`;
-      }
-    }
-
-    // Replies (children)
-    if (comment.children.length > 0) {
-      for (const child of comment.children) {
-        commentText += `\r\n--${mainBoundary}\r\n`;
-        commentText += `Content-Disposition: reply; to=${comment.id}\r\n`;
-        const childContent = exportCommentsText([child], truncate);
-        commentText += childContent;
-      }
-    }
-
-    commentText += `\r\n--${mainBoundary}--\r\n`;
-    return commentText;
-  });
-
-  return processedComments.join("\n");
+  output += `\n--${mainBoundary}--\n`;
+  return output;
 };
 
 export const exportCommentsJSON = async (
