@@ -11,6 +11,8 @@ interface CommentTreeProps {
   rootUpdateComments?: (comments: CommentType[]) => void;
   isPreview?: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
+  onReply?: (id: string) => void;
+  replyToId?: string;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -22,6 +24,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   rootUpdateComments,
   isPreview = false,
   renderAttachment,
+  onReply,
+  replyToId,
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -185,10 +189,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onDragStart={handleDragStart}
             onDrop={handleDrop}
             onPopUp={handlePopUp}
+            onReply={onReply || (() => {})}
             level={level}
             canPopUp={level > 0}
             showDelete={!isPreview}
             renderAttachment={renderAttachment}
+            isBeingRepliedTo={replyToId === comment.id}
           />
           {comment.children.length > 0 && (
             <div className="ml-8">
@@ -206,6 +212,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 rootUpdateComments={topLevelUpdate}
                 isPreview={isPreview}
                 renderAttachment={renderAttachment}
+                onReply={onReply}
+                replyToId={replyToId}
               />
             </div>
           )}

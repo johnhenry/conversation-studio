@@ -5,7 +5,11 @@ import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 
 interface CommentEditorProps {
-  onSubmit: (content: string, attachments: CommentType["attachments"]) => void;
+  onSubmit: (
+    content: string,
+    attachments: CommentType["attachments"],
+    parentId?: string
+  ) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
   attachments: CommentType["attachments"];
@@ -14,6 +18,8 @@ interface CommentEditorProps {
   content: string;
   setContent: React.Dispatch<React.SetStateAction<string>>;
   buttonText?: string;
+  parentId?: string;
+  onCancel?: () => void;
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
@@ -28,6 +34,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   content,
   setContent,
   buttonText = "Add Comment",
+  parentId,
+  onCancel,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
@@ -39,7 +47,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   }, [userId]);
 
   const handleSubmit = () => {
-    onSubmit(content, attachments);
+    onSubmit(content, attachments, parentId);
   };
 
   const renderAttachment = (attachment: Attachment) => {
@@ -263,14 +271,24 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       <div className="min-h-[100px]">{renderContent()}</div>
       <div className="flex justify-between items-center text-sm text-gray-400">
         <span>Supports Markdown. Press Ctrl+Enter to submit.</span>
-        <button
-          onClick={handleSubmit}
-          disabled={!content.trim() && attachments.length === 0}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <MessageSquarePlus size={20} />
-          {buttonText}
-        </button>
+        <div className="flex gap-2">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            onClick={handleSubmit}
+            disabled={!content.trim() && attachments.length === 0}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <MessageSquarePlus size={20} />
+            {buttonText}
+          </button>
+        </div>
       </div>
     </div>
   );

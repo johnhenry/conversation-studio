@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, GripVertical, ArrowUp } from "lucide-react";
+import { Trash2, GripVertical, ArrowUp, MessageSquare } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -9,10 +9,12 @@ interface CommentProps {
   onDragStart: (e: React.DragEvent, comment: CommentType) => void;
   onDrop: (e: React.DragEvent, targetId: string) => void;
   onPopUp: (id: string) => void;
+  onReply: (id: string) => void;
   canPopUp: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
   showDelete: boolean;
   level: number;
+  isBeingRepliedTo?: boolean;
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -21,10 +23,12 @@ const Comment: React.FC<CommentProps> = ({
   onDragStart,
   onDrop,
   onPopUp,
+  onReply,
   canPopUp,
   renderAttachment,
   showDelete,
   level,
+  isBeingRepliedTo,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
 
@@ -67,9 +71,11 @@ const Comment: React.FC<CommentProps> = ({
       )}
 
       <div
-        className={`relative rounded-md bg-[#1A1A1B] hover:bg-[#222223] border border-gray-700 hover:border-gray-600 ${
-          isDragOver ? "bg-[#1d2535]" : ""
-        }`}
+        className={`relative rounded-md bg-[#1A1A1B] hover:bg-[#222223] border transition-all duration-200 ${
+          isBeingRepliedTo
+            ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-30"
+            : "border-gray-700 hover:border-gray-600"
+        } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
         {/* Drag handle */}
         <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
@@ -114,6 +120,12 @@ const Comment: React.FC<CommentProps> = ({
             <span className="text-gray-600 text-xs">
               [{comment.contentHash.slice(0, 6)}]
             </span>
+            {isBeingRepliedTo && (
+              <>
+                <span className="text-gray-500">•</span>
+                <span className="text-blue-400">Replying to this comment</span>
+              </>
+            )}
           </div>
 
           {/* Content section */}
@@ -128,13 +140,26 @@ const Comment: React.FC<CommentProps> = ({
             )}
           </div>
 
-          {/* Reply count */}
-          {comment.children.length > 0 && (
-            <div className="mt-2 text-xs text-gray-500">
-              {comment.children.length}{" "}
-              {comment.children.length === 1 ? "reply" : "replies"}
+          {/* Reply count and button */}
+          <div className="mt-2 flex items-center justify-between">
+            <div className="text-xs text-gray-500">
+              {comment.children.length > 0 && (
+                <span>
+                  {comment.children.length}{" "}
+                  {comment.children.length === 1 ? "reply" : "replies"}
+                </span>
+              )}
             </div>
-          )}
+            {showDelete && (
+              <button
+                onClick={() => onReply(comment.id)}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <MessageSquare size={14} />
+                Reply
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

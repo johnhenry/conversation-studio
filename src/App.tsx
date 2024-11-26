@@ -19,6 +19,7 @@ function App() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
+  const [replyToId, setReplyToId] = useState<string | undefined>();
 
   const renderAttachment = (attachment: Attachment) => {
     if (attachment.type && attachment.type.startsWith("image/")) {
@@ -52,7 +53,33 @@ function App() {
     );
   };
 
-  const addComment = (content: string, attachments: Attachment[]) => {
+  const findAndAddReply = (
+    comments: Comment[],
+    parentId: string,
+    newComment: Comment
+  ): Comment[] => {
+    return comments.map((comment) => {
+      if (comment.id === parentId) {
+        return {
+          ...comment,
+          children: [...comment.children, newComment],
+        };
+      }
+      if (comment.children.length > 0) {
+        return {
+          ...comment,
+          children: findAndAddReply(comment.children, parentId, newComment),
+        };
+      }
+      return comment;
+    });
+  };
+
+  const addComment = (
+    content: string,
+    attachments: Attachment[],
+    parentId?: string
+  ) => {
     const comment: Comment = {
       id: Date.now().toString(),
       content,
@@ -62,10 +89,19 @@ function App() {
       contentHash: generateContentHash(content),
       attachments,
     };
-    setComments([...comments, comment]);
+
+    if (parentId) {
+      setComments((prevComments) =>
+        findAndAddReply(prevComments, parentId, comment)
+      );
+    } else {
+      setComments((prevComments) => [...prevComments, comment]);
+    }
+
     setAttachments([]);
     setDraftContent("");
     setShowEditor(false);
+    setReplyToId(undefined);
   };
 
   const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,6 +123,18 @@ function App() {
     setAttachments(newAttachments);
   };
 
+  const handleReply = (commentId: string) => {
+    setReplyToId(commentId);
+    setShowEditor(true);
+    // Scroll the editor into view
+    setTimeout(() => {
+      const editorElement = document.querySelector(".comment-editor");
+      if (editorElement) {
+        editorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "arrange":
@@ -102,6 +150,8 @@ function App() {
             rootComments={comments}
             rootUpdateComments={setComments}
             renderAttachment={renderAttachment}
+            onReply={handleReply}
+            replyToId={replyToId}
           />
         );
       case "text":
@@ -122,7 +172,10 @@ function App() {
               Conversation Manager
             </h1>
             <button
-              onClick={() => setShowEditor(true)}
+              onClick={() => {
+                setShowEditor(true);
+                setReplyToId(undefined);
+              }}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
               Add Comment
@@ -130,7 +183,7 @@ function App() {
           </div>
 
           {showEditor && (
-            <div className="mb-8">
+            <div className="mb-8 comment-editor">
               <CommentEditor
                 onSubmit={addComment}
                 userId={userId}
@@ -140,6 +193,14 @@ function App() {
                 onAttachmentRemove={handleAttachmentRemove}
                 content={draftContent}
                 setContent={setDraftContent}
+                buttonText={replyToId ? "Reply" : "Add Comment"}
+                parentId={replyToId}
+                onCancel={() => {
+                  setShowEditor(false);
+                  setReplyToId(undefined);
+                  setDraftContent("");
+                  setAttachments([]);
+                }}
               />
             </div>
           )}
