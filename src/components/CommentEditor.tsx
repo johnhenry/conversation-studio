@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { MessageSquarePlus, X, File } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
@@ -41,6 +41,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewData, setPreviewData] = useState("");
   const [contentHash, setContentHash] = useState("");
   const [previewUserId, setPreviewUserId] = useState("");
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
     setPreviewUserId(userId || "user-" + Math.floor(Math.random() * 1000));
@@ -50,7 +51,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     onSubmit(content, attachments, parentId);
   };
 
-  const renderAttachment = (attachment: Attachment) => {
+  const renderAttachment = useCallback((attachment: Attachment) => {
     if (attachment.type?.startsWith("image/")) {
       return (
         <div key={attachment.url} className="mt-2">
@@ -79,33 +80,39 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     } else {
       return null;
     }
-  };
-
-  const previewComment: CommentType = {
-    id: Date.now().toString(),
-    content,
-    children: [],
-    userId: previewUserId,
-    timestamp: Date.now(),
-    contentHash: contentHash,
-    attachments,
-    deleted: false,
-    renderAttachment,
-  };
+  }, []);
 
   useEffect(() => {
-    const updatePreviewData = async () => {
+    const timeoutId = setTimeout(async () => {
       if (activeTab === "text" || activeTab === "json" || activeTab === "xml") {
         try {
+          // Only create preview comment when needed
+          const previewComment: CommentType = {
+            id: `preview-${Date.now()}`,
+            content: content || "(No content)",
+            children: [],
+            userId: previewUserId || "(No user ID)",
+            timestamp: Date.now(),
+            contentHash: contentHash || "(No hash)",
+            attachments,
+            deleted: false,
+            renderAttachment,
+          };
+
           const data = await exportComments([previewComment], activeTab);
           setPreviewData(data);
+          setPreviewError(null);
         } catch (error) {
           console.error("Error generating preview:", error);
-          setPreviewData("Error generating preview");
+          setPreviewError(
+            error instanceof Error ? error.message : "Error generating preview"
+          );
+          setPreviewData("");
         }
       }
-    };
+    }, 500);
 
+    // Update content hash
     const encoder = new TextEncoder();
     const data = encoder.encode(content);
     crypto.subtle.digest("SHA-256", data).then((hashBuffer) => {
@@ -116,16 +123,29 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       setContentHash(hashHex.substring(0, 7));
     });
 
-    updatePreviewData();
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [
     activeTab,
     content,
-    userId,
+    previewUserId,
     attachments,
     contentHash,
     renderAttachment,
-    previewUserId,
   ]);
+
+  const previewComment: CommentType = {
+    id: `preview-${Date.now()}`,
+    content: content || "(No content)",
+    children: [],
+    userId: previewUserId,
+    timestamp: Date.now(),
+    contentHash: contentHash,
+    attachments,
+    deleted: false,
+    renderAttachment,
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -204,6 +224,13 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       case "text":
       case "json":
       case "xml":
+        if (previewError) {
+          return (
+            <div className="text-red-500 p-4 rounded-lg bg-red-100/10">
+              {previewError}
+            </div>
+          );
+        }
         return (
           <div>
             <label htmlFor="previewOutput" className="sr-only">

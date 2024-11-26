@@ -1,96 +1,165 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Download, Copy } from "lucide-react";
-import { Comment, ExportFormat } from "../types";
-import {
-  exportComments,
-  exportCommentsJSON,
-  exportCommentsText,
-  exportCommentsXML,
-} from "../utils/export";
-
-interface ExportPreviewProps {
-  comments: Comment[];
-  format: ExportFormat;
-}
+import { ExportPreviewProps } from "../types";
+import { exportComments } from "../utils/export";
 
 const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
-  const [data, setData] = useState("");
+  const [state, setState] = useState({
+    data: "",
+    isLoading: false,
+    error: null as string | null,
+  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const exportRef = useRef({ comments, format });
 
+  // Update ref when props change
   useEffect(() => {
-    const fetchData = async () => {
-      const exportedData = await exportComments(comments, format);
-      setData(exportedData);
-    };
-
-    fetchData();
+    exportRef.current = { comments, format };
   }, [comments, format]);
 
+  // Handle export
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "0px";
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = scrollHeight + "px";
-    }
-  }, [data]);
+    let mounted = true;
 
-  const handleDownload = async () => {
-    let exportedData = "";
-    switch (format) {
-      case "text":
-        exportedData = await exportCommentsText(comments, false);
-        break;
-      case "json":
-        exportedData = await exportCommentsJSON(comments, false);
-        break;
-      case "xml":
-        exportedData = await exportCommentsXML(comments, false);
-        break;
-    }
+    const generateExport = () => {
+      if (!mounted) return;
 
-    const blob = new Blob([exportedData], { type: `application/${format}` });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `comments.${format}`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+      setState((prev) => ({ ...prev, isLoading: true, error: null, data: "" }));
 
-  const handleCopy = async () => {
-    let exportedData = "";
-    switch (format) {
-      case "text":
-        exportedData = await exportCommentsText(comments, false);
-        break;
-      case "json":
-        exportedData = await exportCommentsJSON(comments, false);
-        break;
-      case "xml":
-        exportedData = await exportCommentsXML(comments, false);
-        break;
+      try {
+        // Validate input
+        if (!Array.isArray(comments)) {
+          throw new Error("Invalid comments data");
+        }
+
+        // Log export attempt
+        console.log("Attempting export:", {
+          format,
+          commentsCount: comments.length,
+        });
+
+        // Generate export
+        const result = exportComments(comments, format);
+
+        if (mounted) {
+          setState((prev) => ({
+            ...prev,
+            data: result,
+            isLoading: false,
+            error: null,
+          }));
+        }
+      } catch (err) {
+        console.error("Export error:", err);
+        if (mounted) {
+          setState((prev) => ({
+            ...prev,
+            error:
+              err instanceof Error ? err.message : "Failed to generate preview",
+            isLoading: false,
+            data: "",
+          }));
+        }
+      }
+    };
+
+    // Small delay to allow UI to update
+    const timeoutId = setTimeout(generateExport, 100);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [comments, format]);
+
+  const handleDownload = useCallback(() => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      const result = exportComments(
+        exportRef.current.comments,
+        exportRef.current.format
+      );
+
+      const blob = new Blob([result], { type: `application/${format}` });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `comments.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setState((prev) => ({ ...prev, isLoading: false }));
+    } catch (err) {
+      console.error("Download error:", err);
+      setState((prev) => ({
+        ...prev,
+        error: err instanceof Error ? err.message : "Failed to download file",
+        isLoading: false,
+      }));
     }
-    navigator.clipboard.writeText(exportedData);
-  };
+  }, [format]);
+
+  const handleCopy = useCallback(() => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      const result = exportComments(
+        exportRef.current.comments,
+        exportRef.current.format
+      );
+      navigator.clipboard.writeText(result);
+
+      setState((prev) => ({ ...prev, isLoading: false }));
+    } catch (err) {
+      console.error("Copy error:", err);
+      setState((prev) => ({
+        ...prev,
+        error:
+          err instanceof Error ? err.message : "Failed to copy to clipboard",
+        isLoading: false,
+      }));
+    }
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
-      <textarea
-        ref={textareaRef}
-        className="w-full flex-grow border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-        placeholder="Exported data will appear here"
-        value={data}
-        readOnly
-      />
+      {state.isLoading && (
+        <div className="flex items-center gap-2 text-blue-500 mb-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+          Processing...
+        </div>
+      )}
+      {state.error ? (
+        <div className="text-red-500 p-4 rounded-lg bg-red-100/10 flex flex-col gap-2">
+          <div className="font-medium">Error generating preview:</div>
+          <div>{state.error}</div>
+          <div className="text-sm opacity-75">
+            Try switching back to the Arrange tab and then back to this tab.
+          </div>
+        </div>
+      ) : (
+        <textarea
+          ref={textareaRef}
+          className="w-full flex-grow border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-[#1A1A1B] text-gray-300"
+          placeholder={
+            state.isLoading ? "Processing..." : "Exported data will appear here"
+          }
+          value={state.data}
+          readOnly
+        />
+      )}
       <div className="flex justify-end mt-2 gap-2">
         <button
           onClick={handleCopy}
+          disabled={state.isLoading || !state.data}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Copy size={20} /> Copy {format}
         </button>
         <button
           onClick={handleDownload}
+          disabled={state.isLoading || !state.data}
           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download size={20} /> Download {format}
@@ -100,4 +169,11 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
   );
 };
 
-export default ExportPreview;
+// Use React.memo to prevent unnecessary re-renders
+export default React.memo(ExportPreview, (prevProps, nextProps) => {
+  // Only re-render if the format changes or if the comments array reference changes
+  return (
+    prevProps.format === nextProps.format &&
+    prevProps.comments === nextProps.comments
+  );
+});
