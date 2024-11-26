@@ -38,7 +38,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
     let exportedData = "";
     switch (format) {
       case "text":
-        exportedData = await exportCommentsText(comments, 0, false);
+        exportedData = await exportCommentsText(comments, false);
         break;
       case "json":
         exportedData = await exportCommentsJSON(comments, false);
@@ -61,7 +61,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
     let exportedData = "";
     switch (format) {
       case "text":
-        exportedData = await exportCommentsText(comments, 0, false);
+        exportedData = await exportCommentsText(comments, false);
         break;
       case "json":
         exportedData = await exportCommentsJSON(comments, false);

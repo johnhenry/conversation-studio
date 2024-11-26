@@ -79,49 +79,52 @@ const processCommentsWithAttachments = async (
 
 export const exportCommentsText = async (
   comments: Comment[],
-  level = 0,
   truncate: boolean = true
 ): Promise<string> => {
   const processedComments = await Promise.all(
     comments.map(async (comment) => {
-      const indent = "\t".repeat(level);
-      let commentText = `${indent}User-Id: ${comment.userId}\n`;
-      commentText += `${indent}Hash: ${comment.contentHash}\n`;
-      commentText += `${indent}Timestamp: ${comment.timestamp}\n`;
-      commentText += `${indent}E-Tag: ${comment.id}\n`;
+      const mainBoundary = generateBoundary();
+      let commentText = `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n\n`;
+
+      // Comment metadata and content part
+      commentText += `--${mainBoundary}\r\n`;
+      commentText += `Content-Type: text/plain; charset="UTF-8"\r\n`;
+      commentText += `User-Id: ${comment.userId}\n`;
+      commentText += `Hash: ${comment.contentHash}\n`;
+      commentText += `Timestamp: ${comment.timestamp}\n`;
+      commentText += `E-Tag: ${comment.id}\n\n`;
+      commentText += `${comment.content}\r\n`;
+
+      // Attachments
       const base64Attachments = await processAttachments(
         comment.attachments,
         truncate
       );
-
       if (base64Attachments && base64Attachments.length > 0) {
-        const boundary = generateBoundary();
-        commentText += `${indent}Content-Type: multipart/mixed; boundary="${boundary}"\n\n`;
-
-        commentText += `${indent}--${boundary}\r\n`;
-        commentText += `${indent}Content-Type: text/plain; charset="UTF-8"\r\n\n`;
-        commentText += `${indent}${comment.content}\r\n\n`;
-
-        base64Attachments.forEach((attachment) => {
-          commentText += `${indent}--${boundary}\r\n`;
-          commentText += `${indent}Content-Type: ${attachment.type}\r\n`;
-          commentText += `${indent}Content-Disposition: attachment; filename="${attachment.name}"\r\n`;
-          commentText += `${indent}Content-Location: ${attachment.url}\r\n\n`;
-        });
-        commentText += `${indent}--${boundary}--\r\n`;
-      } else {
-        commentText += `\n${indent}${comment.content}\n`;
+        for (const attachment of base64Attachments) {
+          commentText += `\r\n--${mainBoundary}\r\n`;
+          commentText += `Content-Type: ${attachment.type}\r\n`;
+          commentText += `Content-Disposition: attachment; filename="${attachment.name}"\r\n`;
+          commentText += `Content-Location: ${attachment.url}\r\n\n`;
+        }
       }
 
-      const childrenText =
-        comment.children.length > 0
-          ? await exportCommentsText(comment.children, level + 1, truncate)
-          : "";
-      return commentText + childrenText;
+      // Replies (children)
+      if (comment.children.length > 0) {
+        for (const child of comment.children) {
+          commentText += `\r\n--${mainBoundary}\r\n`;
+          commentText += `Content-Disposition: reply; to=${comment.id}\r\n`;
+          const childContent = await exportCommentsText([child], truncate);
+          commentText += childContent;
+        }
+      }
+
+      commentText += `\r\n--${mainBoundary}--\r\n`;
+      return commentText;
     })
   );
 
-  return processedComments.join("");
+  return processedComments.join("\n");
 };
 
 export const exportCommentsJSON = async (
