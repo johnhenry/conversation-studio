@@ -106,14 +106,27 @@ function App() {
     setReplyToId(undefined);
   };
 
-  const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAttachmentUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (e.target.files) {
-      const newAttachments = Array.from(e.target.files).map((file) => ({
-        url: URL.createObjectURL(file),
-        type: file.type,
-        name: file.name,
-        file,
-      }));
+      const newAttachments = await Promise.all(
+        Array.from(e.target.files).map(async (file) => {
+          return new Promise<Attachment>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              resolve({
+                url: reader.result as string,
+                type: file.type,
+                name: file.name,
+                file,
+              });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        })
+      );
 
       setAttachments([...attachments, ...newAttachments]);
     }
