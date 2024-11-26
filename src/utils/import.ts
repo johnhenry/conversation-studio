@@ -1,34 +1,50 @@
-import { Comment } from "../types";
+import { Comment, Attachment } from "../types";
 import { create } from "xmlbuilder2";
 
+interface XMLContent {
+  $?: string;
+  __cdata?: string;
+  _cdata?: string;
+  _text?: string;
+}
+
+interface XMLAttachment {
+  type?: string;
+  url?: XMLContent | string;
+  name?: string;
+}
+
+interface XMLAttachments {
+  attachment?: XMLAttachment[] | XMLAttachment;
+}
+
 interface XMLComment {
-  id?: { _text?: string };
-  userId?: { _text?: string };
-  timestamp?: { _text?: string };
-  contentHash?: { _text?: string };
-  content?: { _text?: string };
-  attachments?: {
-    attachment?:
-      | Array<{
-          name?: { _text?: string };
-          url?: { _text?: string };
-          type?: { _text?: string };
-        }>
-      | {
-          name?: { _text?: string };
-          url?: { _text?: string };
-          type?: { _text?: string };
-        };
-  };
+  id?: string;
+  userId?: string;
+  timestamp?: string;
+  contentHash?: string;
+  content?: XMLContent | string;
+  attachments?: XMLAttachments;
   children?: {
     comment?: XMLComment[] | XMLComment;
   };
 }
 
 interface XMLRoot {
-  comments?: {
-    comment?: XMLComment[] | XMLComment;
+  comments: {
+    comment: XMLComment[] | XMLComment;
   };
+}
+
+interface ParsedComment extends Omit<Comment, "children" | "attachments"> {
+  children: ParsedComment[];
+  attachments: ParsedAttachment[];
+}
+
+interface ParsedAttachment extends Omit<Attachment, "file"> {
+  name: string;
+  url: string;
+  type: string;
 }
 
 const parseTextComment = (content: string): Comment[] => {
@@ -38,6 +54,7 @@ const parseTextComment = (content: string): Comment[] => {
   let currentBoundary: string | null = null;
   let parentBoundary: string | null = null;
   let parentId: string | null = null;
+  let currentAttachment: Partial<Attachment> | null = null;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -58,6 +75,17 @@ const parseTextComment = (content: string): Comment[] => {
         currentBoundary = parentBoundary;
         parentBoundary = null;
         continue;
+      }
+
+      // Save current attachment if exists
+      if (currentAttachment && currentComment?.attachments) {
+        currentComment.attachments.push({
+          name: currentAttachment.name || "",
+          url: currentAttachment.url || "",
+          type: currentAttachment.type || "",
+          file: new File([], currentAttachment.name || ""),
+        });
+        currentAttachment = null;
       }
 
       if (currentComment) {
@@ -85,6 +113,32 @@ const parseTextComment = (content: string): Comment[] => {
       continue;
     }
 
+    if (line.startsWith("Content-Disposition: attachment;")) {
+      currentAttachment = {};
+      const filename = line.match(/filename="([^"]+)"/)?.[1];
+      if (filename) {
+        currentAttachment.name = filename;
+      }
+      continue;
+    }
+
+    if (
+      line.startsWith("Content-Type: ") &&
+      !line.includes("multipart/mixed")
+    ) {
+      if (currentAttachment) {
+        currentAttachment.type = line.substring("Content-Type: ".length);
+      }
+      continue;
+    }
+
+    if (line.startsWith("Content-Data: ")) {
+      if (currentAttachment) {
+        currentAttachment.url = line.substring("Content-Data: ".length);
+      }
+      continue;
+    }
+
     if (line.startsWith("User-Id: ")) {
       currentComment.userId = line.substring("User-Id: ".length);
     } else if (line.startsWith("Hash: ")) {
@@ -93,28 +147,22 @@ const parseTextComment = (content: string): Comment[] => {
       currentComment.timestamp = parseInt(line.substring("Timestamp: ".length));
     } else if (line.startsWith("E-Tag: ")) {
       currentComment.id = line.substring("E-Tag: ".length);
-    } else if (
-      line.startsWith("Content-Type: ") &&
-      !line.includes("multipart/mixed")
-    ) {
-      // Handle attachment content type
-      continue;
-    } else if (line.startsWith("Content-Disposition: attachment;")) {
-      // Handle attachment
-      const filename = line.match(/filename="([^"]+)"/)?.[1];
-      if (filename) {
-        currentComment.attachments?.push({
-          name: filename,
-          url: "",
-          file: new File([], filename),
-          type: "",
-        });
-      }
     } else if (line.length > 0 && !line.startsWith("Content-")) {
       currentComment.content = line;
     }
   }
 
+  // Save last attachment if exists
+  if (currentAttachment && currentComment?.attachments) {
+    currentComment.attachments.push({
+      name: currentAttachment.name || "",
+      url: currentAttachment.url || "",
+      type: currentAttachment.type || "",
+      file: new File([], currentAttachment.name || ""),
+    });
+  }
+
+  // Save last comment if exists
   if (currentComment) {
     if (!currentComment.attachments) currentComment.attachments = [];
     if (!currentComment.children) currentComment.children = [];
@@ -137,14 +185,24 @@ const parseTextComment = (content: string): Comment[] => {
     }
   });
 
-  console.log("TEXT", { comments });
-
   return comments;
+};
+
+const convertParsedToComment = (parsed: ParsedComment): Comment => {
+  return {
+    ...parsed,
+    attachments: parsed.attachments.map((att) => ({
+      ...att,
+      file: new File([], att.name),
+    })),
+    children: parsed.children.map(convertParsedToComment),
+  };
 };
 
 const parseJSONComment = (content: string): Comment[] => {
   try {
-    return JSON.parse(content);
+    const parsed = JSON.parse(content) as ParsedComment[];
+    return parsed.map(convertParsedToComment);
   } catch (error) {
     console.error("Error parsing JSON:", error);
     return [];
@@ -154,27 +212,47 @@ const parseJSONComment = (content: string): Comment[] => {
 const parseXMLComment = (content: string): Comment[] => {
   try {
     const doc = create(content);
-    const obj = doc.end({ format: "object" }) as XMLRoot;
+    const obj = doc.end({ format: "object" }) as unknown as XMLRoot;
 
     const parseComment = (xmlComment: XMLComment): Comment => {
+      // Handle content that might be a string or an object with CDATA in $ property
+      const commentContent =
+        typeof xmlComment.content === "string"
+          ? xmlComment.content
+          : xmlComment.content?.$ ||
+            xmlComment.content?.__cdata ||
+            xmlComment.content?._cdata ||
+            xmlComment.content?._text ||
+            "";
+
+      // Parse attachments
       const attachments = xmlComment.attachments?.attachment
         ? Array.isArray(xmlComment.attachments.attachment)
           ? xmlComment.attachments.attachment
           : [xmlComment.attachments.attachment]
         : [];
 
+      const parsedAttachments = attachments.map((att) => ({
+        name: att.name || "",
+        url:
+          typeof att.url === "string"
+            ? att.url
+            : att.url?.$ ||
+              att.url?.__cdata ||
+              att.url?._cdata ||
+              att.url?._text ||
+              "",
+        type: att.type || "",
+        file: new File([], att.name || ""),
+      }));
+
       return {
-        id: xmlComment.id?._text || "",
-        userId: xmlComment.userId?._text || "",
-        timestamp: parseInt(xmlComment.timestamp?._text || "0"),
-        contentHash: xmlComment.contentHash?._text || "",
-        content: xmlComment.content?._text || "",
-        attachments: attachments.map((att) => ({
-          name: att.name?._text || "",
-          url: att.url?._text || "",
-          type: att.type?._text || "",
-          file: new File([], att.name?._text || ""),
-        })),
+        id: xmlComment.id || "",
+        userId: xmlComment.userId || "",
+        timestamp: parseInt(xmlComment.timestamp || "0"),
+        contentHash: xmlComment.contentHash || "",
+        content: commentContent,
+        attachments: parsedAttachments,
         children: xmlComment.children?.comment
           ? (Array.isArray(xmlComment.children.comment)
               ? xmlComment.children.comment
@@ -184,12 +262,10 @@ const parseXMLComment = (content: string): Comment[] => {
       };
     };
 
-    const comments = obj.comments?.comment;
-    return comments
-      ? Array.isArray(comments)
-        ? comments.map(parseComment)
-        : [parseComment(comments)]
-      : [];
+    const comments = obj.comments.comment;
+    return Array.isArray(comments)
+      ? comments.map(parseComment)
+      : [parseComment(comments)];
   } catch (error) {
     console.error("Error parsing XML:", error);
     return [];

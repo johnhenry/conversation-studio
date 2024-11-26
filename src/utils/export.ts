@@ -1,4 +1,4 @@
-import { Comment, ExportFormat } from "../types";
+import { Comment, ExportFormat, Attachment } from "../types";
 import { create } from "xmlbuilder2";
 import type { XMLBuilder } from "xmlbuilder2/lib/interfaces";
 
@@ -6,20 +6,11 @@ const generateBoundary = (): string => {
   return "----Boundary" + Math.random().toString(36).substring(2);
 };
 
-const toBase64 = (file: File): Promise<string> => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-const truncateBase64 = (base64: string, maxLength: number): string => {
-  if (base64.length > maxLength) {
-    return base64.substring(0, maxLength) + "...";
+const truncateDataUrl = (dataUrl: string, maxLength: number): string => {
+  if (dataUrl.length > maxLength) {
+    return dataUrl.substring(0, maxLength) + "...";
   }
-  return base64;
+  return dataUrl;
 };
 
 export const exportComments = async (
@@ -38,91 +29,79 @@ export const exportComments = async (
   }
 };
 
-const processAttachments = async (
-  attachments: { file: File; name: string; type?: string; url: string }[],
+const processAttachments = (
+  attachments: Attachment[],
   truncate: boolean = true
-) => {
-  return await Promise.all(
-    attachments.map(async (attachment) => {
-      try {
-        const base64Data = await toBase64(attachment.file);
-        return {
-          ...attachment,
-          url: truncate ? truncateBase64(base64Data, 100) : base64Data,
-          type: attachment.type || "",
-        };
-      } catch (error) {
-        console.error("Error converting to Base64:", error);
-        return { ...attachment, type: attachment.type || "" };
-      }
-    })
-  );
+): Attachment[] => {
+  return attachments.map((attachment) => ({
+    ...attachment,
+    url: truncate ? truncateDataUrl(attachment.url, 100) : attachment.url,
+    type: attachment.type || "",
+  }));
 };
 
-const processCommentsWithAttachments = async (
+const processCommentsWithAttachments = (
   comments: Comment[],
   truncate: boolean = true
-) => {
-  return await Promise.all(
-    comments.map(async (comment) => {
-      const base64Attachments = await processAttachments(
-        comment.attachments,
-        truncate
-      );
-      return {
-        ...comment,
-        attachments: base64Attachments,
-      };
-    })
-  );
+): Comment[] => {
+  return comments.map((comment) => {
+    const processedAttachments = processAttachments(
+      comment.attachments,
+      truncate
+    );
+    return {
+      ...comment,
+      attachments: processedAttachments,
+      children: processCommentsWithAttachments(comment.children, truncate),
+    };
+  });
 };
 
 export const exportCommentsText = async (
   comments: Comment[],
   truncate: boolean = true
 ): Promise<string> => {
-  const processedComments = await Promise.all(
-    comments.map(async (comment) => {
-      const mainBoundary = generateBoundary();
-      let commentText = `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n\n`;
+  const processedComments = comments.map((comment) => {
+    const mainBoundary = generateBoundary();
+    let commentText = `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n\n`;
 
-      // Comment metadata and content part
-      commentText += `--${mainBoundary}\r\n`;
-      commentText += `Content-Type: text/plain; charset="UTF-8"\r\n`;
-      commentText += `User-Id: ${comment.userId}\n`;
-      commentText += `Hash: ${comment.contentHash}\n`;
-      commentText += `Timestamp: ${comment.timestamp}\n`;
-      commentText += `E-Tag: ${comment.id}\n\n`;
-      commentText += `${comment.content}\r\n`;
+    // Comment metadata and content part
+    commentText += `--${mainBoundary}\r\n`;
+    commentText += `Content-Type: text/plain; charset="UTF-8"\r\n`;
+    commentText += `User-Id: ${comment.userId}\n`;
+    commentText += `Hash: ${comment.contentHash}\n`;
+    commentText += `Timestamp: ${comment.timestamp}\n`;
+    commentText += `E-Tag: ${comment.id}\n\n`;
+    commentText += `${comment.content}\r\n`;
 
-      // Attachments
-      const base64Attachments = await processAttachments(
-        comment.attachments,
-        truncate
-      );
-      if (base64Attachments && base64Attachments.length > 0) {
-        for (const attachment of base64Attachments) {
-          commentText += `\r\n--${mainBoundary}\r\n`;
-          commentText += `Content-Type: ${attachment.type}\r\n`;
-          commentText += `Content-Disposition: attachment; filename="${attachment.name}"\r\n`;
-          commentText += `Content-Location: ${attachment.url}\r\n\n`;
-        }
+    // Attachments
+    const processedAttachments = processAttachments(
+      comment.attachments,
+      truncate
+    );
+    if (processedAttachments && processedAttachments.length > 0) {
+      for (const attachment of processedAttachments) {
+        commentText += `\r\n--${mainBoundary}\r\n`;
+        commentText += `Content-Type: ${attachment.type}\r\n`;
+        commentText += `Content-Disposition: attachment; filename="${attachment.name}"\r\n`;
+        commentText += `Content-Transfer-Encoding: base64\r\n`;
+        commentText += `Content-Data: ${attachment.url}\r\n\n`;
       }
+    }
 
-      // Replies (children)
-      if (comment.children.length > 0) {
-        for (const child of comment.children) {
-          commentText += `\r\n--${mainBoundary}\r\n`;
-          commentText += `Content-Disposition: reply; to=${comment.id}\r\n`;
-          const childContent = await exportCommentsText([child], truncate);
-          commentText += childContent;
-        }
+    // Replies (children)
+    if (comment.children.length > 0) {
+      for (const child of comment.children) {
+        commentText += `\r\n--${mainBoundary}\r\n`;
+        commentText += `Content-Disposition: reply; to=${comment.id}\r\n`;
+        const childContent = exportCommentsText([child], truncate);
+        commentText += childContent;
       }
+    }
 
-      commentText += `\r\n--${mainBoundary}--\r\n`;
-      return commentText;
-    })
-  );
+    commentText += `\r\n--${mainBoundary}--\r\n`;
+    return commentText;
+  });
 
   return processedComments.join("\n");
 };
@@ -131,22 +110,15 @@ export const exportCommentsJSON = async (
   comments: Comment[],
   truncate: boolean = true
 ): Promise<string> => {
-  const commentsWithBase64 = await processCommentsWithAttachments(
-    comments,
-    truncate
-  );
-  console.log({ commentsWithBase64 });
-  return JSON.stringify(commentsWithBase64, null, 2);
+  const processedComments = processCommentsWithAttachments(comments, truncate);
+  return JSON.stringify(processedComments, null, 2);
 };
 
 export const exportCommentsXML = async (
   comments: Comment[],
   truncate: boolean = true
 ): Promise<string> => {
-  const commentsWithBase64 = await processCommentsWithAttachments(
-    comments,
-    truncate
-  );
+  const processedComments = processCommentsWithAttachments(comments, truncate);
 
   const builder = create({
     version: "1.0",
@@ -155,20 +127,19 @@ export const exportCommentsXML = async (
 
   const commentsElement = builder.ele("comments");
 
-  const processComment = (comment: Comment, parent: XMLBuilder) => {
+  const processComment = (comment: Comment, parent: XMLBuilder): void => {
     const commentElement = parent.ele("comment");
     commentElement.ele("id").txt(comment.id);
     commentElement.ele("userId").txt(comment.userId);
     commentElement.ele("timestamp").txt(comment.timestamp.toString());
     commentElement.ele("contentHash").txt(comment.contentHash);
-    commentElement.ele("content").txt(comment.content);
+    commentElement.ele("content").dat(comment.content); // Using dat() for CDATA
 
     const attachmentsElement = commentElement.ele("attachments");
     comment.attachments.forEach((attachment) => {
       const attachmentElement = attachmentsElement.ele("attachment");
-
       attachmentElement.ele("type").txt(attachment.type || "");
-      attachmentElement.ele("url").txt(attachment.url);
+      attachmentElement.ele("url").dat(attachment.url); // Using dat() for CDATA
       attachmentElement.ele("name").txt(attachment.name);
     });
 
@@ -180,7 +151,7 @@ export const exportCommentsXML = async (
     }
   };
 
-  commentsWithBase64.forEach((comment) =>
+  processedComments.forEach((comment) =>
     processComment(comment, commentsElement)
   );
 
