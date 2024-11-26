@@ -1,4 +1,4 @@
-# Conversation Manager
+# Conversation Studio
 
 This is a simple comment manager that allows you to add, delete, view, rearrange, and export comments.
 

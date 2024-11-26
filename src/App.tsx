@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
 import { Comment, Attachment, ExportFormat } from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
+import { importComments } from "./utils/import";
 
 const generateContentHash = (content: string): string => {
   const hash = crypto.SHA256(content);
@@ -20,6 +21,7 @@ function App() {
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const renderAttachment = (attachment: Attachment) => {
     if (attachment.type && attachment.type.startsWith("image/")) {
@@ -135,6 +137,34 @@ function App() {
     }, 100);
   };
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      let format: string;
+
+      if (file.name.endsWith(".json")) {
+        format = "json";
+      } else if (file.name.endsWith(".xml")) {
+        format = "xml";
+      } else {
+        format = "text";
+      }
+
+      const importedComments = importComments(content, format);
+      setComments(importedComments);
+      setActiveTab("arrange");
+    };
+
+    reader.readAsText(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "arrange":
@@ -169,17 +199,32 @@ function App() {
         <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-100">
-              Conversation Manager
+              Conversation Studio
             </h1>
-            <button
-              onClick={() => {
-                setShowEditor(true);
-                setReplyToId(undefined);
-              }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Add Comment
-            </button>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImport}
+                className="hidden"
+                aria-label="Import comments file"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                Import
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditor(true);
+                  setReplyToId(undefined);
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Add Comment
+              </button>
+            </div>
           </div>
 
           {showEditor && (
