@@ -134,74 +134,9 @@ const Comment: React.FC<CommentProps> = ({
           </div>
         )}
 
-        {/* Move Up button */}
-        {canPopUp && !isEditing && (
-          <button
-            onClick={() => onPopUp(comment.id)}
-            title="Move up one level"
-            className="absolute right-8 top-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
-          >
-            <ArrowUp size={16} />
-          </button>
-        )}
-
-        {/* Reply button */}
-        {showDelete && !isEditing && (
-          <button
-            onClick={() => onReply(comment.id)}
-            title="Reply"
-            className="absolute right-2 top-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
-          >
-            <MessageSquare size={16} />
-          </button>
-        )}
-
-        {/* Edit/Save buttons */}
-        {showDelete && !isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            title="Edit comment"
-            className="absolute right-8 bottom-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
-          >
-            <Edit2 size={16} />
-          </button>
-        )}
-
-        {isEditing && (
-          <>
-            <button
-              onClick={handleEditSubmit}
-              title="Save changes"
-              className="absolute right-8 bottom-2 text-gray-400 hover:text-green-400 transition-colors z-10"
-            >
-              <Check size={16} />
-            </button>
-            <button
-              onClick={() => {
-                setIsEditing(false);
-                setEditContent(comment.content);
-              }}
-              title="Cancel editing"
-              className="absolute right-2 bottom-2 text-gray-400 hover:text-red-400 transition-colors z-10"
-            >
-              <X size={16} />
-            </button>
-          </>
-        )}
-
-        {/* Delete button */}
-        {showDelete && !isEditing && (
-          <button
-            onClick={() => onDelete(comment.id)}
-            title="Delete comment"
-            className="absolute right-2 bottom-2 text-gray-400 hover:text-red-400 transition-colors z-10"
-          >
-            <Trash2 size={16} />
-          </button>
-        )}
-
-        <div className="flex flex-col pl-8 pr-8 py-3">
-          {/* Header section */}
+        {/* Comment content section with proper padding to avoid grip overlap */}
+        <div className="pl-8 pr-3 pt-3 pb-3">
+          {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
             <span
               className={`font-medium text-[#4fbcff] ${
@@ -231,94 +166,139 @@ const Comment: React.FC<CommentProps> = ({
           {/* Content section */}
           <div className="text-gray-300 leading-relaxed">
             {isEditing ? (
-              <div className="space-y-2">
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full min-h-[100px] bg-[#2A2A2B] text-gray-200 p-2 rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                  placeholder="Write your comment..."
-                />
-                
-                {/* Attachment section in edit mode */}
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <label className="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200">
-                      <File size={16} />
-                      <span>Add Attachment</span>
-                      <input
-                        type="file"
-                        onChange={handleAttachmentUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                  
-                  {/* Display existing attachments */}
-                  {comment.attachments.length > 0 && (
-                    <div className="space-y-2">
-                      {comment.attachments.map((attachment, index) => (
-                        <div key={index} className="flex items-center space-x-2 text-sm">
-                          <div className="flex-1">
-                            {renderAttachment(attachment)}
-                          </div>
-                          <button
-                            onClick={() => handleAttachmentRemove(index)}
-                            className="text-gray-400 hover:text-red-400"
-                            title="Remove attachment"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditContent(comment.content);
-                    }}
-                    className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleEditSubmit}
-                    className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-sm text-white"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full min-h-[100px] p-2 bg-[#2A2A2B] text-gray-200 rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                placeholder="Write your comment..."
+              />
             ) : (
-              <MarkdownPreview content={comment.content} />
+              <>
+                <MarkdownPreview content={comment.content} />
+                {/* Attachments display in view mode */}
+                <div className="mt-2 space-y-2">
+                  {comment.attachments?.map((attachment, index) => (
+                    <div key={index} className="relative">
+                      {renderAttachment(attachment)}
+                    </div>
+                  ))}
+                </div>
+                {/* Reply count */}
+                <div className="mt-2">
+                  <div className="text-xs text-gray-500">
+                    {comment.children.length > 0 && (
+                      <span>
+                        {comment.children.length}{" "}
+                        {comment.children.length === 1 ? "reply" : "replies"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </div>
-
-          {/* Attachments */}
-          <div className="mt-2">
-            {comment.attachments.map((attachment, index) => (
-              <div key={index} className="relative">
-                {renderAttachment(attachment)}
-              </div>
-            ))}
-          </div>
-
-          {/* Reply count */}
-          <div className="mt-2">
-            <div className="text-xs text-gray-500">
-              {comment.children.length > 0 && (
-                <span>
-                  {comment.children.length}{" "}
-                  {comment.children.length === 1 ? "reply" : "replies"}
-                </span>
-              )}
-            </div>
-          </div>
         </div>
+
+        {/* Footer with action buttons */}
+        <div className="flex justify-end gap-2 p-2">
+          {canPopUp && !isEditing && (
+            <button
+              onClick={() => onPopUp(comment.id)}
+              title="Move up one level"
+              className="text-gray-400 hover:text-blue-400 transition-colors"
+            >
+              <ArrowUp size={16} />
+            </button>
+          )}
+
+          {showDelete && !isEditing && (
+            <>
+              <button
+                onClick={() => onReply(comment.id)}
+                title="Reply"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <MessageSquare size={16} />
+              </button>
+
+              <button
+                onClick={() => setIsEditing(true)}
+                title="Edit comment"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <Edit2 size={16} />
+              </button>
+
+              <button
+                onClick={() => onDelete(comment.id)}
+                title="Delete comment"
+                className="text-gray-400 hover:text-red-400 transition-colors"
+              >
+                <Trash2 size={16} />
+              </button>
+            </>
+          )}
+
+          {isEditing && (
+            <>
+              <button
+                onClick={handleEditSubmit}
+                title="Save changes"
+                className="text-gray-400 hover:text-green-400 transition-colors"
+              >
+                <Check size={16} />
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditContent(comment.content);
+                }}
+                title="Cancel editing"
+                className="text-gray-400 hover:text-red-400 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Attachment section in edit mode */}
+        {isEditing && (
+          <div className="space-y-2 p-2 border-t border-gray-700">
+            <div className="flex items-center space-x-2">
+              <label className="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200">
+                <File size={16} />
+                <span>Add Attachment</span>
+                <input
+                  type="file"
+                  onChange={handleAttachmentUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Display existing attachments */}
+            {comment.attachments.length > 0 && (
+              <div className="space-y-2">
+                {comment.attachments.map((attachment, index) => (
+                  <div key={index} className="flex items-center space-x-2 text-sm">
+                    <div className="flex-1">
+                      {renderAttachment(attachment)}
+                    </div>
+                    <button
+                      onClick={() => handleAttachmentRemove(index)}
+                      className="text-gray-400 hover:text-red-400"
+                      title="Remove attachment"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
