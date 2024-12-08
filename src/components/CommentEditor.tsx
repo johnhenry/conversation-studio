@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MessageSquarePlus, X, File, Sparkles } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
@@ -89,6 +89,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [parents, setParents] = useState<CommentType[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setLoadingGen(false);
+    }
+  };
 
   useEffect(() => {
     setPreviewUserId(userId || DEFAULT_USER_ID);
@@ -123,6 +132,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     let model;
     try {
       setLoadingGen(true);
+      abortControllerRef.current = new AbortController();
       const initialPrompts: { role: string; content: string }[] = [];
       const localParents = [...parents];
       while (localParents.length > 0) {
@@ -143,15 +153,22 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         maxTokens: 200,
         seed: 1,
       });
-      const content = await model.prompt(prompt);
+      const content = await model.prompt(prompt, {
+        signal: abortControllerRef.current.signal,
+      });
       onSubmit(content, attachments, parentId);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("Generation was cancelled");
+      } else {
+        console.error(error);
+      }
+      setLoadingGen(false);
+      abortControllerRef.current = null;
     } finally {
       if (model) {
         model.destroy();
       }
-      setLoadingGen(false);
     }
 
     // const topParent = parents.shift();
@@ -394,8 +411,16 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   if (loadingGen) {
     return (
       <div className="bg-[#1A1A1B] rounded-lg shadow-lg">
-        <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
-          Generating...
+        <div className="flex justify-center p-4 border-b border-gray-700">
+          <button
+            onClick={handleCancel}
+            className="sparkle-loader cursor-pointer hover:opacity-80 transition-opacity"
+            title="Click to cancel generation"
+          >
+            <Sparkles size={20} className="sparkle" />
+            <Sparkles size={20} className="sparkle" />
+            <Sparkles size={20} className="sparkle" />
+          </button>
         </div>
       </div>
     );

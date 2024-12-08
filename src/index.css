@@ -76,6 +76,29 @@ body {
   animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Sparkle animation styles */
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.5); }
+}
+
+.sparkle-loader {
+  @apply flex items-center justify-center gap-2;
+}
+
+.sparkle-loader .sparkle {
+  @apply text-yellow-400;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.sparkle-loader .sparkle:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.sparkle-loader .sparkle:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 /* Input and textarea styling */
 input[type="text"],
 textarea {
