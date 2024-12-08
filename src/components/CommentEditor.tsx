@@ -256,18 +256,43 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <div className="flex gap-2 mb-2">
               <label
                 htmlFor="userIdInput"
-                className="text-gray-300"
+                className="text-gray-300 flex items-center gap-2"
                 title="Enter your user ID"
               >
                 User ID:
                 <input
                   type="text"
                   id="userIdInput"
-                  placeholder={DEFAULT_USER_ID}
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setUserId("system")}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    system
+                  </button>
+                  <button
+                    onClick={() => setUserId("user")}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    user
+                  </button>
+                  <button
+                    onClick={() => setUserId("assistant")}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    assistant
+                  </button>
+                  <button
+                    onClick={() => setUserId("")}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    x
+                  </button>
+                </div>
               </label>
             </div>
             <textarea
