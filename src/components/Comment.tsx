@@ -159,9 +159,20 @@ const Comment: React.FC<CommentProps> = ({
           isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
-
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
+          {/* Continuation line for comments with children */}
+          {comment.children.length > 0 && (
+            <div 
+              className="absolute w-[2px] bg-gray-700"
+              style={{ 
+                left: "12px",
+                height: "50%",
+                top: "50%"
+              }}
+            />
+          )}
+
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
           {canPopUp && !isEditing && !disableEditing && (
