@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy } from "lucide-react";
+import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy, Sparkles } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -9,7 +9,7 @@ interface CommentProps {
   onDragStart: (e: React.DragEvent, comment: CommentType) => void;
   onDrop: (e: React.DragEvent, targetId: string) => void;
   onPopUp: (id: string) => void;
-  onReply: (id: string) => void;
+  onReply: (id: string, autoReply?: boolean) => void;
   onUserIdChange?: (commentId: string, newUserId: string) => void;
   onUpdate?: (commentId: string, content: string, attachments: Attachment[]) => void;
   onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -87,6 +87,10 @@ const Comment: React.FC<CommentProps> = ({
     } catch (err) {
       console.error('Failed to copy text:', err);
     }
+  };
+
+  const handleAutoReply = () => {
+    onReply(comment.id, true);
   };
 
   return (
@@ -220,15 +224,14 @@ const Comment: React.FC<CommentProps> = ({
 
         {/* Footer with action buttons */}
         <div className="flex justify-end gap-2 p-2">
-
           {showDelete && !isEditing && (
             <>
               <button
-                onClick={handleCopy}
-                title="Copy comment content"
+                onClick={handleAutoReply}
+                title="Auto Reply"
                 className="text-gray-400 hover:text-blue-400 transition-colors"
               >
-                <Copy size={16} />
+                <Sparkles size={16} />
               </button>
               <button
                 onClick={() => onReply(comment.id)}
@@ -237,7 +240,13 @@ const Comment: React.FC<CommentProps> = ({
               >
                 <MessageSquare size={16} />
               </button>
-
+              <button
+                onClick={handleCopy}
+                title="Copy comment content"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <Copy size={16} />
+              </button>
               <button
                 onClick={() => setIsEditing(true)}
                 title="Edit comment"

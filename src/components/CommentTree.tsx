@@ -11,7 +11,7 @@ interface CommentTreeProps {
   rootUpdateComments?: (comments: CommentType[]) => void;
   isPreview?: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
-  onReply?: (id: string) => void;
+  onReply?: (id: string, autoReply?: boolean) => void;
   replyToId?: string;
   onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   onAttachmentRemove?: (commentId: string, index: number) => void;

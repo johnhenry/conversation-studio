@@ -22,6 +22,8 @@ interface CommentEditorProps {
   parentId?: string;
   onCancel?: () => void;
   rootComments?: CommentType[];
+  autoSetUserId?: string;
+  autoGenerate?: boolean;
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
@@ -77,6 +79,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   parentId,
   onCancel,
   rootComments = [],
+  autoSetUserId,
+  autoGenerate,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
@@ -96,6 +100,18 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       setParents(parents);
     }
   }, [parentId, rootComments]);
+
+  useEffect(() => {
+    if (autoSetUserId) {
+      setUserId(autoSetUserId);
+    }
+  }, [autoSetUserId, setUserId]);
+
+  useEffect(() => {
+    if (autoGenerate && parents.length) {
+      handleSubmitGenerate();
+    }
+  }, [autoGenerate, parents]);
 
   const handleSubmit = () => {
     onSubmit(content, attachments, parentId);

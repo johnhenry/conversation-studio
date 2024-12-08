@@ -38,6 +38,7 @@ function App() {
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
+  const [autoReplySettings, setAutoReplySettings] = useState<{userId?: string; autoGenerate?: boolean}>({});
   const [storeLocally, setStoreLocally] = useState(() => {
     const stored = localStorage.getItem('storeLocally');
     return stored ? stored === 'true' : false;
@@ -166,8 +167,9 @@ function App() {
     });
   }, []);
 
-  const handleReply = useCallback((commentId: string) => {
+  const handleReply = useCallback((commentId: string, autoReply?: boolean) => {
     setReplyToId(commentId);
+    setAutoReplySettings(autoReply ? { userId: 'assistant', autoGenerate: true } : {});
     setShowEditor(true);
   }, []);
 
@@ -422,6 +424,7 @@ function App() {
                 onClick={() => {
                   setShowEditor(!showEditor);
                   setReplyToId(undefined);
+                  setAutoReplySettings({});
                 }}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
@@ -491,10 +494,13 @@ function App() {
               onCancel={() => {
                 setShowEditor(false);
                 setReplyToId(undefined);
+                setAutoReplySettings({});
                 setDraftContent("");
                 setAttachments([]);
               }}
               rootComments={comments}
+              autoSetUserId={autoReplySettings.userId}
+              autoGenerate={autoReplySettings.autoGenerate}
             />
           </div>
         </footer>
