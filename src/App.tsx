@@ -69,7 +69,7 @@ function App() {
           rel="noopener noreferrer"
           className="text-blue-400 hover:text-blue-300 flex items-center gap-2"
         >
-          📎 {attachment.name}
+          {attachment.name}
         </a>
       </div>
     );
@@ -204,6 +204,80 @@ function App() {
     [renderAttachment]
   );
 
+  const handleCommentAttachmentUpload = useCallback(
+    async (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        const newAttachments = await Promise.all(
+          Array.from(e.target.files).map(async (file) => {
+            return new Promise<Attachment>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                resolve({
+                  url: reader.result as string,
+                  type: file.type,
+                  name: file.name,
+                  file,
+                });
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+          })
+        );
+
+        setComments((prevComments) => {
+          const updateCommentAttachments = (comments: Comment[]): Comment[] => {
+            return comments.map((comment) => {
+              if (comment.id === commentId) {
+                return {
+                  ...comment,
+                  attachments: [...comment.attachments, ...newAttachments],
+                };
+              }
+              if (comment.children.length > 0) {
+                return {
+                  ...comment,
+                  children: updateCommentAttachments(comment.children),
+                };
+              }
+              return comment;
+            });
+          };
+          return updateCommentAttachments(prevComments);
+        });
+      }
+    },
+    []
+  );
+
+  const handleCommentAttachmentRemove = useCallback(
+    (commentId: string, index: number) => {
+      setComments((prevComments) => {
+        const updateCommentAttachments = (comments: Comment[]): Comment[] => {
+          return comments.map((comment) => {
+            if (comment.id === commentId) {
+              const newAttachments = [...comment.attachments];
+              newAttachments.splice(index, 1);
+              return {
+                ...comment,
+                attachments: newAttachments,
+              };
+            }
+            if (comment.children.length > 0) {
+              return {
+                ...comment,
+                children: updateCommentAttachments(comment.children),
+              };
+            }
+            return comment;
+          });
+        };
+        return updateCommentAttachments(prevComments);
+      });
+    },
+    []
+  );
+
   // Memoize the comments data for export preview
   const exportCommentData = useMemo(() => {
     if (activeTab === "arrange") return [];
@@ -227,11 +301,21 @@ function App() {
           renderAttachment={renderAttachment}
           onReply={handleReply}
           replyToId={replyToId}
+          onAttachmentUpload={handleCommentAttachmentUpload}
+          onAttachmentRemove={handleCommentAttachmentRemove}
         />
       );
     }
     return null;
-  }, [activeTab, comments, renderAttachment, handleReply, replyToId]);
+  }, [
+    activeTab,
+    comments,
+    renderAttachment,
+    handleReply,
+    replyToId,
+    handleCommentAttachmentUpload,
+    handleCommentAttachmentRemove,
+  ]);
 
   // Memoize the export preview component
   const exportPreview = useMemo(() => {

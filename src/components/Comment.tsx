@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowUp, MessageSquare, Edit2, X, Check } from "lucide-react";
+import { Trash2, GripVertical, ArrowUp, MessageSquare, Edit2, X, Check, File } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -57,6 +57,18 @@ const Comment: React.FC<CommentProps> = ({
     if (onUpdate) {
       onUpdate(comment.id, editContent, comment.attachments);
       setIsEditing(false);
+    }
+  };
+
+  const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onAttachmentUpload) {
+      onAttachmentUpload(comment.id, e);
+    }
+  };
+
+  const handleAttachmentRemove = (index: number) => {
+    if (onAttachmentRemove) {
+      onAttachmentRemove(comment.id, index);
     }
   };
 
@@ -219,13 +231,68 @@ const Comment: React.FC<CommentProps> = ({
           {/* Content section */}
           <div className="text-gray-300 leading-relaxed">
             {isEditing ? (
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Write your comment using Markdown..."
-                className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-              />
+              <div className="space-y-2">
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="w-full min-h-[100px] bg-[#2A2A2B] text-gray-200 p-2 rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  placeholder="Write your comment..."
+                />
+                
+                {/* Attachment section in edit mode */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <label className="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200">
+                      <File size={16} />
+                      <span>Add Attachment</span>
+                      <input
+                        type="file"
+                        onChange={handleAttachmentUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  
+                  {/* Display existing attachments */}
+                  {comment.attachments.length > 0 && (
+                    <div className="space-y-2">
+                      {comment.attachments.map((attachment, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-sm">
+                          <div className="flex-1">
+                            {renderAttachment(attachment)}
+                          </div>
+                          <button
+                            onClick={() => handleAttachmentRemove(index)}
+                            className="text-gray-400 hover:text-red-400"
+                            title="Remove attachment"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditContent(comment.content);
+                    }}
+                    className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEditSubmit}
+                    className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-sm text-white"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
             ) : (
               <MarkdownPreview content={comment.content} />
             )}
@@ -233,32 +300,9 @@ const Comment: React.FC<CommentProps> = ({
 
           {/* Attachments */}
           <div className="mt-2">
-            {isEditing && onAttachmentUpload && (
-              <div className="mb-2">
-                <label htmlFor={`attachments-${comment.id}`} className="text-gray-300">
-                  Attachments:
-                  <input
-                    type="file"
-                    id={`attachments-${comment.id}`}
-                    multiple
-                    onChange={(e) => onAttachmentUpload(comment.id, e)}
-                    className="block text-gray-400"
-                    aria-label="Choose files to attach"
-                  />
-                </label>
-              </div>
-            )}
             {comment.attachments.map((attachment, index) => (
               <div key={index} className="relative">
                 {renderAttachment(attachment)}
-                {isEditing && onAttachmentRemove && (
-                  <button
-                    onClick={() => onAttachmentRemove(comment.id, index)}
-                    className="absolute top-1 right-1 text-gray-500 hover:text-red-400 bg-[#1A1A1B] rounded-full p-1"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
               </div>
             ))}
           </div>
