@@ -89,7 +89,22 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [parents, setParents] = useState<CommentType[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    // Wait for fade animation to complete before calling onCancel
+    setTimeout(() => {
+      if (onCancel) onCancel();
+    }, 200);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(content, attachments, parentId);
+    handleClose();
+  };
 
   const handleCancel = () => {
     if (abortControllerRef.current) {
@@ -122,9 +137,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     }
   }, [autoGenerate, parents]);
 
-  const handleSubmit = () => {
-    onSubmit(content, attachments, parentId);
-  };
   const handleSubmitGenerate = async () => {
     if (!parents.length) {
       return;
@@ -170,19 +182,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         model.destroy();
       }
     }
-
-    // const topParent = parents.shift();
-    // let lastParent = topParent;
-    // let nextParent = parents.shift();
-    // // TODO: Do i ned to ensure that these are new objects?
-    // // eg. {...parents.shift()}
-    // while (lastParent && nextParent) {
-    //   lastParent.children = [nextParent];
-    //   lastParent = nextParent;
-    //   nextParent = parents.shift();
-    // }
-    // console.log(exportCommentsText([topParent]));
-    // console.log(exportCommentsXML([topParent]));
   };
 
   const renderAttachment = useCallback((attachment: Attachment) => {
@@ -335,7 +334,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  handleSubmit();
+                  handleSubmit(e);
                 }
               }}
             />
@@ -408,98 +407,119 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         return null;
     }
   };
+
   if (loadingGen) {
     return (
-      <div className="bg-[#1A1A1B] rounded-lg shadow-lg">
-        <div className="flex justify-center p-4 border-b border-gray-700">
-          <button
-            onClick={handleCancel}
-            className="sparkle-loader cursor-pointer hover:opacity-80 transition-opacity"
-            title="Click to cancel generation"
-          >
-            <Sparkles size={20} className="sparkle" />
-            <Sparkles size={20} className="sparkle" />
-            <Sparkles size={20} className="sparkle" />
-          </button>
+      <div className="modal-overlay show">
+        <div className="modal-content p-4">
+          <div className="flex justify-center p-4 border-b border-gray-700">
+            <button
+              onClick={handleCancel}
+              className="sparkle-loader cursor-pointer hover:opacity-80 transition-opacity"
+              title="Click to cancel generation"
+            >
+              <Sparkles size={20} className="sparkle" />
+              <Sparkles size={20} className="sparkle" />
+              <Sparkles size={20} className="sparkle" />
+            </button>
+          </div>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="bg-[#1A1A1B] rounded-lg shadow-lg">
-      <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
-        <button
-          onClick={() => setActiveTab("edit")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-            activeTab === "edit" ? "bg-gray-700" : "bg-gray-800"
-          }`}
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => setActiveTab("preview")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-            activeTab === "preview" ? "bg-gray-700" : "bg-gray-800"
-          }`}
-        >
-          Preview
-        </button>
-        <button
-          onClick={() => setActiveTab("text")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-            activeTab === "text" ? "bg-gray-700" : "bg-gray-800"
-          }`}
-        >
-          Preview Text
-        </button>
-        <button
-          onClick={() => setActiveTab("json")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-            activeTab === "json" ? "bg-gray-700" : "bg-gray-800"
-          }`}
-        >
-          Preview JSON
-        </button>
-        <button
-          onClick={() => setActiveTab("xml")}
-          className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 ${
-            activeTab === "xml" ? "bg-gray-700" : "bg-gray-800"
-          }`}
-        >
-          Preview XML
-        </button>
-      </div>
-
-      <div className="p-4">{renderContent()}</div>
-
-      <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
-        <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
-        <div className="flex gap-2">
-          {onCancel && (
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              Cancel
-            </button>
-          )}
+    <div className={`modal-overlay ${isVisible ? 'show' : ''}`}>
+      <div className="modal-content p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-100">Add Comment</h2>
           <button
-            onClick={handleSubmitGenerate}
-            disabled={!parentId || !!content.trim() || attachments.length > 0}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleClose}
+            className="p-1 hover:bg-gray-800 rounded"
           >
-            <Sparkles size={20} />
-            Generate
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!content.trim() && attachments.length === 0}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <MessageSquarePlus size={20} />
-            {buttonText}
+            <X className="w-5 h-5" />
           </button>
         </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
+            <button
+              type="button"
+              onClick={() => setActiveTab("edit")}
+              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+                activeTab === "edit" ? "bg-gray-700" : "bg-gray-800"
+              }`}
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("preview")}
+              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+                activeTab === "preview" ? "bg-gray-700" : "bg-gray-800"
+              }`}
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("text")}
+              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+                activeTab === "text" ? "bg-gray-700" : "bg-gray-800"
+              }`}
+            >
+              Preview Text
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("json")}
+              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
+                activeTab === "json" ? "bg-gray-700" : "bg-gray-800"
+              }`}
+            >
+              Preview JSON
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("xml")}
+              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 ${
+                activeTab === "xml" ? "bg-gray-700" : "bg-gray-800"
+              }`}
+            >
+              Preview XML
+            </button>
+          </div>
+
+          <div className="p-4">{renderContent()}</div>
+
+          <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
+            <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
+            <div className="flex gap-2">
+              <button
+                onClick={handleClose}
+                className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitGenerate}
+                disabled={!parentId || !!content.trim() || attachments.length > 0}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Sparkles size={20} />
+                Generate
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!content.trim() && attachments.length === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <MessageSquarePlus size={20} />
+                {buttonText}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );

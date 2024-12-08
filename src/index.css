@@ -127,3 +127,23 @@ input[type="file"] {
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-700 rounded-full hover:bg-gray-600;
 }
+
+/* Modal styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+}
+
+.modal-content {
+  @apply bg-[#1a1a1a] rounded-lg shadow-xl w-full max-w-2xl mx-4 transform -translate-y-4;
+  transition: transform 0.2s ease-in-out;
+}
+
+.modal-overlay.show .modal-content {
+  transform: translateY(0);
+}
