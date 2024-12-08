@@ -4,8 +4,7 @@ import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import { DEFAULT_USER_ID } from "../config";
-import { exportCommentsText, exportCommentsXML } from "../utils/export";
-// import { formatTextComment } from "../utils/exportWorker";
+// import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
 interface CommentEditorProps {
   onSubmit: (
     content: string,
@@ -105,6 +104,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     if (!parents.length) {
       return;
     }
+    let model;
     try {
       setLoadingGen(true);
       const initialPrompts: { role: string; content: string }[] = [];
@@ -120,7 +120,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         role: string;
         content: string;
       };
-      const model = await window.ai.languageModel.create({
+      model = await window.ai.languageModel.create({
         temperature: 0.7,
         initialPrompts,
         topK: 1,
@@ -133,6 +133,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     } catch (e) {
       console.error(e);
     } finally {
+      if (model) {
+        model.destroy();
+      }
       setLoadingGen(false);
     }
 
