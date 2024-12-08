@@ -10,12 +10,15 @@ interface CommentProps {
   onDrop: (e: React.DragEvent, targetId: string) => void;
   onPopUp: (id: string) => void;
   onReply: (id: string) => void;
+  onUserIdChange?: (commentId: string, newUserId: string) => void;
   canPopUp: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
   showDelete: boolean;
   level: number;
   isBeingRepliedTo?: boolean;
 }
+
+const CYCLE_USER_IDS = ["user", "assistant", "system"];
 
 const Comment: React.FC<CommentProps> = ({
   comment,
@@ -24,6 +27,7 @@ const Comment: React.FC<CommentProps> = ({
   onDrop,
   onPopUp,
   onReply,
+  onUserIdChange,
   canPopUp,
   renderAttachment,
   showDelete,
@@ -31,6 +35,15 @@ const Comment: React.FC<CommentProps> = ({
   isBeingRepliedTo,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
+
+  const handleUserIdClick = () => {
+    if (CYCLE_USER_IDS.includes(comment.userId)) {
+      const currentIndex = CYCLE_USER_IDS.indexOf(comment.userId);
+      const nextIndex = (currentIndex + 1) % CYCLE_USER_IDS.length;
+      const newUserId = CYCLE_USER_IDS[nextIndex];
+      onUserIdChange?.(comment.id, newUserId);
+    }
+  };
 
   return (
     <div
@@ -119,7 +132,16 @@ const Comment: React.FC<CommentProps> = ({
         <div className="flex flex-col pl-8 pr-8 py-3">
           {/* Header section */}
           <div className="flex items-center gap-2 text-xs mb-2">
-            <span className="font-medium text-[#4fbcff]">{comment.userId}</span>
+            <span
+              className={`font-medium text-[#4fbcff] ${
+                CYCLE_USER_IDS.includes(comment.userId)
+                  ? "cursor-pointer hover:text-[#7fccff]"
+                  : ""
+              }`}
+              onClick={handleUserIdClick}
+            >
+              {comment.userId}
+            </span>
             <span className="text-gray-500">•</span>
             <span className="text-gray-500">
               {new Date(comment.timestamp).toLocaleString()}

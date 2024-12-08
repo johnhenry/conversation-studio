@@ -172,6 +172,23 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     updateComments(remainingComments);
   };
 
+  const handleUserIdChange = (commentId: string, newUserId: string) => {
+    const updateCommentUserId = (items: CommentType[]): CommentType[] => {
+      return items.map((item) => {
+        if (item.id === commentId) {
+          return { ...item, userId: newUserId };
+        }
+        if (item.children.length > 0) {
+          return { ...item, children: updateCommentUserId(item.children) };
+        }
+        return item;
+      });
+    };
+
+    const updatedComments = updateCommentUserId(allComments);
+    topLevelUpdate(updatedComments);
+  };
+
   return (
     <div
       onDragOver={(e) => {
@@ -189,6 +206,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onDrop={handleDrop}
             onPopUp={handlePopUp}
             onReply={onReply || (() => {})}
+            onUserIdChange={handleUserIdChange}
             level={level}
             canPopUp={level > 0}
             showDelete={!isPreview}
