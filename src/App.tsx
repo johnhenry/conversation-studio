@@ -7,11 +7,7 @@ import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
 import { DEFAULT_USER_ID } from "./config";
 import Header from "./components/Header";
-
-const generateContentHash = (content: string): string => {
-  const hash = crypto.SHA256(content);
-  return hash.toString().substring(0, 10);
-};
+import { Plus } from "lucide-react";
 
 // Convert Comment to CommentData by removing UI-specific properties
 const stripUIProperties = (comment: Comment): CommentData => ({
@@ -431,8 +427,13 @@ function App() {
     }
   }, [storeLocally, comments, userId, isInitialized]);
 
+  const generateContentHash = (content: string): string => {
+    const hash = crypto.SHA256(content);
+    return hash.toString().substring(0, 10);
+  };
+
   return (
-    <div className="min-h-screen bg-[#030303]">
+    <div className="min-h-screen pb-20">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -440,16 +441,10 @@ function App() {
         setStoreLocally={setStoreLocally}
         onImport={handleImport}
       />
-      <main className="container mx-auto px-4 pt-20">
+      <main className="container mx-auto px-4 pt-20 h-full">
         {activeTab === "arrange" ? (
           <>
             <div className="space-y-4">
-              <button
-                onClick={() => setShowEditor(true)}
-                className="w-full p-4 border border-gray-700 rounded-lg bg-[#1A1A1B] text-gray-400 hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-              >
-                Add a comment
-              </button>
               {commentTree}
             </div>
             {showEditor && (
@@ -474,6 +469,16 @@ function App() {
           <ExportPreview comments={comments} format={activeTab} />
         )}
       </main>
+      {/* Floating action button */}
+      <div 
+        className="floating-action-button"
+        onClick={() => {
+          setShowEditor(true);
+          setReplyToId(undefined);
+        }}
+      >
+        <Plus size={24} />
+      </div>
     </div>
   );
 }

@@ -144,13 +144,8 @@ const Comment: React.FC<CommentProps> = ({
               className={`w-[2px] relative ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
               style={{ left: "-12px" }}
             >
-              {/* Circle at the top */}
-              <div
-                className={`absolute top-[19px] w-[4px] h-[4px] rounded-full ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
-                style={{ left: "-1px" }}
-              />
               {/* Horizontal line */}
-              <div 
+              <div
                 className={`absolute top-[20px] w-[10px] h-[2px] ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
                 style={{ left: "0px" }}
               />
@@ -169,19 +164,20 @@ const Comment: React.FC<CommentProps> = ({
       )}
 
       <div
-        className={`relative  hover:bg-[#222223] transition-all duration-200 ${
+        className={`relative  hover:bg-[#222223] transition-all duration-200 cursor-all-scroll ${
           isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
-          {comment.children.length > 0 && (
-            <>
-            <div
+          <div
                 className={`absolute top-[50%] w-[12px] h-[12px]  ${DEPTH_COLORS[(level + 1)  % DEPTH_COLORS.length]}`}
                 style={{ left: "7px" }}
               />
+          {comment.children.length > 0 && (
+            <>
+
             <div
               className={`absolute w-[2px] ${DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length]}`}
               style={{

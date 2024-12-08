@@ -300,25 +300,25 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     onClick={() => setUserId("user")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     user
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => setUserId("assistant")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     assistant
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => setUserId("system")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     system
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => setUserId("")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >

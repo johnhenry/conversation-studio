@@ -154,3 +154,12 @@ input[type="file"] {
 .modal-overlay.show .modal-content {
   transform: translateY(0);
 }
+
+/* Floating action button */
+.floating-action-button {
+  @apply fixed bottom-6 right-6 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 cursor-pointer z-50;
+}
+
+.floating-action-button:hover {
+  transform: scale(1.05);
+}
