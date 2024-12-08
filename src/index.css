@@ -87,7 +87,7 @@ body {
 }
 
 .sparkle-loader .sparkle {
-  @apply text-yellow-400;
+  /* @apply text-yellow-400; */
   animation: sparkle 1.5s ease-in-out infinite;
 }
 

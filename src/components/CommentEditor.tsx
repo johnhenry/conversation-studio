@@ -75,7 +75,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   onAttachmentRemove,
   content,
   setContent,
-  buttonText = "Add Comment",
+  buttonText = "Add",
   parentId,
   onCancel,
   rootComments = [],
@@ -410,19 +410,24 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   if (loadingGen) {
     return (
-      <div className="modal-overlay show">
+      <div className="modal-overlay show cursor-pointer" onClick={handleCancel}>
         <div className="modal-content p-4">
-          <div className="flex justify-center p-4 border-b border-gray-700">
-            <button
-              onClick={handleCancel}
+          <div className="flex justify-center p-4 ">
+            <div
+
               className="sparkle-loader cursor-pointer hover:opacity-80 transition-opacity"
               title="Click to cancel generation"
             >
               <Sparkles size={20} className="sparkle" />
               <Sparkles size={20} className="sparkle" />
               <Sparkles size={20} className="sparkle" />
-            </button>
+
+            </div>
           </div>
+          <div className="flex justify-center p-4 ">
+          (click to cancel)
+          </div>
+
         </div>
       </div>
     );
@@ -432,7 +437,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     <div className={`modal-overlay ${isVisible ? 'show' : ''}`}>
       <div className="modal-content p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">Add Comment</h2>
+          <h2 className="text-xl font-semibold text-gray-100">New Comment</h2>
           <button
             onClick={handleClose}
             className="p-1 hover:bg-gray-800 rounded"

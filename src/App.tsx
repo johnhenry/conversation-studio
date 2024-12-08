@@ -431,7 +431,7 @@ function App() {
   }, [storeLocally, comments, userId, isInitialized]);
 
   return (
-    <main className="min-h-screen bg-[#030303] pb-[300px] max-w-4xl mx-auto p-6">
+    <main className="min-h-screen bg-[#030303] pb-[300px] max-w-6xl mx-auto p-4">
       <header className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-100">
               Conversation Studio
@@ -475,9 +475,6 @@ function App() {
 
             </div>
           </header>
-        <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
-
-
           <nav className="flex mb-4">
             <button
               onClick={() => handleTabChange("arrange")}
@@ -512,6 +509,10 @@ function App() {
               XML
             </button>
           </nav>
+        <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
+
+
+
 
           <div className="mt-4 min-h-[300px]">
             {activeTab === "arrange" ? commentTree : exportPreview}
@@ -531,7 +532,7 @@ function App() {
               onAttachmentRemove={handleAttachmentRemove}
               content={draftContent}
               setContent={setDraftContent}
-              buttonText={replyToId ? "Reply" : "Add Comment"}
+              buttonText={replyToId ? "Reply" : "Add"}
               parentId={replyToId}
               onCancel={() => {
                 setShowEditor(false);
