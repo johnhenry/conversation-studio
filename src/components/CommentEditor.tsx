@@ -269,12 +269,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setUserId("system")}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    system
-                  </button>
-                  <button
                     onClick={() => setUserId("user")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
@@ -287,10 +281,16 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                     assistant
                   </button>
                   <button
+                    onClick={() => setUserId("system")}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    system
+                  </button>
+                  <button
                     onClick={() => setUserId("")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
-                    x
+                    _
                   </button>
                 </div>
               </label>
