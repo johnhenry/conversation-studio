@@ -90,7 +90,32 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [parents, setParents] = useState<CommentType[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Focus the editor when it becomes visible
+  useEffect(() => {
+    if (isVisible && editorRef.current) {
+      editorRef.current.focus();
+    }
+  }, [isVisible]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Submit comment
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      if (content.trim()) {
+        onSubmit(content, attachments, parentId);
+        setContent("");
+        handleClose();
+      }
+    }
+    // Cancel editing
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleClose();
+    }
+  };
 
   const handleClose = () => {
     setIsVisible(false);
@@ -101,9 +126,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(content, attachments, parentId);
-    handleClose();
+    e.preventDefault(); // Prevent form submission
   };
 
   const handleCancel = () => {
@@ -328,6 +351,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               </label>
             </div>
             <textarea
+              ref={editorRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment using Markdown..."
@@ -433,15 +457,25 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   }
 
   return (
-    <div className={`modal-overlay ${isVisible ? 'show' : ''}`}>
-      <div className="modal-content p-4">
+    <div 
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
+      role="dialog"
+      aria-label="Comment Editor"
+    >
+      <div 
+        className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
+        onKeyDown={handleKeyDown}
+      >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-100">New Comment</h2>
           <button
             onClick={handleClose}
-            className="p-1 hover:bg-gray-800 rounded"
+            className="text-gray-400 hover:text-gray-300"
+            aria-label="Close editor"
           >
-            <X className="w-5 h-5" />
+            <X size={20} />
           </button>
         </div>
         

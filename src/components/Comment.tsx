@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy, Sparkles, CopyPlus } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
@@ -56,6 +56,14 @@ const Comment: React.FC<CommentProps> = ({
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const commentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isEditing && commentRef.current) {
+      const textarea = commentRef.current.querySelector('textarea');
+      textarea?.focus();
+    }
+  }, [isEditing]);
 
   const handleUserIdClick = () => {
     if (!disableEditing && CYCLE_USER_IDS.includes(comment.userId)) {
@@ -86,11 +94,31 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      handleEditSubmit();
-    } else if (e.key === 'Escape') {
-      setIsEditing(false);
-      setEditContent(comment.content);
+    if (isEditing) {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        handleEditSubmit();
+      } 
+      else if (e.key === 'Escape') {
+        setIsEditing(false);
+        setEditContent(comment.content);
+      }
+    } else {
+      if (e.key === 'e' && !disableEditing) {
+        e.preventDefault();
+        setIsEditing(true);
+      }
+      else if (e.key === 'r' && onReply) {
+        e.preventDefault();
+        onReply(comment.id);
+      }
+      else if (e.key === 'a' && onReply) {
+        e.preventDefault();
+        onReply(comment.id, true); // Auto-reply
+      }
+      else if (e.key === 'l' && onClone) {
+        e.preventDefault();
+        onClone(comment.id, comment);
+      }
     }
   };
 
@@ -112,6 +140,7 @@ const Comment: React.FC<CommentProps> = ({
 
   return (
     <div
+      ref={commentRef}
       draggable={!isEditing && !disableEditing}
       onDragStart={(e) => !disableEditing && onDragStart(e, comment)}
       onDragOver={(e) => {
@@ -134,6 +163,10 @@ const Comment: React.FC<CommentProps> = ({
         isDragOver ? "ring-2 ring-blue-500 ring-opacity-50" : ""
       }`}
       style={{ marginLeft: `${Math.max(0, level * 24)}px` }}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="article"
+      aria-label={`Comment by ${comment.userId}`}
     >
       {/* Indentation lines for nested comments */}
       {level > 0 && (

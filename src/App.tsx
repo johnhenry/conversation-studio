@@ -427,6 +427,27 @@ function App() {
     }
   }, [storeLocally, comments, userId, isInitialized]);
 
+  // Add global keyboard shortcuts
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Only handle shortcuts if not in a text input or textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // New comment: just 'n'
+      if (e.key === 'n') {
+        e.preventDefault();
+        setShowEditor(true);
+        setReplyToId(undefined);
+        setAutoReplySettings({});
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const generateContentHash = (content: string): string => {
     const hash = crypto.SHA256(content);
     return hash.toString().substring(0, 10);
