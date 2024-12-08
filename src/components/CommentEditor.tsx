@@ -128,7 +128,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         seed: 1,
       });
       const content = await model.prompt(prompt);
-      console.log(content);
       onSubmit(content, attachments, parentId);
     } catch (e) {
       console.error(e);

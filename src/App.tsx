@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
 import { Comment, CommentData, Attachment, ExportFormat } from "./types";
@@ -32,14 +32,17 @@ const stripUIProperties = (comment: Comment): CommentData => ({
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeTab, setActiveTab] = useState<ExportFormat | "arrange">(
-    "arrange"
-  );
+  const [activeTab, setActiveTab] = useState<ExportFormat | "arrange">("arrange");
   const [userId, setUserId] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
+  const [storeLocally, setStoreLocally] = useState(() => {
+    const stored = localStorage.getItem('storeLocally');
+    return stored ? stored === 'true' : false;
+  });
+  const [isInitialized, setIsInitialized] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Memoize the renderAttachment function
@@ -336,6 +339,51 @@ function App() {
     setActiveTab(tab);
   }, []);
 
+  // Function to add renderAttachment to comments recursively
+  const addRenderAttachmentToComments = useCallback((comments: Comment[]): Comment[] => {
+    return comments.map(comment => ({
+      ...comment,
+      renderAttachment,
+      children: addRenderAttachmentToComments(comment.children)
+    }));
+  }, [renderAttachment]);
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    if (storeLocally) {
+      const storedComments = localStorage.getItem('comments');
+      const storedUserId = localStorage.getItem('userId');
+      if (storedComments) {
+        try {
+          const parsedComments = JSON.parse(storedComments);
+          // Reattach the renderAttachment function to each comment
+          const commentsWithUI = addRenderAttachmentToComments(parsedComments);
+          setComments(commentsWithUI);
+        } catch (error) {
+          console.error('Error parsing stored comments:', error);
+        }
+      }
+      if (storedUserId) setUserId(storedUserId);
+    }
+    setIsInitialized(true);
+  }, [storeLocally, addRenderAttachmentToComments]);
+
+  // Save state to localStorage when it changes
+  useEffect(() => {
+    // Don't save until initial load is complete
+    if (!isInitialized) return;
+
+    if (storeLocally) {
+      // Strip UI-specific properties before storing
+      const commentsToStore = comments.map(comment => stripUIProperties(comment));
+      localStorage.setItem('comments', JSON.stringify(commentsToStore));
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('storeLocally', 'true');
+    } else {
+      localStorage.clear();
+    }
+  }, [storeLocally, comments, userId, isInitialized]);
+
   return (
     <div className="min-h-screen bg-[#030303] pb-[300px]">
       <div className="max-w-4xl mx-auto p-6">
@@ -367,6 +415,18 @@ function App() {
               >
                 New Comment
               </button>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="storeLocally"
+                  checked={storeLocally}
+                  onChange={(e) => setStoreLocally(e.target.checked)}
+                  className="rounded border-gray-700 bg-[#1A1A1B] text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="storeLocally" className="text-gray-300">
+                  Store locally
+                </label>
+              </div>
             </div>
           </div>
 

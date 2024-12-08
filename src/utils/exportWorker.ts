@@ -191,7 +191,6 @@ const handleExport = (
 };
 
 self.onmessage = (event: MessageEvent) => {
-  console.log("Worker received message:", event.data);
 
   try {
     const { comments, format, truncate = true } = event.data;

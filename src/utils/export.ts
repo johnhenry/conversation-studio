@@ -186,7 +186,6 @@ export const exportComments = (
   comments: CommentData[],
   format: ExportFormat
 ): string => {
-  console.log("Starting export:", { format, commentsCount: comments.length });
 
   if (!Array.isArray(comments)) {
     throw new Error("Comments must be an array");
@@ -195,40 +194,32 @@ export const exportComments = (
   try {
     switch (format) {
       case "text": {
-        console.log("Generating text format");
         const mainBoundary = generateBoundary();
         const parts = [
           `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n`,
         ];
 
         comments.forEach((comment, index) => {
-          console.log(`Processing comment ${index + 1}/${comments.length}`);
           parts.push(formatTextComment(comment, mainBoundary, new Set()));
         });
 
         parts.push(`\n--${mainBoundary}--\n`);
-        console.log("Text format generated successfully");
         return parts.join("");
       }
 
       case "json": {
-        console.log("Generating JSON format");
         const processed = comments.map(formatJSONComment);
-        console.log("JSON format generated successfully");
         return JSON.stringify(processed, null, 2);
       }
 
       case "xml": {
-        console.log("Generating XML format");
         const builder = create({ version: "1.0", encoding: "UTF-8" });
         const root = builder.ele("comments");
 
         comments.forEach((comment, index) => {
-          console.log(`Processing comment ${index + 1}/${comments.length}`);
           formatXMLComment(comment, root);
         });
 
-        console.log("XML format generated successfully");
         return builder.end({ prettyPrint: true });
       }
 
