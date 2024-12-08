@@ -20,9 +20,49 @@ interface CommentEditorProps {
   buttonText?: string;
   parentId?: string;
   onCancel?: () => void;
+  rootComments?: CommentType[];
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
+
+const findParentComments = (
+  comments: CommentType[],
+  childId: string
+): CommentType[] => {
+  const parents: CommentType[] = [];
+  let targetComment: CommentType | null = null;
+
+  const findCommentAndParents = (comments: CommentType[], targetId: string) => {
+    for (const comment of comments) {
+      // Check if current comment is the target
+      if (comment.id === targetId) {
+        targetComment = comment;
+        return true;
+      }
+
+      // Check children
+      for (const child of comment.children) {
+        if (findCommentAndParents([child], targetId)) {
+          parents.push(comment);
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  // Start the search from root comments
+  findCommentAndParents(comments, childId);
+
+  // Reverse the array so it's ordered from root to immediate parent
+  // and add the target comment at the end
+  const result = parents.reverse();
+  if (targetComment) {
+    result.push(targetComment);
+  }
+
+  return result;
+};
 
 const CommentEditor: React.FC<CommentEditorProps> = ({
   onSubmit,
@@ -36,6 +76,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   buttonText = "Add Comment",
   parentId,
   onCancel,
+  rootComments = [],
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
@@ -46,6 +87,20 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   useEffect(() => {
     setPreviewUserId(userId || "user-" + Math.floor(Math.random() * 1000));
   }, [userId]);
+
+  useEffect(() => {
+    if (parentId && rootComments) {
+      const parents = findParentComments(rootComments, parentId);
+      console.log(
+        "Found parent comments:",
+        parents.map((p) => ({
+          id: p.id,
+          content: p.content.substring(0, 50) + "...",
+          userId: p.userId,
+        }))
+      );
+    }
+  }, [parentId, rootComments]);
 
   const handleSubmit = () => {
     onSubmit(content, attachments, parentId);

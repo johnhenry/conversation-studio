@@ -346,6 +346,7 @@ function App() {
                 setDraftContent("");
                 setAttachments([]);
               }}
+              rootComments={comments}
             />
           </div>
         </div>
