@@ -156,7 +156,7 @@ const Comment: React.FC<CommentProps> = ({
 
       <div
         className={`relative bg-[#1A1A1B] hover:bg-[#222223] transition-all duration-200 ${
-          isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30" : ""
+          isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
 
