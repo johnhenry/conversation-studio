@@ -144,6 +144,11 @@ const Comment: React.FC<CommentProps> = ({
               className={`w-[2px] relative ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
               style={{ left: "-12px" }}
             >
+              {/* Circle at the top */}
+              <div
+                className={`absolute top-[19px] w-[4px] h-[4px] rounded-full ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
+                style={{ left: "-1px" }}
+              />
               {/* Horizontal line */}
               <div 
                 className={`absolute top-[20px] w-[10px] h-[2px] ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
@@ -171,16 +176,20 @@ const Comment: React.FC<CommentProps> = ({
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
-          {/* TODO: Add circle to top of line */}
           {comment.children.length > 0 && (
-            <div 
+            <>
+            <div
+                className={`absolute top-[50%] w-[12px] h-[12px]  ${DEPTH_COLORS[(level + 1)  % DEPTH_COLORS.length]}`}
+                style={{ left: "7px" }}
+              />
+            <div
               className={`absolute w-[2px] ${DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length]}`}
               style={{
                 left: "12px",
                 height: "50%",
                 top: "50%"
               }}
-            />
+            /></>
           )}
 
           {/* Header section with metadata */}
