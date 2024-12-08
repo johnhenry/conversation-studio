@@ -1,5 +1,5 @@
-import React from "react";
-import { Trash2, GripVertical, ArrowUp, MessageSquare } from "lucide-react";
+import React, { useState } from "react";
+import { Trash2, GripVertical, ArrowUp, MessageSquare, Edit2, X, Check } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -11,6 +11,9 @@ interface CommentProps {
   onPopUp: (id: string) => void;
   onReply: (id: string) => void;
   onUserIdChange?: (commentId: string, newUserId: string) => void;
+  onUpdate?: (commentId: string, content: string, attachments: Attachment[]) => void;
+  onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentRemove?: (commentId: string, index: number) => void;
   canPopUp: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
   showDelete: boolean;
@@ -28,6 +31,9 @@ const Comment: React.FC<CommentProps> = ({
   onPopUp,
   onReply,
   onUserIdChange,
+  onUpdate,
+  onAttachmentUpload,
+  onAttachmentRemove,
   canPopUp,
   renderAttachment,
   showDelete,
@@ -35,6 +41,8 @@ const Comment: React.FC<CommentProps> = ({
   isBeingRepliedTo,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
 
   const handleUserIdClick = () => {
     if (CYCLE_USER_IDS.includes(comment.userId)) {
@@ -45,9 +53,25 @@ const Comment: React.FC<CommentProps> = ({
     }
   };
 
+  const handleEditSubmit = () => {
+    if (onUpdate) {
+      onUpdate(comment.id, editContent, comment.attachments);
+      setIsEditing(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      handleEditSubmit();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditContent(comment.content);
+    }
+  };
+
   return (
     <div
-      draggable
+      draggable={!isEditing}
       onDragStart={(e) => onDragStart(e, comment)}
       onDragOver={(e) => {
         e.preventDefault();
@@ -89,15 +113,17 @@ const Comment: React.FC<CommentProps> = ({
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
         {/* Drag handle */}
-        <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
-          <GripVertical
-            size={16}
-            className="text-gray-500 hover:text-gray-300"
-          />
-        </div>
+        {!isEditing && (
+          <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
+            <GripVertical
+              size={16}
+              className="text-gray-500 hover:text-gray-300"
+            />
+          </div>
+        )}
 
         {/* Move Up button */}
-        {canPopUp && (
+        {canPopUp && !isEditing && (
           <button
             onClick={() => onPopUp(comment.id)}
             title="Move up one level"
@@ -108,7 +134,7 @@ const Comment: React.FC<CommentProps> = ({
         )}
 
         {/* Reply button */}
-        {showDelete && (
+        {showDelete && !isEditing && (
           <button
             onClick={() => onReply(comment.id)}
             title="Reply"
@@ -118,8 +144,41 @@ const Comment: React.FC<CommentProps> = ({
           </button>
         )}
 
+        {/* Edit/Save buttons */}
+        {showDelete && !isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            title="Edit comment"
+            className="absolute right-8 bottom-2 text-gray-400 hover:text-blue-400 transition-colors z-10"
+          >
+            <Edit2 size={16} />
+          </button>
+        )}
+
+        {isEditing && (
+          <>
+            <button
+              onClick={handleEditSubmit}
+              title="Save changes"
+              className="absolute right-8 bottom-2 text-gray-400 hover:text-green-400 transition-colors z-10"
+            >
+              <Check size={16} />
+            </button>
+            <button
+              onClick={() => {
+                setIsEditing(false);
+                setEditContent(comment.content);
+              }}
+              title="Cancel editing"
+              className="absolute right-2 bottom-2 text-gray-400 hover:text-red-400 transition-colors z-10"
+            >
+              <X size={16} />
+            </button>
+          </>
+        )}
+
         {/* Delete button */}
-        {showDelete && (
+        {showDelete && !isEditing && (
           <button
             onClick={() => onDelete(comment.id)}
             title="Delete comment"
@@ -159,14 +218,49 @@ const Comment: React.FC<CommentProps> = ({
 
           {/* Content section */}
           <div className="text-gray-300 leading-relaxed">
-            <MarkdownPreview content={comment.content} />
+            {isEditing ? (
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Write your comment using Markdown..."
+                className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+              />
+            ) : (
+              <MarkdownPreview content={comment.content} />
+            )}
           </div>
 
           {/* Attachments */}
           <div className="mt-2">
-            {comment.attachments.map((attachment) =>
-              renderAttachment(attachment)
+            {isEditing && onAttachmentUpload && (
+              <div className="mb-2">
+                <label htmlFor={`attachments-${comment.id}`} className="text-gray-300">
+                  Attachments:
+                  <input
+                    type="file"
+                    id={`attachments-${comment.id}`}
+                    multiple
+                    onChange={(e) => onAttachmentUpload(comment.id, e)}
+                    className="block text-gray-400"
+                    aria-label="Choose files to attach"
+                  />
+                </label>
+              </div>
             )}
+            {comment.attachments.map((attachment, index) => (
+              <div key={index} className="relative">
+                {renderAttachment(attachment)}
+                {isEditing && onAttachmentRemove && (
+                  <button
+                    onClick={() => onAttachmentRemove(comment.id, index)}
+                    className="absolute top-1 right-1 text-gray-500 hover:text-red-400 bg-[#1A1A1B] rounded-full p-1"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Reply count */}

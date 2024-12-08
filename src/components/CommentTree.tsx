@@ -13,6 +13,8 @@ interface CommentTreeProps {
   renderAttachment: (attachment: Attachment) => React.ReactNode | null;
   onReply?: (id: string) => void;
   replyToId?: string;
+  onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentRemove?: (commentId: string, index: number) => void;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -26,6 +28,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   renderAttachment,
   onReply,
   replyToId,
+  onAttachmentUpload,
+  onAttachmentRemove,
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -189,6 +193,31 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     topLevelUpdate(updatedComments);
   };
 
+  const handleUpdateComment = (commentId: string, newContent: string, newAttachments: Attachment[]) => {
+    const updateCommentInTree = (comments: CommentType[]): CommentType[] => {
+      return comments.map((comment) => {
+        if (comment.id === commentId) {
+          return {
+            ...comment,
+            content: newContent,
+            attachments: newAttachments,
+            timestamp: Date.now(), // Update timestamp when content changes
+          };
+        }
+        if (comment.children.length > 0) {
+          return {
+            ...comment,
+            children: updateCommentInTree(comment.children),
+          };
+        }
+        return comment;
+      });
+    };
+
+    const updatedComments = updateCommentInTree(allComments);
+    topLevelUpdate(updatedComments);
+  };
+
   return (
     <div
       onDragOver={(e) => {
@@ -207,32 +236,37 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onPopUp={handlePopUp}
             onReply={onReply || (() => {})}
             onUserIdChange={handleUserIdChange}
-            level={level}
-            canPopUp={level > 0}
-            showDelete={!isPreview}
+            onUpdate={handleUpdateComment}
+            onAttachmentUpload={onAttachmentUpload}
+            onAttachmentRemove={onAttachmentRemove}
+            canPopUp={!!parentId}
             renderAttachment={renderAttachment}
-            isBeingRepliedTo={replyToId === comment.id}
+            showDelete={!isPreview}
+            level={level}
+            isBeingRepliedTo={comment.id === replyToId}
           />
           {comment.children.length > 0 && (
-            <div className="ml-8">
-              <CommentTree
-                comments={comment.children}
-                updateComments={(newChildren) => {
-                  const newComments = comments.map((c) =>
-                    c.id === comment.id ? { ...c, children: newChildren } : c
-                  );
-                  updateComments(newComments);
-                }}
-                level={level + 1}
-                parentId={comment.id}
-                rootComments={allComments}
-                rootUpdateComments={topLevelUpdate}
-                isPreview={isPreview}
-                renderAttachment={renderAttachment}
-                onReply={onReply}
-                replyToId={replyToId}
-              />
-            </div>
+            <CommentTree
+              comments={comment.children}
+              updateComments={(updatedChildren) => {
+                const updatedComments = comments.map((c) =>
+                  c.id === comment.id
+                    ? { ...c, children: updatedChildren }
+                    : c
+                );
+                updateComments(updatedComments);
+              }}
+              level={level + 1}
+              parentId={comment.id}
+              rootComments={allComments}
+              rootUpdateComments={topLevelUpdate}
+              isPreview={isPreview}
+              renderAttachment={renderAttachment}
+              onReply={onReply}
+              replyToId={replyToId}
+              onAttachmentUpload={onAttachmentUpload}
+              onAttachmentRemove={onAttachmentRemove}
+            />
           )}
         </div>
       ))}
