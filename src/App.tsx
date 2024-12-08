@@ -283,7 +283,9 @@ function App() {
 
   // Memoize the comments data for export preview
   const exportCommentData = useMemo(() => {
-    if (activeTab === "arrange") return [];
+    if (activeTab === "arrange") {
+      return [];
+    }
     return comments.map(stripUIProperties);
   }, [comments, activeTab]);
 
@@ -385,13 +387,23 @@ function App() {
   }, [storeLocally, comments, userId, isInitialized]);
 
   return (
-    <div className="min-h-screen bg-[#030303] pb-[300px]">
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
-          <div className="flex justify-between items-center mb-8">
+    <main className="min-h-screen bg-[#030303] pb-[300px] max-w-4xl mx-auto p-6">
+      <header className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-100">
               Conversation Studio
             </h1>
+            <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="storeLocally"
+                  checked={storeLocally}
+                  onChange={(e) => setStoreLocally(e.target.checked)}
+                  className="rounded border-gray-700 bg-[#1A1A1B] text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="storeLocally" className="text-gray-300">
+                  Store Locally
+                </label>
+              </div>
             <div className="flex gap-2">
               <input
                 type="file"
@@ -415,22 +427,13 @@ function App() {
               >
                 New Comment
               </button>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="storeLocally"
-                  checked={storeLocally}
-                  onChange={(e) => setStoreLocally(e.target.checked)}
-                  className="rounded border-gray-700 bg-[#1A1A1B] text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="storeLocally" className="text-gray-300">
-                  Store locally
-                </label>
-              </div>
-            </div>
-          </div>
 
-          <div className="flex mb-4">
+            </div>
+          </header>
+        <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
+
+
+          <nav className="flex mb-4">
             <button
               onClick={() => handleTabChange("arrange")}
               className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
@@ -463,16 +466,16 @@ function App() {
             >
               XML
             </button>
-          </div>
+          </nav>
 
           <div className="mt-4 min-h-[300px]">
             {activeTab === "arrange" ? commentTree : exportPreview}
           </div>
         </div>
-      </div>
+
 
       {showEditor && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#030303] border-t border-gray-700 shadow-lg">
+        <footer className="fixed bottom-0 left-0 right-0 bg-[#030303] border-t border-gray-700 shadow-lg">
           <div className="max-w-4xl mx-auto p-6">
             <CommentEditor
               onSubmit={addComment}
@@ -494,9 +497,9 @@ function App() {
               rootComments={comments}
             />
           </div>
-        </div>
+        </footer>
       )}
-    </div>
+    </main>
   );
 }
 
