@@ -124,20 +124,31 @@ const Comment: React.FC<CommentProps> = ({
       className={`relative transition-all duration-200 group ${
         isDragOver ? "ring-2 ring-blue-500 ring-opacity-50" : ""
       }`}
-      style={{ marginLeft: `${Math.max(0, level * 20)}px` }}
+      style={{ marginLeft: `${Math.max(0, level * 24)}px` }}
     >
       {/* Indentation lines for nested comments */}
       {level > 0 && (
         <>
-          <div
-            className="absolute left-0 top-0 bottom-0 w-[2px] bg-gray-700"
-            style={{ left: "-10px" }}
-          />
+          {/* Current level connector */}
+          <div className="absolute left-0 top-0 bottom-0 flex">
+            <div 
+              className="w-[2px] bg-gray-700 relative"
+              style={{ left: "-12px" }}
+            >
+              {/* Horizontal line */}
+              <div 
+                className="absolute top-[20px] w-[10px] h-[2px] bg-gray-700"
+                style={{ left: "0px" }}
+              />
+            </div>
+          </div>
+          
+          {/* Parent level connectors */}
           {Array.from({ length: level - 1 }).map((_, index) => (
             <div
               key={index}
               className="absolute left-0 top-0 bottom-0 w-[2px] bg-gray-700"
-              style={{ left: `${-30 - index * 20}px` }}
+              style={{ left: `${-36 - index * 24}px` }}
             />
           ))}
         </>
