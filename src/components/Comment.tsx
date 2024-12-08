@@ -119,9 +119,7 @@ const Comment: React.FC<CommentProps> = ({
         <div className="flex flex-col pl-8 pr-8 py-3">
           {/* Header section */}
           <div className="flex items-center gap-2 text-xs mb-2">
-            <span className="font-medium text-[#4fbcff]">
-              User {comment.userId}
-            </span>
+            <span className="font-medium text-[#4fbcff]">{comment.userId}</span>
             <span className="text-gray-500">•</span>
             <span className="text-gray-500">
               {new Date(comment.timestamp).toLocaleString()}

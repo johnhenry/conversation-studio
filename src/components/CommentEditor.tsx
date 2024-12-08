@@ -3,6 +3,7 @@ import { MessageSquarePlus, X, File } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
+import { DEFAULT_USER_ID } from "../config";
 
 interface CommentEditorProps {
   onSubmit: (
@@ -24,7 +25,6 @@ interface CommentEditorProps {
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
-
 const findParentComments = (
   comments: CommentType[],
   childId: string
@@ -85,7 +85,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
-    setPreviewUserId(userId || "user-" + Math.floor(Math.random() * 1000));
+    setPreviewUserId(userId || DEFAULT_USER_ID);
   }, [userId]);
 
   useEffect(() => {
@@ -217,7 +217,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 <input
                   type="text"
                   id="userIdInput"
-                  placeholder="User ID"
+                  placeholder={DEFAULT_USER_ID}
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

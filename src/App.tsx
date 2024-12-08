@@ -5,6 +5,7 @@ import { Comment, CommentData, Attachment, ExportFormat } from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
+import { DEFAULT_USER_ID } from "./config";
 
 const generateContentHash = (content: string): string => {
   const hash = crypto.SHA256(content);
@@ -105,7 +106,7 @@ function App() {
         id: Date.now().toString(),
         content,
         children: [],
-        userId: userId || "user-" + Math.floor(Math.random() * 1000),
+        userId: userId || DEFAULT_USER_ID,
         timestamp: Date.now(),
         contentHash: generateContentHash(content),
         attachments,
