@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MessageSquarePlus, X, File } from "lucide-react";
+import { MessageSquarePlus, X, File, Sparkles } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import { DEFAULT_USER_ID } from "../config";
-import { exportCommentsText, exportCommentsXML} from "../utils/export";
+import { exportCommentsText, exportCommentsXML } from "../utils/export";
 // import { formatTextComment } from "../utils/exportWorker";
 interface CommentEditorProps {
   onSubmit: (
@@ -84,6 +84,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [contentHash, setContentHash] = useState("");
   const [previewUserId, setPreviewUserId] = useState("");
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [parents, setParents] = useState<CommentType[]>([]);
+  const [loadingGen, setLoadingGen] = useState(false);
 
   useEffect(() => {
     setPreviewUserId(userId || DEFAULT_USER_ID);
@@ -92,23 +94,60 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   useEffect(() => {
     if (parentId && rootComments) {
       const parents = findParentComments(rootComments, parentId);
-      const topParent = parents.shift();
-      let lastParent = topParent;
-      let nextParent = parents.shift();
-      // TODO: Do i ned to ensure that these are new objects?
-      // eg. {...parents.shift()}
-      while (lastParent && nextParent) {
-        lastParent.children = [nextParent];
-        lastParent = nextParent;
-        nextParent = parents.shift();
-      }
-      console.log(exportCommentsText([topParent]));
-      console.log(exportCommentsXML([topParent]));
+      setParents(parents);
     }
   }, [parentId, rootComments]);
 
   const handleSubmit = () => {
     onSubmit(content, attachments, parentId);
+  };
+  const handleSubmitGenerate = async () => {
+    if (!parents.length) {
+      return;
+    }
+    try {
+      setLoadingGen(true);
+      const initialPrompts: { role: string; content: string }[] = [];
+      const localParents = [...parents];
+      while (localParents.length > 0) {
+        const parent = localParents.shift()!;
+        initialPrompts.push({
+          role: parent.userId,
+          content: parent.content,
+        });
+      }
+      const { content: prompt } = initialPrompts.pop() as {
+        role: string;
+        content: string;
+      };
+      const model = await window.ai.languageModel.create({
+        temperature: 0.7,
+        initialPrompts,
+        topK: 1,
+        maxTokens: 200,
+        seed: 1,
+      });
+      const content = await model.prompt(prompt);
+      console.log(content);
+      onSubmit(content, attachments, parentId);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingGen(false);
+    }
+
+    // const topParent = parents.shift();
+    // let lastParent = topParent;
+    // let nextParent = parents.shift();
+    // // TODO: Do i ned to ensure that these are new objects?
+    // // eg. {...parents.shift()}
+    // while (lastParent && nextParent) {
+    //   lastParent.children = [nextParent];
+    //   lastParent = nextParent;
+    //   nextParent = parents.shift();
+    // }
+    // console.log(exportCommentsText([topParent]));
+    // console.log(exportCommentsXML([topParent]));
   };
 
   const renderAttachment = useCallback((attachment: Attachment) => {
@@ -309,7 +348,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         return null;
     }
   };
-
+  if (loadingGen) {
+    return (
+      <div className="bg-[#1A1A1B] rounded-lg shadow-lg">
+        <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
+          Generating...
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-[#1A1A1B] rounded-lg shadow-lg">
       <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
@@ -368,6 +415,14 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               Cancel
             </button>
           )}
+          <button
+            onClick={handleSubmitGenerate}
+            disabled={!parentId}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Sparkles size={20} />
+            Generate
+          </button>
           <button
             onClick={handleSubmit}
             disabled={!content.trim() && attachments.length === 0}
