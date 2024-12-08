@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowUp, MessageSquare, Edit2, X, Check, File } from "lucide-react";
+import { Trash2, GripVertical, ArrowUp, MessageSquare, Edit2, X, Check, File, Copy } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -78,6 +78,14 @@ const Comment: React.FC<CommentProps> = ({
     } else if (e.key === 'Escape') {
       setIsEditing(false);
       setEditContent(comment.content);
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(comment.content);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
     }
   };
 
@@ -214,6 +222,13 @@ const Comment: React.FC<CommentProps> = ({
 
           {showDelete && !isEditing && (
             <>
+              <button
+                onClick={handleCopy}
+                title="Copy comment content"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <Copy size={16} />
+              </button>
               <button
                 onClick={() => onReply(comment.id)}
                 title="Reply"
