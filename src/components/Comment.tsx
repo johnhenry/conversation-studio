@@ -19,6 +19,7 @@ interface CommentProps {
   showDelete: boolean;
   level: number;
   isBeingRepliedTo?: boolean;
+  disableEditing?: boolean;
 }
 
 const CYCLE_USER_IDS = ["user", "assistant", "system"];
@@ -39,13 +40,14 @@ const Comment: React.FC<CommentProps> = ({
   showDelete,
   level,
   isBeingRepliedTo,
+  disableEditing,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
 
   const handleUserIdClick = () => {
-    if (CYCLE_USER_IDS.includes(comment.userId)) {
+    if (!disableEditing && CYCLE_USER_IDS.includes(comment.userId)) {
       const currentIndex = CYCLE_USER_IDS.indexOf(comment.userId);
       const nextIndex = (currentIndex + 1) % CYCLE_USER_IDS.length;
       const newUserId = CYCLE_USER_IDS[nextIndex];
@@ -95,19 +97,23 @@ const Comment: React.FC<CommentProps> = ({
 
   return (
     <div
-      draggable={!isEditing}
-      onDragStart={(e) => onDragStart(e, comment)}
+      draggable={!isEditing && !disableEditing}
+      onDragStart={(e) => !disableEditing && onDragStart(e, comment)}
       onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(true);
+        if (!disableEditing) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(true);
+        }
       }}
-      onDragLeave={() => setIsDragOver(false)}
+      onDragLeave={() => !disableEditing && setIsDragOver(false)}
       onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(false);
-        onDrop(e, comment.id);
+        if (!disableEditing) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+          onDrop(e, comment.id);
+        }
       }}
       className={`relative transition-all duration-200 group ${
         isDragOver ? "ring-2 ring-blue-500 ring-opacity-50" : ""
@@ -137,7 +143,7 @@ const Comment: React.FC<CommentProps> = ({
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
         {/* Drag handle */}
-        {!isEditing && (
+        {!isEditing && !disableEditing && (
           <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
             <GripVertical
               size={16}
@@ -150,7 +156,7 @@ const Comment: React.FC<CommentProps> = ({
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
-          {canPopUp && !isEditing && (
+          {canPopUp && !isEditing && !disableEditing && (
             <button
               onClick={() => onPopUp(comment.id)}
               title="Move up one level"
@@ -161,7 +167,7 @@ const Comment: React.FC<CommentProps> = ({
           )}
             <span
               className={`font-medium text-[#4fbcff] ${
-                CYCLE_USER_IDS.includes(comment.userId)
+                CYCLE_USER_IDS.includes(comment.userId) && !disableEditing
                   ? "cursor-pointer hover:text-[#7fccff]"
                   : ""
               }`}
@@ -224,7 +230,7 @@ const Comment: React.FC<CommentProps> = ({
 
         {/* Footer with action buttons */}
         <div className="flex justify-end gap-2 p-2">
-          {showDelete && !isEditing && (
+          {showDelete && !isEditing && !disableEditing && (
             <>
               <button
                 onClick={handleAutoReply}
@@ -247,13 +253,15 @@ const Comment: React.FC<CommentProps> = ({
               >
                 <Copy size={16} />
               </button>
-              <button
-                onClick={() => setIsEditing(true)}
-                title="Edit comment"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <Edit2 size={16} />
-              </button>
+              {!disableEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  title="Edit comment"
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                >
+                  <Edit2 size={16} />
+                </button>
+              )}
 
               <button
                 onClick={() => onDelete(comment.id)}

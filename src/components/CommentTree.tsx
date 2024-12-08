@@ -15,6 +15,7 @@ interface CommentTreeProps {
   replyToId?: string;
   onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   onAttachmentRemove?: (commentId: string, index: number) => void;
+  disableEditing?: boolean;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -30,6 +31,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   replyToId,
   onAttachmentUpload,
   onAttachmentRemove,
+  disableEditing,
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -221,10 +223,19 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   return (
     <div
       onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        if (!disableEditing) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
       }}
-      onDrop={(e) => handleDrop(e)}
+      onDrop={(e) => {
+        if (!disableEditing) {
+          e.preventDefault();
+          e.stopPropagation();
+          handleDrop(e);
+        }
+      }}
+      className={`space-y-4 ${parentId ? "pl-0" : ""}`}
     >
       {comments.map((comment) => (
         <div key={comment.id}>
@@ -244,6 +255,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             showDelete={!isPreview}
             level={level}
             isBeingRepliedTo={comment.id === replyToId}
+            disableEditing={disableEditing}
           />
           {comment.children.length > 0 && (
             <CommentTree
@@ -266,6 +278,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               replyToId={replyToId}
               onAttachmentUpload={onAttachmentUpload}
               onAttachmentRemove={onAttachmentRemove}
+              disableEditing={disableEditing}
             />
           )}
         </div>

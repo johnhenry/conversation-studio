@@ -303,13 +303,12 @@ function App() {
           comments={comments}
           updateComments={setComments}
           level={0}
-          rootComments={comments}
-          rootUpdateComments={setComments}
           renderAttachment={renderAttachment}
           onReply={handleReply}
           replyToId={replyToId}
           onAttachmentUpload={handleCommentAttachmentUpload}
           onAttachmentRemove={handleCommentAttachmentRemove}
+          disableEditing={showEditor}
         />
       );
     }
@@ -322,6 +321,7 @@ function App() {
     replyToId,
     handleCommentAttachmentUpload,
     handleCommentAttachmentRemove,
+    showEditor,
   ]);
 
   // Memoize the export preview component
