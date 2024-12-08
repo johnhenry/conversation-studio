@@ -361,11 +361,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment using Markdown..."
               className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  handleSubmit(e);
-                }
-              }}
             />
             <div className="text-gray-300">
               <label htmlFor="attachments" title="Choose files to attach">

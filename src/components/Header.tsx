@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({
                   onChange={(e) => setStoreLocally(e.target.checked)}
                   className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
                 />
-                <span>Store locally</span>
+                <span>Store</span>
               </label>
               <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                 <span>Import</span>
