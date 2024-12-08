@@ -237,7 +237,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
           handleDrop(e);
         }
       }}
-      className={`space-y-4 ${parentId ? "pl-0" : ""}`}
+      className={`${parentId ? "pl-0" : ""}`}
     >
       {comments.map((comment) => (
         <div key={comment.id}>

@@ -148,15 +148,6 @@ const Comment: React.FC<CommentProps> = ({
           isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30" : ""
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
-        {/* Drag handle */}
-        {!isEditing && !disableEditing && (
-          <div className="absolute left-0 top-0 bottom-0 px-2 flex items-center opacity-0 group-hover:opacity-100 cursor-move">
-            <GripVertical
-              size={16}
-              className="text-gray-500 hover:text-gray-300"
-            />
-          </div>
-        )}
 
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
@@ -198,7 +189,10 @@ const Comment: React.FC<CommentProps> = ({
           </div>
 
           {/* Content section */}
-          <div className="text-gray-300 leading-relaxed">
+          <div 
+            className="text-gray-300 leading-relaxed"
+            onDoubleClick={() => !disableEditing && !isEditing && setIsEditing(true)}
+          >
             {isEditing ? (
               <textarea
                 value={editContent}
@@ -259,15 +253,6 @@ const Comment: React.FC<CommentProps> = ({
               >
                 <Copy size={16} />
               </button>
-              {!disableEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  title="Edit comment"
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
-                >
-                  <Edit2 size={16} />
-                </button>
-              )}
               <button
                 onClick={handleClone}
                 title="Clone comment (creates copy at same level)"
