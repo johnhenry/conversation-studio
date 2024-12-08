@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowUp, MessageSquare, Edit2, X, Check, File, Copy } from "lucide-react";
+import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -146,6 +146,15 @@ const Comment: React.FC<CommentProps> = ({
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
+          {canPopUp && !isEditing && (
+            <button
+              onClick={() => onPopUp(comment.id)}
+              title="Move up one level"
+              className="text-gray-400 hover:text-blue-400 transition-colors"
+            >
+              <ArrowBigUpDash size={16} />
+            </button>
+          )}
             <span
               className={`font-medium text-[#4fbcff] ${
                 CYCLE_USER_IDS.includes(comment.userId)
@@ -169,6 +178,7 @@ const Comment: React.FC<CommentProps> = ({
                 <span className="text-blue-400">Replying to this comment</span>
               </>
             )}
+
           </div>
 
           {/* Content section */}
@@ -210,15 +220,6 @@ const Comment: React.FC<CommentProps> = ({
 
         {/* Footer with action buttons */}
         <div className="flex justify-end gap-2 p-2">
-          {canPopUp && !isEditing && (
-            <button
-              onClick={() => onPopUp(comment.id)}
-              title="Move up one level"
-              className="text-gray-400 hover:text-blue-400 transition-colors"
-            >
-              <ArrowUp size={16} />
-            </button>
-          )}
 
           {showDelete && !isEditing && (
             <>
