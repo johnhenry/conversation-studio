@@ -25,6 +25,15 @@ interface CommentProps {
 
 const CYCLE_USER_IDS = ["user", "assistant", "system"];
 
+const DEPTH_COLORS = [
+  "bg-gray-700",     // Level 0
+  "bg-blue-700",     // Level 1
+  "bg-green-700",    // Level 2
+  "bg-purple-700",   // Level 3
+  "bg-orange-700",   // Level 4
+  "bg-red-700",      // Level 5
+];
+
 const Comment: React.FC<CommentProps> = ({
   comment,
   onDelete,
@@ -132,12 +141,12 @@ const Comment: React.FC<CommentProps> = ({
           {/* Current level connector */}
           <div className="absolute left-0 top-0 bottom-0 flex">
             <div 
-              className="w-[2px] bg-gray-700 relative"
+              className={`w-[2px] relative ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
               style={{ left: "-12px" }}
             >
               {/* Horizontal line */}
               <div 
-                className="absolute top-[20px] w-[10px] h-[2px] bg-gray-700"
+                className={`absolute top-[20px] w-[10px] h-[2px] ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
                 style={{ left: "0px" }}
               />
             </div>
@@ -147,7 +156,7 @@ const Comment: React.FC<CommentProps> = ({
           {Array.from({ length: level - 1 }).map((_, index) => (
             <div
               key={index}
-              className="absolute left-0 top-0 bottom-0 w-[2px] bg-gray-700"
+              className={`absolute left-0 top-0 bottom-0 w-[2px] ${DEPTH_COLORS[(level - index - 1) % DEPTH_COLORS.length]}`}
               style={{ left: `${-36 - index * 24}px` }}
             />
           ))}
@@ -164,7 +173,7 @@ const Comment: React.FC<CommentProps> = ({
           {/* Continuation line for comments with children */}
           {comment.children.length > 0 && (
             <div 
-              className="absolute w-[2px] bg-gray-700"
+              className={`absolute w-[2px] ${DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length]}`}
               style={{ 
                 left: "12px",
                 height: "50%",
