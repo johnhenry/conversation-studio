@@ -288,7 +288,7 @@ function App() {
         children: [],
         userId: originalComment.userId, // Keep original user's ID
         timestamp: Date.now(),
-        contentHash: originalComment.contentHash,
+        contentHash: generateContentHash(originalComment.content + Date.now().toString()), // Generate new hash using content + timestamp
         attachments: [...originalComment.attachments],
         renderAttachment,
       };
