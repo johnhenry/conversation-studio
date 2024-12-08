@@ -91,6 +91,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   useEffect(() => {
     if (parentId && rootComments) {
       const parents = findParentComments(rootComments, parentId);
+      const topParent = parents.shift();
+      let lastParent = topParent;
+      let nextParent = parents.shift();
+      while (lastParent && nextParent) {
+        lastParent.children = [nextParent];
+        lastParent = nextParent;
+        nextParent = parents.shift();
+      }
+      console.log(topParent);
       console.log(
         "Found parent comments:",
         parents.map((p) => ({
