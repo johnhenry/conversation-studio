@@ -100,15 +100,24 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     }
   }, [isVisible]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitComment();
+  };
+
+  const submitComment = () => {
+    if (content.trim()) {
+      onSubmit(content, attachments, parentId);
+      setContent("");
+      handleClose();
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Submit comment
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
-      if (content.trim()) {
-        onSubmit(content, attachments, parentId);
-        setContent("");
-        handleClose();
-      }
+      submitComment();
     }
     // Cancel editing
     else if (e.key === 'Escape') {
@@ -123,10 +132,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     setTimeout(() => {
       if (onCancel) onCancel();
     }, 200);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent form submission
   };
 
   const handleCancel = () => {
