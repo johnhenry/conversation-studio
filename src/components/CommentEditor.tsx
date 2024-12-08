@@ -4,7 +4,8 @@ import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import { DEFAULT_USER_ID } from "../config";
-
+import { exportCommentsText, exportCommentsXML} from "../utils/export";
+// import { formatTextComment } from "../utils/exportWorker";
 interface CommentEditorProps {
   onSubmit: (
     content: string,
@@ -94,20 +95,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       const topParent = parents.shift();
       let lastParent = topParent;
       let nextParent = parents.shift();
+      // TODO: Do i ned to ensure that these are new objects?
+      // eg. {...parents.shift()}
       while (lastParent && nextParent) {
         lastParent.children = [nextParent];
         lastParent = nextParent;
         nextParent = parents.shift();
       }
-      console.log(topParent);
-      console.log(
-        "Found parent comments:",
-        parents.map((p) => ({
-          id: p.id,
-          content: p.content.substring(0, 50) + "...",
-          userId: p.userId,
-        }))
-      );
+      console.log(exportCommentsText([topParent]));
+      console.log(exportCommentsXML([topParent]));
     }
   }, [parentId, rootComments]);
 

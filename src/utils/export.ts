@@ -1,3 +1,51 @@
+/**
+ * This module provides functionality to export comments in three different formats:
+ *
+ * 1. Text Format (Multipart):
+ *    A custom text-based format inspired by HTTP multipart/form-data structure.
+ *    Each comment is separated by a boundary marker and includes:
+ *    - Headers: Content-Type, User-Id, Hash, Timestamp, Id
+ *    - Body: The comment content
+ *    - Attachments section (if any)
+ *    - Nested child comments (using the same boundary)
+ *    Example:
+ *    ----Boundary123
+ *    Content-Type: text/plain; charset="UTF-8"
+ *    User-Id: user123
+ *    Hash: abc123
+ *    Timestamp: 1701234567
+ *    Id: comment123
+ *    
+ *    Comment content here...
+ *    
+ *    Attachments:
+ *    - file1.jpg (image/jpeg)
+ *    
+ * 2. JSON Format:
+ *    A hierarchical JSON structure where each comment is an object containing:
+ *    - id: string - Unique identifier
+ *    - userId: string - User identifier
+ *    - timestamp: number - Unix timestamp
+ *    - content: string - Comment content
+ *    - contentHash: string - Content hash for verification
+ *    - attachments: Array of {name: string, type?: string}
+ *    - children: Array of nested comments with the same structure
+ * 
+ * 3. XML Format:
+ *    A structured XML format with nested elements:
+ *    <comments>
+ *      <comment id="..." userId="..." timestamp="..." contentHash="...">
+ *        <content>Comment text</content>
+ *        <attachments>
+ *          <attachment name="..." type="..."/>
+ *        </attachments>
+ *        <children>
+ *          <!-- Nested comments -->
+ *        </children>
+ *      </comment>
+ *    </comments>
+ */
+
 import { CommentData, ExportFormat } from "../types";
 import { create } from "xmlbuilder2";
 import type { XMLBuilder } from "xmlbuilder2/lib/interfaces";
