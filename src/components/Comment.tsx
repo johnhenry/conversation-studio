@@ -1,22 +1,23 @@
 import React, { useState } from "react";
-import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy, Sparkles } from "lucide-react";
+import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy, Sparkles, CopyPlus } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 
 interface CommentProps {
   comment: CommentType;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onDragStart: (e: React.DragEvent, comment: CommentType) => void;
-  onDrop: (e: React.DragEvent, targetId: string) => void;
-  onPopUp: (id: string) => void;
-  onReply: (id: string, autoReply?: boolean) => void;
-  onUserIdChange?: (commentId: string, newUserId: string) => void;
-  onUpdate?: (commentId: string, content: string, attachments: Attachment[]) => void;
-  onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
-  onAttachmentRemove?: (commentId: string, index: number) => void;
-  canPopUp: boolean;
-  renderAttachment: (attachment: Attachment) => React.ReactNode | null;
-  showDelete: boolean;
+  onDrop: (e: React.DragEvent, id: string) => void;
+  onPopUp?: (id: string) => void;
+  onReply?: (id: string, autoReply?: boolean) => void;
+  onUserIdChange?: (id: string, newUserId: string) => void;
+  onUpdate?: (id: string, newContent: string, newAttachments: Attachment[]) => void;
+  onClone?: (id: string, comment: CommentType) => void;
+  onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentRemove?: (id: string, index: number) => void;
+  canPopUp?: boolean;
+  renderAttachment: (attachment: Attachment) => React.ReactNode;
+  showDelete?: boolean;
   level: number;
   isBeingRepliedTo?: boolean;
   disableEditing?: boolean;
@@ -33,6 +34,7 @@ const Comment: React.FC<CommentProps> = ({
   onReply,
   onUserIdChange,
   onUpdate,
+  onClone,
   onAttachmentUpload,
   onAttachmentRemove,
   canPopUp,
@@ -92,7 +94,11 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleAutoReply = () => {
-    onReply(comment.id, true);
+    onReply?.(comment.id, true);
+  };
+
+  const handleClone = () => {
+    onClone?.(comment.id, comment);
   };
 
   return (
@@ -158,7 +164,7 @@ const Comment: React.FC<CommentProps> = ({
           <div className="flex items-center gap-2 text-xs mb-2">
           {canPopUp && !isEditing && !disableEditing && (
             <button
-              onClick={() => onPopUp(comment.id)}
+              onClick={() => onPopUp?.(comment.id)}
               title="Move up one level"
               className="text-gray-400 hover:text-blue-400 transition-colors"
             >
@@ -240,7 +246,7 @@ const Comment: React.FC<CommentProps> = ({
                 <Sparkles size={16} />
               </button>
               <button
-                onClick={() => onReply(comment.id)}
+                onClick={() => onReply?.(comment.id)}
                 title="Reply"
                 className="text-gray-400 hover:text-blue-400 transition-colors"
               >
@@ -248,7 +254,7 @@ const Comment: React.FC<CommentProps> = ({
               </button>
               <button
                 onClick={handleCopy}
-                title="Copy comment content"
+                title="Copy content"
                 className="text-gray-400 hover:text-blue-400 transition-colors"
               >
                 <Copy size={16} />
@@ -262,9 +268,15 @@ const Comment: React.FC<CommentProps> = ({
                   <Edit2 size={16} />
                 </button>
               )}
-
               <button
-                onClick={() => onDelete(comment.id)}
+                onClick={handleClone}
+                title="Clone comment (creates copy at same level)"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <CopyPlus size={16} />
+              </button>
+              <button
+                onClick={() => onDelete?.(comment.id)}
                 title="Delete comment"
                 className="text-gray-400 hover:text-red-400 transition-colors"
               >

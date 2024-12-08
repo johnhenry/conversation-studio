@@ -473,7 +473,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       <div className="p-4">{renderContent()}</div>
 
       <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
-        <span>Supports Markdown. Press Ctrl+Enter to submit.</span>
+        <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
         <div className="flex gap-2">
           {onCancel && (
             <button

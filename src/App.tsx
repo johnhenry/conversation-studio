@@ -283,6 +283,46 @@ function App() {
     []
   );
 
+  const handleClone = useCallback(
+    (commentId: string, originalComment: Comment) => {
+      const clonedComment: Comment = {
+        id: Date.now().toString(),
+        content: originalComment.content,
+        children: [],
+        userId: originalComment.userId, // Keep original user's ID
+        timestamp: Date.now(),
+        contentHash: originalComment.contentHash,
+        attachments: [...originalComment.attachments],
+        renderAttachment,
+      };
+
+      setComments((prevComments) => {
+        // Helper function to insert clone after original
+        const insertCloneAtSameLevel = (
+          comments: Comment[],
+          targetId: string
+        ): Comment[] => {
+          const result: Comment[] = [];
+          for (const comment of comments) {
+            result.push(comment);
+            // If this is the target comment, add the clone right after
+            if (comment.id === targetId) {
+              result.push(clonedComment);
+            }
+            // If this comment has children, recursively search them
+            if (comment.children.length > 0) {
+              comment.children = insertCloneAtSameLevel(comment.children, targetId);
+            }
+          }
+          return result;
+        };
+
+        return insertCloneAtSameLevel(prevComments, commentId);
+      });
+    },
+    [renderAttachment]
+  );
+
   // Memoize the comments data for export preview
   const exportCommentData = useMemo(() => {
     if (activeTab === "arrange") {
@@ -305,6 +345,7 @@ function App() {
           level={0}
           renderAttachment={renderAttachment}
           onReply={handleReply}
+          onClone={handleClone}
           replyToId={replyToId}
           onAttachmentUpload={handleCommentAttachmentUpload}
           onAttachmentRemove={handleCommentAttachmentRemove}
@@ -318,6 +359,7 @@ function App() {
     comments,
     renderAttachment,
     handleReply,
+    handleClone,
     replyToId,
     handleCommentAttachmentUpload,
     handleCommentAttachmentRemove,

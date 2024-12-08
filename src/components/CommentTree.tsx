@@ -10,11 +10,12 @@ interface CommentTreeProps {
   rootComments?: CommentType[];
   rootUpdateComments?: (comments: CommentType[]) => void;
   isPreview?: boolean;
-  renderAttachment: (attachment: Attachment) => React.ReactNode | null;
+  renderAttachment: (attachment: Attachment) => React.ReactNode;
   onReply?: (id: string, autoReply?: boolean) => void;
+  onClone?: (id: string, comment: CommentType) => void;
   replyToId?: string;
-  onAttachmentUpload?: (commentId: string, e: React.ChangeEvent<HTMLInputElement>) => void;
-  onAttachmentRemove?: (commentId: string, index: number) => void;
+  onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentRemove?: (id: string, index: number) => void;
   disableEditing?: boolean;
 }
 
@@ -28,6 +29,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   isPreview = false,
   renderAttachment,
   onReply,
+  onClone,
   replyToId,
   onAttachmentUpload,
   onAttachmentRemove,
@@ -248,33 +250,33 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onReply={onReply || (() => {})}
             onUserIdChange={handleUserIdChange}
             onUpdate={handleUpdateComment}
+            onClone={onClone}
             onAttachmentUpload={onAttachmentUpload}
             onAttachmentRemove={onAttachmentRemove}
             canPopUp={!!parentId}
             renderAttachment={renderAttachment}
             showDelete={!isPreview}
             level={level}
-            isBeingRepliedTo={comment.id === replyToId}
-            disableEditing={disableEditing}
+            isBeingRepliedTo={replyToId === comment.id}
+            disableEditing={disableEditing || isPreview}
           />
           {comment.children.length > 0 && (
             <CommentTree
               comments={comment.children}
-              updateComments={(updatedChildren) => {
-                const updatedComments = comments.map((c) =>
-                  c.id === comment.id
-                    ? { ...c, children: updatedChildren }
-                    : c
+              updateComments={(newChildren) => {
+                const newComments = comments.map((c) =>
+                  c.id === comment.id ? { ...c, children: newChildren } : c
                 );
-                updateComments(updatedComments);
+                updateComments(newComments);
               }}
               level={level + 1}
               parentId={comment.id}
-              rootComments={allComments}
-              rootUpdateComments={topLevelUpdate}
+              rootComments={rootComments || comments}
+              rootUpdateComments={rootUpdateComments || updateComments}
               isPreview={isPreview}
               renderAttachment={renderAttachment}
               onReply={onReply}
+              onClone={onClone}
               replyToId={replyToId}
               onAttachmentUpload={onAttachmentUpload}
               onAttachmentRemove={onAttachmentRemove}
