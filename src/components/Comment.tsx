@@ -164,17 +164,18 @@ const Comment: React.FC<CommentProps> = ({
       )}
 
       <div
-        className={`relative bg-[#1A1A1B] hover:bg-[#222223] transition-all duration-200 ${
+        className={`relative  hover:bg-[#222223] transition-all duration-200 ${
           isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""
         } ${isDragOver ? "bg-[#1d2535]" : ""}`}
       >
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
+          {/* TODO: Add circle to top of line */}
           {comment.children.length > 0 && (
             <div 
               className={`absolute w-[2px] ${DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length]}`}
-              style={{ 
+              style={{
                 left: "12px",
                 height: "50%",
                 top: "50%"

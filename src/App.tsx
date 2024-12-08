@@ -6,6 +6,7 @@ import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
 import { DEFAULT_USER_ID } from "./config";
+import Header from "./components/Header";
 
 const generateContentHash = (content: string): string => {
   const hash = crypto.SHA256(content);
@@ -431,124 +432,49 @@ function App() {
   }, [storeLocally, comments, userId, isInitialized]);
 
   return (
-    <main className="min-h-screen bg-[#030303] pb-[300px] max-w-6xl mx-auto p-4">
-      <header className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-100">
-              Conversation Studio
-            </h1>
-            <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="storeLocally"
-                  checked={storeLocally}
-                  onChange={(e) => setStoreLocally(e.target.checked)}
-                  className="rounded border-gray-700 bg-[#1A1A1B] text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="storeLocally" className="text-gray-300">
-                  Store Locally
-                </label>
-              </div>
-            <div className="flex gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImport}
-                className="hidden"
-                aria-label="Import comments file"
-              />
+    <div className="min-h-screen bg-[#030303]">
+      <Header
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        storeLocally={storeLocally}
+        setStoreLocally={setStoreLocally}
+        onImport={handleImport}
+      />
+      <main className="container mx-auto px-4 pt-20">
+        {activeTab === "arrange" ? (
+          <>
+            <div className="space-y-4">
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                onClick={() => setShowEditor(true)}
+                className="w-full p-4 border border-gray-700 rounded-lg bg-[#1A1A1B] text-gray-400 hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
               >
-                Import
+                Add a comment
               </button>
-              <button
-                onClick={() => {
-                  setShowEditor(!showEditor);
-                  setReplyToId(undefined);
-                  setAutoReplySettings({});
-                }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                New Comment
-              </button>
-
+              {commentTree}
             </div>
-          </header>
-          <nav className="flex mb-4">
-            <button
-              onClick={() => handleTabChange("arrange")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "arrange" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Arrange
-            </button>
-            <button
-              onClick={() => handleTabChange("text")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "text" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Text
-            </button>
-            <button
-              onClick={() => handleTabChange("json")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "json" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              JSON
-            </button>
-            <button
-              onClick={() => handleTabChange("xml")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 ${
-                activeTab === "xml" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              XML
-            </button>
-          </nav>
-        <div className="bg-[#1A1A1B] rounded-lg shadow-lg p-6">
-
-
-
-
-          <div className="mt-4 min-h-[300px]">
-            {activeTab === "arrange" ? commentTree : exportPreview}
-          </div>
-        </div>
-
-
-      {showEditor && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-[#030303] border-t border-gray-700 shadow-lg">
-          <div className="max-w-4xl mx-auto p-6">
-            <CommentEditor
-              onSubmit={addComment}
-              userId={userId}
-              setUserId={setUserId}
-              attachments={attachments}
-              onAttachmentUpload={handleAttachmentUpload}
-              onAttachmentRemove={handleAttachmentRemove}
-              content={draftContent}
-              setContent={setDraftContent}
-              buttonText={replyToId ? "Reply" : "Add"}
-              parentId={replyToId}
-              onCancel={() => {
-                setShowEditor(false);
-                setReplyToId(undefined);
-                setAutoReplySettings({});
-                setDraftContent("");
-                setAttachments([]);
-              }}
-              rootComments={comments}
-              autoSetUserId={autoReplySettings.userId}
-              autoGenerate={autoReplySettings.autoGenerate}
-            />
-          </div>
-        </footer>
-      )}
-    </main>
+            {showEditor && (
+              <CommentEditor
+                onSubmit={addComment}
+                userId={userId}
+                setUserId={setUserId}
+                attachments={attachments}
+                onAttachmentUpload={handleAttachmentUpload}
+                onAttachmentRemove={handleAttachmentRemove}
+                content={draftContent}
+                setContent={setDraftContent}
+                onCancel={() => setShowEditor(false)}
+                parentId={replyToId}
+                rootComments={comments}
+                autoSetUserId={autoReplySettings.userId}
+                autoGenerate={autoReplySettings.autoGenerate}
+              />
+            )}
+          </>
+        ) : (
+          <ExportPreview comments={comments} format={activeTab} />
+        )}
+      </main>
+    </div>
   );
 }
 
