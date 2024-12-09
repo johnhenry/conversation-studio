@@ -54,6 +54,7 @@ function App() {
     return stored ? stored === "true" : false;
   });
   const [isInitialized, setIsInitialized] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Counter for ensuring unique IDs
@@ -383,6 +384,8 @@ function App() {
           replyToId={replyToId}
           onAttachmentUpload={handleCommentAttachmentUpload}
           onAttachmentRemove={handleCommentAttachmentRemove}
+          selectedCommentId={selectedCommentId}
+          onCommentSelect={setSelectedCommentId}
           disableEditing={showEditor}
         />
       );
@@ -397,6 +400,7 @@ function App() {
     replyToId,
     handleCommentAttachmentUpload,
     handleCommentAttachmentRemove,
+    selectedCommentId,
     showEditor,
   ]);
 

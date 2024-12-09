@@ -22,6 +22,8 @@ interface CommentProps {
   showDelete?: boolean;
   level: number;
   isBeingRepliedTo?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
   disableEditing?: boolean;
 }
 
@@ -52,6 +54,8 @@ const Comment: React.FC<CommentProps> = ({
   showDelete,
   level,
   isBeingRepliedTo,
+  isSelected,
+  onSelect,
   disableEditing,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -211,9 +215,16 @@ const Comment: React.FC<CommentProps> = ({
       )}
 
       <div
-        className={`relative  hover:bg-[#222223] transition-all duration-200 cursor-all-scroll ${
-          isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""
-        } ${isDragOver ? "bg-[#1d2535]" : ""}`}
+        className={`relative rounded-lg transition-colors cursor-all-scroll
+          ${isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""}
+          ${isDragOver ? "bg-[#1d2535]" : ""}
+          ${isSelected ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30` : `hover:bg-opacity-30 hover:${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
+        `}
+        draggable
+        onDragStart={(e) => onDragStart(e, comment)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => onDrop(e, comment.id)}
+        onClick={onSelect}
       >
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">

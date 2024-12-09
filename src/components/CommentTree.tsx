@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Comment as CommentType, Attachment } from "../types";
 import Comment from "./Comment";
 
@@ -17,6 +17,8 @@ interface CommentTreeProps {
   onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   onAttachmentRemove?: (id: string, index: number) => void;
   disableEditing?: boolean;
+  selectedCommentId?: string;
+  onCommentSelect?: (id: string) => void;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -34,6 +36,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   onAttachmentUpload,
   onAttachmentRemove,
   disableEditing,
+  selectedCommentId,
+  onCommentSelect,
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -79,6 +83,32 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   ): boolean => {
     if (parentComment.id === childId) return true;
     return parentComment.children.some((child) => isDescendant(child, childId));
+  };
+
+  const findSiblings = (comments: CommentType[], targetId: string): CommentType[] => {
+    for (const comment of comments) {
+      if (comment.id === targetId) {
+        return comments;
+      }
+      const siblings = findSiblings(comment.children, targetId);
+      if (siblings.length > 0) {
+        return siblings;
+      }
+    }
+    return [];
+  };
+
+  const findParentId = (comments: CommentType[], targetId: string): string | null => {
+    for (const comment of comments) {
+      if (comment.children.some(child => child.id === targetId)) {
+        return comment.id;
+      }
+      const parentId = findParentId(comment.children, targetId);
+      if (parentId) {
+        return parentId;
+      }
+    }
+    return null;
   };
 
   const handleDragStart = (e: React.DragEvent, comment: CommentType) => {
@@ -239,6 +269,55 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     topLevelUpdate(updatedComments);
   };
 
+  useEffect(() => {
+    if (!level) { // Only add listener at root level
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (!selectedCommentId || !onCommentSelect) return;
+        
+        const currentComment = findComment(allComments, selectedCommentId);
+        if (!currentComment) return;
+
+        const siblings = findSiblings(allComments, selectedCommentId);
+        const currentIndex = siblings.findIndex(c => c.id === selectedCommentId);
+
+        switch (e.key) {
+          case "ArrowLeft": {
+            if (currentIndex > 0) {
+              e.preventDefault();
+              onCommentSelect(siblings[currentIndex - 1].id);
+            }
+            break;
+          }
+          case "ArrowRight": {
+            if (currentIndex < siblings.length - 1) {
+              e.preventDefault();
+              onCommentSelect(siblings[currentIndex + 1].id);
+            }
+            break;
+          }
+          case "ArrowUp": {
+            const parentId = findParentId(allComments, selectedCommentId);
+            if (parentId) {
+              e.preventDefault();
+              onCommentSelect(parentId);
+            }
+            break;
+          }
+          case "ArrowDown": {
+            if (currentComment.children.length > 0) {
+              e.preventDefault();
+              onCommentSelect(currentComment.children[0].id);
+            }
+            break;
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [selectedCommentId, allComments, onCommentSelect, level]);
+
   return (
     <div
       onDragOver={(e) => {
@@ -277,6 +356,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             showDelete={true}
             level={level}
             isBeingRepliedTo={comment.id === replyToId}
+            isSelected={comment.id === selectedCommentId}
+            onSelect={() => onCommentSelect?.(comment.id)}
             disableEditing={disableEditing}
           />
           {comment.children.length > 0 && (
@@ -300,6 +381,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               onAttachmentUpload={onAttachmentUpload}
               onAttachmentRemove={onAttachmentRemove}
               disableEditing={disableEditing}
+              selectedCommentId={selectedCommentId}
+              onCommentSelect={onCommentSelect}
             />
           )}
         </div>
