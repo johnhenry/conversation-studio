@@ -56,6 +56,9 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Counter for ensuring unique IDs
+  const idCounterRef = useRef(0);
+
   // Memoize the renderAttachment function
   const renderAttachment = useCallback((attachment: Attachment) => {
     if (attachment.type && attachment.type.startsWith("image/")) {
@@ -114,10 +117,20 @@ function App() {
     []
   );
 
+  const generateUniqueId = useCallback(() => {
+    const timestamp = Date.now();
+    const randomBytes = new Uint8Array(16);
+    window.crypto.getRandomValues(randomBytes);
+    const uuid = Array.from(randomBytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    return `${timestamp}-${uuid}`;
+  }, []);
+
   const addComment = useCallback(
     (content: string, attachments: Attachment[], parentId?: string) => {
       const comment: Comment = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         content,
         children: [],
         userId: userId || DEFAULT_USER_ID,
@@ -300,7 +313,7 @@ function App() {
   const handleClone = useCallback(
     (commentId: string, originalComment: Comment) => {
       const clonedComment: Comment = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         content: originalComment.content,
         children: [],
         userId: originalComment.userId, // Keep original user's ID
@@ -319,22 +332,23 @@ function App() {
           comments: Comment[],
           targetId: string
         ): Comment[] => {
-          const result: Comment[] = [];
-          for (const comment of comments) {
-            result.push(comment);
+          return comments.map((comment) => {
+            // Create a new comment object with updated children if needed
+            if (comment.children.length > 0) {
+              return {
+                ...comment,
+                children: insertCloneAtSameLevel(comment.children, targetId),
+              };
+            }
+            return comment;
+          }).reduce((acc: Comment[], comment) => {
+            acc.push(comment);
             // If this is the target comment, add the clone right after
             if (comment.id === targetId) {
-              result.push(clonedComment);
+              acc.push(clonedComment);
             }
-            // If this comment has children, recursively search them
-            if (comment.children.length > 0) {
-              comment.children = insertCloneAtSameLevel(
-                comment.children,
-                targetId
-              );
-            }
-          }
-          return result;
+            return acc;
+          }, []);
         };
 
         return insertCloneAtSameLevel(prevComments, commentId);

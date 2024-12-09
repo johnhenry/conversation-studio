@@ -257,7 +257,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       className={`${parentId ? "pl-0" : ""}`}
     >
       {comments.map((comment) => (
-        <div key={comment.id}>
+        <div key={`container-${comment.id}`}>
           <Comment
             key={comment.id}
             comment={comment}
