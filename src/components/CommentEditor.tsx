@@ -183,7 +183,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       while (localParents.length > 0) {
         const parent = localParents.shift()!;
         initialPrompts.push({
-          role: parent.userId,
+          role: parent.type,
           content: parent.content,
         });
       }

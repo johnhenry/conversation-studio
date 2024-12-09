@@ -137,15 +137,19 @@ const Comment: React.FC<CommentProps> = ({
       }
       else if (e.key === 'r' && onReply) {
         e.preventDefault();
-        onReply(comment.id);
+        onReply(comment.id, false);
       }
-      else if (e.key === 'a' && onReply) {
+      else if (e.key === 'R' && onReply) {
         e.preventDefault();
-        onReply(comment.id, true); // Auto-reply
+        onReply(comment.id, true);
       }
       else if (e.key === 'c' && onClone) {
         e.preventDefault();
-        onClone(comment.id, comment, e.metaKey); // Clone childeren with metakey
+        onClone(comment.id, comment, false); // Clone childeren with metakey
+      }
+      else if (e.key === 'C' && onClone) {
+        e.preventDefault();
+        onClone(comment.id, comment, true); // Clone childeren with metakey
       }
       else if (e.key === 't' && !disableEditing) {
         e.preventDefault();
@@ -167,7 +171,7 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleClone = () => {
-    onClone?.(comment.id, comment, true); // Pass cloneChildren parameter
+    onClone?.(comment.id, comment, false); // Pass cloneChildren parameter
   };
   const depth_bg = DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
   const depth_text = DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];
@@ -232,7 +236,7 @@ const Comment: React.FC<CommentProps> = ({
 
       <div
         ref={commentRef}
-        className={`relative rounded-lg transition-colors cursor-all-scroll outline-none
+        className={`relative transition-colors cursor-all-scroll outline-none
           ${isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""}
           ${isDragOver ? "bg-[#1d2535]" : ""}
           ${isSelected 
@@ -327,51 +331,8 @@ const Comment: React.FC<CommentProps> = ({
                 <span className="text-blue-400">Replying to this comment</span>
               </>
             )}
-
-          </div>
-
-          {/* Content section */}
-          <div 
-            className="text-gray-300 leading-relaxed"
-            onDoubleClick={() => !disableEditing && !isEditing && setIsEditing(true)}
-          >
-            {isEditing ? (
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-full min-h-[100px] p-2 bg-[#2A2A2B] text-gray-200 rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                placeholder="Write your comment..."
-              />
-            ) : (
-              <>
-                <MarkdownPreview content={comment.content} />
-                {/* Attachments display in view mode */}
-                <div className="mt-2 space-y-2">
-                  {comment.attachments?.map((attachment, index) => (
-                    <div key={index} className="relative">
-                      {renderAttachment(attachment)}
-                    </div>
-                  ))}
-                </div>
-                {/* Reply count */}
-                <div className="mt-2">
-                  <div className="text-xs text-gray-500">
-                    {comment.children.length > 0 && (
-                      <span>
-                        {comment.children.length}{" "}
-                        {comment.children.length === 1 ? "reply" : "replies"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Footer with action buttons */}
-        <div className="flex justify-end gap-2 p-2">
+            {/* Footer with action buttons */}
+          <div className="flex justify-end gap-2 ml-auto">
           {showDelete && !isEditing && !disableEditing && (
             <>
               <button
@@ -434,6 +395,49 @@ const Comment: React.FC<CommentProps> = ({
             </>
           )}
         </div>
+          </div>
+
+          {/* Content section */}
+          <div 
+            className="text-gray-300 leading-relaxed"
+            onDoubleClick={() => !disableEditing && !isEditing && setIsEditing(true)}
+          >
+            {isEditing ? (
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full min-h-[100px] p-2 bg-[#2A2A2B] text-gray-200 rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                placeholder="Write your comment..."
+              />
+            ) : (
+              <>
+                <MarkdownPreview content={comment.content} />
+                {/* Attachments display in view mode */}
+                <div className="mt-2 space-y-2">
+                  {comment.attachments?.map((attachment, index) => (
+                    <div key={index} className="relative">
+                      {renderAttachment(attachment)}
+                    </div>
+                  ))}
+                </div>
+                {/* Reply count */}
+                <div className="mt-2">
+                  <div className="text-xs text-gray-500">
+                    {comment.children.length > 0 && (
+                      <span>
+                        {comment.children.length}{" "}
+                        {comment.children.length === 1 ? "reply" : "replies"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+
 
         {/* Attachment section in edit mode */}
         {isEditing && (
