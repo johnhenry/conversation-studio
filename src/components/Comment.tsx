@@ -70,6 +70,12 @@ const Comment: React.FC<CommentProps> = ({
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    if (isSelected && commentRef.current) {
+      commentRef.current.focus();
+    }
+  }, [isSelected]);
+
   const handleUserIdClick = () => {
     if (!disableEditing && CYCLE_USER_IDS.includes(comment.userId)) {
       const currentIndex = CYCLE_USER_IDS.indexOf(comment.userId);
@@ -215,16 +221,25 @@ const Comment: React.FC<CommentProps> = ({
       )}
 
       <div
-        className={`relative rounded-lg transition-colors cursor-all-scroll
+        ref={commentRef}
+        className={`relative rounded-lg transition-colors cursor-all-scroll outline-none
           ${isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""}
           ${isDragOver ? "bg-[#1d2535]" : ""}
           ${isSelected ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30` : `hover:bg-opacity-30 hover:${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
+          focus-visible:ring-2 focus-visible:ring-blue-500
         `}
         draggable
         onDragStart={(e) => onDragStart(e, comment)}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => onDrop(e, comment.id)}
-        onClick={onSelect}
+        onClick={(e) => {
+          e.currentTarget.focus();
+          onSelect?.();
+        }}
+        tabIndex={0}
+        role="article"
+        aria-selected={isSelected}
+        data-comment-id={comment.id}
       >
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">

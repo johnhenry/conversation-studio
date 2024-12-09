@@ -130,8 +130,9 @@ function App() {
 
   const addComment = useCallback(
     (content: string, attachments: Attachment[], parentId?: string) => {
+      const newId = generateUniqueId();
       const comment: Comment = {
-        id: generateUniqueId(),
+        id: newId,
         content,
         children: [],
         userId: userId || DEFAULT_USER_ID,
@@ -154,6 +155,18 @@ function App() {
       setShowEditor(false);
       setReplyToId(undefined);
       setCommentType(DEFAULT_COMMENT_TYPE);
+      setAutoReplySettings({});
+      
+      // Set selected comment ID first
+      setSelectedCommentId(newId);
+      
+      // Focus after a short delay to ensure the component is mounted
+      requestAnimationFrame(() => {
+        const newComment = document.querySelector(`[data-comment-id="${newId}"]`) as HTMLElement;
+        if (newComment) {
+          newComment.focus();
+        }
+      });
     },
     [userId, findAndAddReply, renderAttachment, commentType]
   );
@@ -358,6 +371,14 @@ function App() {
     [renderAttachment]
   );
 
+  const handleCancel = useCallback(() => {
+    setShowEditor(false);
+    setReplyToId(undefined);
+    setAutoReplySettings({});
+    setDraftContent("");
+    setAttachments([]);
+  }, []);
+
   // Memoize the comments data for export preview
   const exportCommentData = useMemo(() => {
     if (activeTab === "arrange") {
@@ -523,6 +544,7 @@ function App() {
       {showEditor && (
         <CommentEditor
           onSubmit={addComment}
+          onCancel={handleCancel}
           userId={userId}
           setUserId={setUserId}
           attachments={attachments}
@@ -530,7 +552,6 @@ function App() {
           onAttachmentRemove={handleAttachmentRemove}
           content={draftContent}
           setContent={setDraftContent}
-          onCancel={() => setShowEditor(false)}
           parentId={replyToId}
           rootComments={comments}
           autoSetUserId={autoReplySettings.userId}

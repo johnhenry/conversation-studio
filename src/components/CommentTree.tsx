@@ -272,44 +272,63 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   useEffect(() => {
     if (!level) { // Only add listener at root level
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (!selectedCommentId || !onCommentSelect) return;
-        
-        const currentComment = findComment(allComments, selectedCommentId);
+        // Only handle keyboard navigation if the target is a comment
+        const target = e.target as HTMLElement;
+        if (!target.closest('[role="article"]')) return;
+
+        const currentComment = findComment(allComments, selectedCommentId || '');
         if (!currentComment) return;
 
-        const siblings = findSiblings(allComments, selectedCommentId);
+        const siblings = findSiblings(allComments, selectedCommentId || '');
         const currentIndex = siblings.findIndex(c => c.id === selectedCommentId);
+
+        let nextElement: HTMLElement | null = null;
 
         switch (e.key) {
           case "ArrowLeft": {
             if (currentIndex > 0) {
               e.preventDefault();
-              onCommentSelect(siblings[currentIndex - 1].id);
+              const prevId = siblings[currentIndex - 1].id;
+              nextElement = document.querySelector(`[data-comment-id="${prevId}"]`);
+              onCommentSelect?.(prevId);
             }
             break;
           }
           case "ArrowRight": {
             if (currentIndex < siblings.length - 1) {
               e.preventDefault();
-              onCommentSelect(siblings[currentIndex + 1].id);
+              const nextId = siblings[currentIndex + 1].id;
+              nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
+              onCommentSelect?.(nextId);
             }
             break;
           }
           case "ArrowUp": {
-            const parentId = findParentId(allComments, selectedCommentId);
+            const parentId = findParentId(allComments, selectedCommentId || '');
             if (parentId) {
               e.preventDefault();
-              onCommentSelect(parentId);
+              nextElement = document.querySelector(`[data-comment-id="${parentId}"]`);
+              onCommentSelect?.(parentId);
             }
             break;
           }
           case "ArrowDown": {
             if (currentComment.children.length > 0) {
               e.preventDefault();
-              onCommentSelect(currentComment.children[0].id);
+              const childId = currentComment.children[0].id;
+              nextElement = document.querySelector(`[data-comment-id="${childId}"]`);
+              onCommentSelect?.(childId);
             }
             break;
           }
+          case "Tab": {
+            // Let the browser handle tab navigation naturally
+            return;
+          }
+        }
+
+        if (nextElement) {
+          nextElement.focus();
         }
       };
 
@@ -359,6 +378,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             isSelected={comment.id === selectedCommentId}
             onSelect={() => onCommentSelect?.(comment.id)}
             disableEditing={disableEditing}
+            data-comment-id={comment.id}
           />
           {comment.children.length > 0 && (
             <CommentTree
