@@ -290,7 +290,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               e.preventDefault();
               const prevId = siblings[currentIndex - 1].id;
               nextElement = document.querySelector(`[data-comment-id="${prevId}"]`);
-              onCommentSelect?.(prevId);
+              if (nextElement) {
+                onCommentSelect?.(prevId);
+              }
             }
             break;
           }
@@ -299,7 +301,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               e.preventDefault();
               const nextId = siblings[currentIndex + 1].id;
               nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
-              onCommentSelect?.(nextId);
+              if (nextElement) {
+                onCommentSelect?.(nextId);
+              }
             }
             break;
           }
@@ -308,7 +312,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             if (parentId) {
               e.preventDefault();
               nextElement = document.querySelector(`[data-comment-id="${parentId}"]`);
-              onCommentSelect?.(parentId);
+              if (nextElement) {
+                onCommentSelect?.(parentId);
+              }
             }
             break;
           }
@@ -317,13 +323,20 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               e.preventDefault();
               const childId = currentComment.children[0].id;
               nextElement = document.querySelector(`[data-comment-id="${childId}"]`);
-              onCommentSelect?.(childId);
+              if (nextElement) {
+                onCommentSelect?.(childId);
+              }
             }
             break;
           }
           case "Tab": {
             // Let the browser handle tab navigation naturally
             return;
+          }
+          case "Escape": {
+            // Clear selection on escape
+            onCommentSelect?.(undefined);
+            break;
           }
         }
 
@@ -332,8 +345,21 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         }
       };
 
+      // Handle clicks outside of comments to clear selection
+      const handleClickOutside = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest('[role="article"]')) {
+          onCommentSelect?.(undefined);
+        }
+      };
+
       document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
+      document.addEventListener("click", handleClickOutside);
+      
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("click", handleClickOutside);
+      };
     }
   }, [selectedCommentId, allComments, onCommentSelect, level]);
 

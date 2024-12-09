@@ -225,7 +225,10 @@ const Comment: React.FC<CommentProps> = ({
         className={`relative rounded-lg transition-colors cursor-all-scroll outline-none
           ${isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""}
           ${isDragOver ? "bg-[#1d2535]" : ""}
-          ${isSelected ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30` : `hover:bg-opacity-30 hover:${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
+          ${isSelected 
+            ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30` 
+            : `hover:${DEPTH_COLORS[level % DEPTH_COLORS.length]} hover:bg-opacity-30`
+          }
           focus-visible:ring-2 focus-visible:ring-blue-500
         `}
         draggable
@@ -233,6 +236,7 @@ const Comment: React.FC<CommentProps> = ({
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => onDrop(e, comment.id)}
         onClick={(e) => {
+          e.stopPropagation(); // Prevent event bubbling
           e.currentTarget.focus();
           onSelect?.();
         }}
