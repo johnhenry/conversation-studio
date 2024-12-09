@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy, Sparkles, CopyPlus } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
+import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
 
 interface CommentProps {
   comment: CommentType;
@@ -11,6 +12,7 @@ interface CommentProps {
   onPopUp?: (id: string) => void;
   onReply?: (id: string, autoReply?: boolean) => void;
   onUserIdChange?: (id: string, newUserId: string) => void;
+  onTypeChange?: (id: string, newType: string) => void;
   onUpdate?: (id: string, newContent: string, newAttachments: Attachment[]) => void;
   onClone?: (id: string, comment: CommentType) => void;
   onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,8 +24,6 @@ interface CommentProps {
   isBeingRepliedTo?: boolean;
   disableEditing?: boolean;
 }
-
-const CYCLE_USER_IDS = ["user", "assistant", "system"];
 
 const DEPTH_COLORS = [
   "bg-gray-700",     // Level 0
@@ -42,6 +42,7 @@ const Comment: React.FC<CommentProps> = ({
   onPopUp,
   onReply,
   onUserIdChange,
+  onTypeChange,
   onUpdate,
   onClone,
   onAttachmentUpload,
@@ -71,6 +72,15 @@ const Comment: React.FC<CommentProps> = ({
       const nextIndex = (currentIndex + 1) % CYCLE_USER_IDS.length;
       const newUserId = CYCLE_USER_IDS[nextIndex];
       onUserIdChange?.(comment.id, newUserId);
+    }
+  };
+
+  const handleTypeClick = () => {
+    if (!disableEditing && CYCLE_TYPES.includes(comment.type)) {
+      const currentIndex = CYCLE_TYPES.indexOf(comment.type);
+      const nextIndex = (currentIndex + 1) % CYCLE_TYPES.length;
+      const newType = CYCLE_TYPES[nextIndex];
+      onTypeChange?.(comment.id, newType);
     }
   };
 
@@ -118,6 +128,10 @@ const Comment: React.FC<CommentProps> = ({
       else if (e.key === 'l' && onClone) {
         e.preventDefault();
         onClone(comment.id, comment);
+      }
+      else if (e.key === 't' && !disableEditing) {
+        e.preventDefault();
+        handleTypeClick();
       }
     }
   };
@@ -232,26 +246,31 @@ const Comment: React.FC<CommentProps> = ({
               <ArrowBigUpDash size={16} />
             </button>
           )}
-            <span
-              className={`font-medium text-[#4fbcff] ${
-                CYCLE_USER_IDS.includes(comment.userId) && !disableEditing
-                  ? "cursor-pointer hover:text-[#7fccff]"
-                  : ""
-              }`}
+            <button
+              onClick={handleTypeClick}
+              className="text-blue-400 hover:text-blue-300 cursor-pointer"
+              title="Click to change type"
+            >
+              {comment.type}
+            </button>
+            <span className="text-gray-500">·</span>
+            <button
               onClick={handleUserIdClick}
+              className="text-blue-400 hover:text-blue-300 cursor-pointer"
+              title="Click to change user ID"
             >
               {comment.userId}
-            </span>
-            <span className="text-gray-500">•</span>
+            </button>
+            <span className="text-gray-500">·</span>
             <span className="text-gray-500">
               {new Date(comment.timestamp).toLocaleString()}
             </span>
             <span className="text-gray-600 text-xs">
-              [{comment.contentHash.slice(0, 6)}]
+              [{comment.contentHash}]
             </span>
             {isBeingRepliedTo && (
               <>
-                <span className="text-gray-500">•</span>
+                <span className="text-gray-500">·</span>
                 <span className="text-blue-400">Replying to this comment</span>
               </>
             )}

@@ -44,6 +44,7 @@ const formatTextComment = (
       `--${boundary}\n`,
       `Content-Type: text/plain; charset="UTF-8"\n`,
       `User-Id: ${comment.userId}\n`,
+      `Type: ${comment.type}\n`,
       `Hash: ${comment.contentHash}\n`,
       `Timestamp: ${comment.timestamp}\n`,
       `Id: ${comment.id}\n`,

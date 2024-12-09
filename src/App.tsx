@@ -11,7 +11,7 @@ import { Comment, CommentData, Attachment, ExportFormat } from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
-import { DEFAULT_USER_ID } from "./config";
+import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "./config";
 import Header from "./components/Header";
 import { Plus } from "lucide-react";
 
@@ -31,6 +31,7 @@ const stripUIProperties = (comment: Comment): CommentData => ({
   children: comment.children.map(stripUIProperties),
   parentId: comment.parentId,
   deleted: comment.deleted,
+  type: comment.type,
 });
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
     "arrange"
   );
   const [userId, setUserId] = useState("");
+  const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
@@ -119,6 +121,7 @@ function App() {
         content,
         children: [],
         userId: userId || DEFAULT_USER_ID,
+        type: commentType || DEFAULT_COMMENT_TYPE,
         timestamp: Date.now(),
         contentHash: generateContentHash(content),
         attachments,
@@ -136,8 +139,9 @@ function App() {
       setDraftContent("");
       setShowEditor(false);
       setReplyToId(undefined);
+      setCommentType(DEFAULT_COMMENT_TYPE);
     },
-    [userId, findAndAddReply, renderAttachment]
+    [userId, findAndAddReply, renderAttachment, commentType]
   );
 
   const handleAttachmentUpload = useCallback(
@@ -300,6 +304,7 @@ function App() {
         content: originalComment.content,
         children: [],
         userId: originalComment.userId, // Keep original user's ID
+        type: originalComment.type, // Keep original comment type
         timestamp: Date.now(),
         contentHash: generateContentHash(
           originalComment.content + Date.now().toString()
@@ -512,6 +517,8 @@ function App() {
           rootComments={comments}
           autoSetUserId={autoReplySettings.userId}
           autoGenerate={autoReplySettings.autoGenerate}
+          commentType={commentType}
+          setCommentType={setCommentType}
         />
       )}
       {/* Floating action button */}

@@ -3,13 +3,15 @@ import { MessageSquarePlus, X, File, Sparkles } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
-import { DEFAULT_USER_ID } from "../config";
+import { CYCLE_USER_IDS, CYCLE_TYPES, DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "src:/config";
+
 // import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
 interface CommentEditorProps {
   onSubmit: (
     content: string,
     attachments: CommentType["attachments"],
-    parentId?: string
+    parentId?: string,
+    type?: string
   ) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
@@ -91,6 +93,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [loadingGen, setLoadingGen] = useState(false);
   const [genError, setGenError] = useState(null);
   const [isVisible, setIsVisible] = useState(true);
+  const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -108,8 +111,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   const submitComment = () => {
     if (content.trim()) {
-      onSubmit(content, attachments, parentId);
+      onSubmit(content, attachments, parentId, commentType);
       setContent("");
+      setCommentType(DEFAULT_COMMENT_TYPE);
       handleClose();
     }
   };
@@ -342,30 +346,54 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setUserId("user")}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    user
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUserId("assistant")}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    assistant
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUserId("system")}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    system
-                  </button>
+                  {CYCLE_USER_IDS.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setUserId(id)}
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      {id}
+                    </button>
+                  ))}
                   <button
                     type="button"
                     onClick={() => setUserId("")}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    _
+                  </button>
+                </div>
+              </label>
+            </div>
+            <div className="flex gap-2 mb-2">
+              <label
+                htmlFor="typeInput"
+                className="text-gray-300 flex items-center gap-2"
+                title="Enter comment type"
+              >
+                Type:
+                <input
+                  type="text"
+                  id="typeInput"
+                  value={commentType}
+                  onChange={(e) => setCommentType(e.target.value)}
+                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <div className="flex gap-2">
+                  {CYCLE_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setCommentType(type)}
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      {type}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCommentType("")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     _

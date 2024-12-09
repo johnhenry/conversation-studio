@@ -12,6 +12,7 @@ export interface Attachment {
 export interface CommentData {
   id: string;
   userId: string;
+  type: string;
   timestamp: number;
   content: string;
   contentHash: string;
@@ -54,16 +55,22 @@ export interface CommentEditorProps {
   onSubmit: (
     content: string,
     attachments: Attachment[],
-    parentId?: string
+    parentId?: string,
+    type?: string
   ) => void;
   userId: string;
   setUserId: (userId: string) => void;
+  commentType: string;
+  setCommentType: (type: string) => void;
   attachments: Attachment[];
   onAttachmentUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAttachmentRemove: (index: number) => void;
   content: string;
   setContent: (content: string) => void;
-  buttonText: string;
+  buttonText?: string;
   parentId?: string;
-  onCancel: () => void;
+  onCancel?: () => void;
+  rootComments?: Comment[];
+  autoSetUserId?: string;
+  autoGenerate?: boolean;
 }

@@ -21,6 +21,7 @@ interface XMLAttachments {
 interface XMLComment {
   id?: string;
   userId?: string;
+  type?: string;
   timestamp?: string;
   contentHash?: string;
   content?: XMLContent | string;
@@ -120,6 +121,7 @@ const parseMultipartContent = (content: string): Comment[] => {
     currentComment = {
       id: "",
       userId: "",
+      type: "message",
       timestamp: 0,
       contentHash: "",
       content: "",
@@ -144,6 +146,10 @@ const parseMultipartContent = (content: string): Comment[] => {
         if (trimmedLine.startsWith("User-Id:")) {
           currentComment.userId = trimmedLine
             .substring("User-Id:".length)
+            .trim();
+        } else if (trimmedLine.startsWith("Type:")) {
+          currentComment.type = trimmedLine
+            .substring("Type:".length)
             .trim();
         } else if (trimmedLine.startsWith("Hash:")) {
           currentComment.contentHash = trimmedLine
@@ -240,6 +246,7 @@ const parseXMLComment = (content: string): Comment[] => {
       return {
         id: xmlComment.id || "",
         userId: xmlComment.userId || "",
+        type: xmlComment.type || "message",
         timestamp: parseInt(xmlComment.timestamp || "0"),
         contentHash: xmlComment.contentHash || "",
         content: commentContent,

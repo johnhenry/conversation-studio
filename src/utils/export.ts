@@ -4,7 +4,7 @@
  * 1. Text Format (Multipart):
  *    A custom text-based format inspired by HTTP multipart/form-data structure.
  *    Each comment is separated by a boundary marker and includes:
- *    - Headers: Content-Type, User-Id, Hash, Timestamp, Id
+ *    - Headers: Content-Type, User-Id, Type, Hash, Timestamp, Id
  *    - Body: The comment content
  *    - Attachments section (if any)
  *    - Nested child comments (using the same boundary)
@@ -12,6 +12,7 @@
  *    ----Boundary123
  *    Content-Type: text/plain; charset="UTF-8"
  *    User-Id: user123
+ *    Type: comment
  *    Hash: abc123
  *    Timestamp: 1701234567
  *    Id: comment123
@@ -25,6 +26,7 @@
  *    A hierarchical JSON structure where each comment is an object containing:
  *    - id: string - Unique identifier
  *    - userId: string - User identifier
+ *    - type: string - Comment type
  *    - timestamp: number - Unix timestamp
  *    - content: string - Comment content
  *    - contentHash: string - Content hash for verification
@@ -34,7 +36,7 @@
  * 3. XML Format:
  *    A structured XML format with nested elements:
  *    <comments>
- *      <comment id="..." userId="..." timestamp="..." contentHash="...">
+ *      <comment id="..." userId="..." type="..." timestamp="..." contentHash="...">
  *        <content>Comment text</content>
  *        <attachments>
  *          <attachment name="..." type="..."/>
@@ -62,6 +64,7 @@ interface JSONAttachment {
 interface JSONComment {
   id: string;
   userId: string;
+  type: string;
   timestamp: number;
   content: string;
   contentHash: string;
@@ -88,6 +91,7 @@ const formatTextComment = (
       `--${boundary}\n`,
       `Content-Type: text/plain; charset="UTF-8"\n`,
       `User-Id: ${comment.userId}\n`,
+      `Type: ${comment.type}\n`,
       `Hash: ${comment.contentHash}\n`,
       `Timestamp: ${comment.timestamp}\n`,
       `Id: ${comment.id}\n\n`,
@@ -129,6 +133,7 @@ const formatJSONComment = (comment: CommentData): JSONComment => {
     return {
       id: comment.id,
       userId: comment.userId,
+      type: comment.type,
       timestamp: comment.timestamp,
       content: comment.content,
       contentHash: comment.contentHash,
@@ -153,6 +158,7 @@ const formatXMLComment = (comment: CommentData, parent: XMLBuilder): void => {
     const elem = parent.ele("comment");
     elem.ele("id").txt(comment.id);
     elem.ele("userId").txt(comment.userId);
+    elem.ele("type").txt(comment.type);
     elem.ele("timestamp").txt(comment.timestamp.toString());
     elem.ele("contentHash").txt(comment.contentHash);
     elem.ele("content").dat(comment.content);

@@ -197,6 +197,23 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     topLevelUpdate(updatedComments);
   };
 
+  const handleTypeChange = (commentId: string, newType: string) => {
+    const updateCommentType = (items: CommentType[]): CommentType[] => {
+      return items.map((item) => {
+        if (item.id === commentId) {
+          return { ...item, type: newType };
+        }
+        if (item.children.length > 0) {
+          return { ...item, children: updateCommentType(item.children) };
+        }
+        return item;
+      });
+    };
+
+    const updatedComments = updateCommentType(allComments);
+    topLevelUpdate(updatedComments);
+  };
+
   const handleUpdateComment = (commentId: string, newContent: string, newAttachments: Attachment[]) => {
     const updateCommentInTree = (comments: CommentType[]): CommentType[] => {
       return comments.map((comment) => {
@@ -242,23 +259,25 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       {comments.map((comment) => (
         <div key={comment.id}>
           <Comment
+            key={comment.id}
             comment={comment}
-            onDelete={deleteComment}
+            onDelete={() => deleteComment(comment.id)}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
-            onPopUp={handlePopUp}
-            onReply={onReply || (() => {})}
+            onPopUp={parentId ? () => handlePopUp(comment.id) : undefined}
+            onReply={onReply}
             onUserIdChange={handleUserIdChange}
+            onTypeChange={handleTypeChange}
             onUpdate={handleUpdateComment}
             onClone={onClone}
             onAttachmentUpload={onAttachmentUpload}
             onAttachmentRemove={onAttachmentRemove}
             canPopUp={!!parentId}
             renderAttachment={renderAttachment}
-            showDelete={!isPreview}
+            showDelete={true}
             level={level}
-            isBeingRepliedTo={replyToId === comment.id}
-            disableEditing={disableEditing || isPreview}
+            isBeingRepliedTo={comment.id === replyToId}
+            disableEditing={disableEditing}
           />
           {comment.children.length > 0 && (
             <CommentTree
