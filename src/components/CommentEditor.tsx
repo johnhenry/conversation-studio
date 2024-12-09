@@ -110,7 +110,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   };
 
   const submitComment = () => {
-    if (content.trim()) {
+    if (content.trim() || attachments.length > 0) {
       onSubmit(content, attachments, parentId, commentType);
       setContent("");
       setCommentType(DEFAULT_COMMENT_TYPE);
@@ -212,8 +212,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       const content = await model.prompt(prompt, {
         signal: abortControllerRef.current.signal,
       });
-      console.log(content);
-      onSubmit(content, attachments, parentId);
+      onSubmit(content, attachments, parentId, 'assistant');
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("Generation was cancelled");
@@ -276,6 +275,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             attachments,
             deleted: false,
             renderAttachment,
+            type: commentType || DEFAULT_COMMENT_TYPE,
           };
 
           const data = await exportComments([previewComment], activeTab);
@@ -324,6 +324,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     attachments,
     deleted: false,
     renderAttachment,
+    type: commentType || DEFAULT_COMMENT_TYPE,
   };
 
   const renderContent = () => {

@@ -403,12 +403,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onAttachmentRemove={onAttachmentRemove}
             canPopUp={!!parentId}
             renderAttachment={renderAttachment}
-            showDelete={true}
+            showDelete={!isPreview}
             level={level}
             isBeingRepliedTo={comment.id === replyToId}
             isSelected={comment.id === selectedCommentId}
             onSelect={() => onCommentSelect?.(comment.id)}
-            disableEditing={disableEditing}
+            disableEditing={disableEditing || isPreview}
             data-comment-id={comment.id}
           />
           {comment.children.length > 0 && (
