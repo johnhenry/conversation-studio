@@ -283,23 +283,28 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         const currentIndex = siblings.findIndex(c => c.id === selectedCommentId);
 
         let nextElement: HTMLElement | null = null;
+        let nextId: string | undefined;
 
         switch (e.key) {
           case "ArrowLeft": {
-            if (currentIndex > 0) {
+            if (siblings.length > 0) {
               e.preventDefault();
-              const prevId = siblings[currentIndex - 1].id;
-              nextElement = document.querySelector(`[data-comment-id="${prevId}"]`);
+              // Wrap to end if at start, otherwise go to previous
+              const nextIndex = currentIndex <= 0 ? siblings.length - 1 : currentIndex - 1;
+              nextId = siblings[nextIndex].id;
+              nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
               if (nextElement) {
-                onCommentSelect?.(prevId);
+                onCommentSelect?.(nextId);
               }
             }
             break;
           }
           case "ArrowRight": {
-            if (currentIndex < siblings.length - 1) {
+            if (siblings.length > 0) {
               e.preventDefault();
-              const nextId = siblings[currentIndex + 1].id;
+              // Wrap to start if at end, otherwise go to next
+              const nextIndex = currentIndex >= siblings.length - 1 ? 0 : currentIndex + 1;
+              nextId = siblings[nextIndex].id;
               nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
               if (nextElement) {
                 onCommentSelect?.(nextId);

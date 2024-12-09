@@ -35,6 +35,14 @@ const DEPTH_COLORS = [
   "bg-orange-700",   // Level 4
   "bg-red-700",      // Level 5
 ];
+const DEPTH_TEXT = [
+  "text-gray-700",     // Level 0
+  "text-blue-700",     // Level 1
+  "text-green-700",    // Level 2
+  "text-purple-700",   // Level 3
+  "text-orange-700",   // Level 4
+  "text-red-700",      // Level 5
+];
 
 const Comment: React.FC<CommentProps> = ({
   comment,
@@ -161,6 +169,8 @@ const Comment: React.FC<CommentProps> = ({
   const handleClone = () => {
     onClone?.(comment.id, comment);
   };
+  const depth_bg = DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
+  const depth_text = DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];
 
   return (
     <div
@@ -203,7 +213,7 @@ const Comment: React.FC<CommentProps> = ({
             >
               {/* Horizontal line */}
               <div
-                className={`absolute top-[20px] w-[10px] h-[2px] ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
+                className={`absolute top-[20px] w-[12px] h-[2px] ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
                 style={{ left: "0px" }}
               />
             </div>
@@ -226,17 +236,30 @@ const Comment: React.FC<CommentProps> = ({
           ${isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""}
           ${isDragOver ? "bg-[#1d2535]" : ""}
           ${isSelected 
-            ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30` 
+            ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30`
             : `hover:${DEPTH_COLORS[level % DEPTH_COLORS.length]} hover:bg-opacity-30`
           }
           focus-visible:ring-2 focus-visible:ring-blue-500
         `}
         draggable
         onDragStart={(e) => onDragStart(e, comment)}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => onDrop(e, comment.id)}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!isDragOver) {
+            setIsDragOver(true);
+          }
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          onDrop(e, comment.id);
+        }}
         onClick={(e) => {
-          e.stopPropagation(); // Prevent event bubbling
+          e.stopPropagation();
           e.currentTarget.focus();
           onSelect?.();
         }}
@@ -249,14 +272,14 @@ const Comment: React.FC<CommentProps> = ({
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
           <div
-                className={`absolute top-[50%] w-[12px] h-[12px]  ${DEPTH_COLORS[(level + 1)  % DEPTH_COLORS.length]}`}
+                className={`absolute top-[50%] w-[12px] h-[12px] rounded-full ${depth_bg}`}
                 style={{ left: "7px" }}
               />
           {comment.children.length > 0 && (
             <>
 
             <div
-              className={`absolute w-[2px] ${DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length]}`}
+              className={`absolute w-[2px] ${depth_bg}`}
               style={{
                 left: "12px",
                 height: "50%",
@@ -278,7 +301,7 @@ const Comment: React.FC<CommentProps> = ({
           )}
             <button
               onClick={handleTypeClick}
-              className="text-blue-400 hover:text-blue-300 cursor-pointer"
+              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
               title="Click to change type"
             >
               {comment.type}
@@ -286,7 +309,7 @@ const Comment: React.FC<CommentProps> = ({
             <span className="text-gray-500">·</span>
             <button
               onClick={handleUserIdClick}
-              className="text-blue-400 hover:text-blue-300 cursor-pointer"
+              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
               title="Click to change user ID"
             >
               {comment.userId}
