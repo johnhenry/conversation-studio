@@ -123,15 +123,15 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 flex-1">
       {state.isLoading && (
-        <div className="flex items-center gap-2 text-blue-500 mb-2">
+        <div className="flex items-center gap-2 text-blue-500 mb-1">
           <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
           Processing...
         </div>
       )}
       {state.error ? (
-        <div className="text-red-500 p-4 rounded-lg bg-red-100/10 flex flex-col gap-2">
+        <div className="text-red-500 p-2 rounded-lg bg-red-100/10 flex flex-col gap-1 mb-1">
           <div className="font-medium">Error generating preview:</div>
           <div>{state.error}</div>
           <div className="text-sm opacity-75">
@@ -141,7 +141,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
       ) : (
         <textarea
           ref={textareaRef}
-          className="w-full flex-grow border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-[#1A1A1B] text-gray-300"
+          className="w-full flex-1 min-h-0 border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-[#1A1A1B] text-gray-300"
           placeholder={
             state.isLoading ? "Processing..." : "Exported data will appear here"
           }
@@ -149,7 +149,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
           readOnly
         />
       )}
-      <div className="flex justify-end mt-2 gap-2">
+      <div className="flex justify-end mt-1 gap-2">
         <button
           onClick={handleCopy}
           disabled={state.isLoading || !state.data}

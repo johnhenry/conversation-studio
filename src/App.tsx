@@ -480,7 +480,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen flex flex-col">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -488,7 +488,7 @@ function App() {
         setStoreLocally={setStoreLocally}
         onImport={handleImport}
       />
-      <main className="container mx-auto px-4 pt-20 h-full">
+      <main className="flex-1 container mx-auto px-4 pt-20 flex flex-col min-h-0">
         {activeTab === "arrange" ? (
           <>
             <div className="space-y-4">{commentTree}</div>
