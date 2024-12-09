@@ -89,6 +89,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [parents, setParents] = useState<CommentType[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
+  const [genError, setGenError] = useState(null);
   const [isVisible, setIsVisible] = useState(true);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -115,12 +116,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Submit comment
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       submitComment();
     }
     // Cancel editing
-    else if (e.key === 'Escape') {
+    else if (e.key === "Escape") {
       e.preventDefault();
       handleClose();
     }
@@ -191,17 +192,30 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         initialPrompts,
         topK: 1,
         maxTokens: 200,
-        seed: 1,
+        // seed:1
       });
+      //Pull 10 random words from prompt
+      const seededPromt =
+        "---\n(ignore this section)\n" +
+        prompt
+          .split(" ")
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 10)
+          .join(",") +
+        "\n---\n" +
+        prompt;
+      console.log(seededPromt);
       const content = await model.prompt(prompt, {
         signal: abortControllerRef.current.signal,
       });
+      console.log(content);
       onSubmit(content, attachments, parentId);
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("Generation was cancelled");
       } else {
         console.error(error);
+        setGenError(error);
       }
       setLoadingGen(false);
       abortControllerRef.current = null;
@@ -328,25 +342,29 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <div className="flex gap-2">
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setUserId("user")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     user
                   </button>
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setUserId("assistant")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     assistant
                   </button>
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setUserId("system")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
                     system
                   </button>
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setUserId("")}
                     className="text-blue-400 hover:text-blue-300 text-sm"
                   >
@@ -438,38 +456,35 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         <div className="modal-content p-4">
           <div className="flex justify-center p-4 ">
             <div
-
               className="sparkle-loader cursor-pointer hover:opacity-80 transition-opacity"
               title="Click to cancel generation"
             >
               <Sparkles size={20} className="sparkle" />
               <Sparkles size={20} className="sparkle" />
               <Sparkles size={20} className="sparkle" />
-
             </div>
           </div>
-          <div className="flex justify-center p-4 ">
-          (click to cancel)
-          </div>
+          <div className="flex justify-center p-4 ">(click to cancel)</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
       role="dialog"
       aria-label="Comment Editor"
     >
-      <div 
+      <div
         className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
         onKeyDown={handleKeyDown}
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-100">New Comment</h2>
+
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-300"
@@ -478,7 +493,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <X size={20} />
           </button>
         </div>
-        
+        {genError && (
+          <div className="text-red-500 p-2">
+            Generative AI Error:{" "}
+            {genError instanceof Error ? genError.message : genError}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
             <button
@@ -533,21 +553,26 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
-              <button type="button"
+              <button
+                type="button"
                 onClick={handleClose}
                 className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
-              <button type="button"
-                onClick={handleSubmitGenerate}
-                disabled={!parentId || !!content.trim() || attachments.length > 0}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Sparkles size={20} />
-                Generate
-              </button>
-              <button type="button"
+              {parentId && (
+                <button
+                  type="button"
+                  onClick={handleSubmitGenerate}
+                  disabled={!!content.trim() || attachments.length > 0}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Sparkles size={20} />
+                  Generate
+                </button>
+              )}
+              <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={!content.trim() && attachments.length === 0}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -1,4 +1,10 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
 import { Comment, CommentData, Attachment, ExportFormat } from "./types";
@@ -29,16 +35,21 @@ const stripUIProperties = (comment: Comment): CommentData => ({
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeTab, setActiveTab] = useState<ExportFormat | "arrange">("arrange");
+  const [activeTab, setActiveTab] = useState<ExportFormat | "arrange">(
+    "arrange"
+  );
   const [userId, setUserId] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
-  const [autoReplySettings, setAutoReplySettings] = useState<{userId?: string; autoGenerate?: boolean}>({});
+  const [autoReplySettings, setAutoReplySettings] = useState<{
+    userId?: string;
+    autoGenerate?: boolean;
+  }>({});
   const [storeLocally, setStoreLocally] = useState(() => {
-    const stored = localStorage.getItem('storeLocally');
-    return stored ? stored === 'true' : false;
+    const stored = localStorage.getItem("storeLocally");
+    return stored ? stored === "true" : false;
   });
   const [isInitialized, setIsInitialized] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,7 +177,9 @@ function App() {
 
   const handleReply = useCallback((commentId: string, autoReply?: boolean) => {
     setReplyToId(commentId);
-    setAutoReplySettings(autoReply ? { userId: 'assistant', autoGenerate: true } : {});
+    setAutoReplySettings(
+      autoReply ? { userId: "assistant", autoGenerate: true } : {}
+    );
     setShowEditor(true);
   }, []);
 
@@ -288,7 +301,9 @@ function App() {
         children: [],
         userId: originalComment.userId, // Keep original user's ID
         timestamp: Date.now(),
-        contentHash: generateContentHash(originalComment.content + Date.now().toString()), // Generate new hash using content + timestamp
+        contentHash: generateContentHash(
+          originalComment.content + Date.now().toString()
+        ), // Generate new hash using content + timestamp
         attachments: [...originalComment.attachments],
         renderAttachment,
       };
@@ -308,7 +323,10 @@ function App() {
             }
             // If this comment has children, recursively search them
             if (comment.children.length > 0) {
-              comment.children = insertCloneAtSameLevel(comment.children, targetId);
+              comment.children = insertCloneAtSameLevel(
+                comment.children,
+                targetId
+              );
             }
           }
           return result;
@@ -383,19 +401,22 @@ function App() {
   }, []);
 
   // Function to add renderAttachment to comments recursively
-  const addRenderAttachmentToComments = useCallback((comments: Comment[]): Comment[] => {
-    return comments.map(comment => ({
-      ...comment,
-      renderAttachment,
-      children: addRenderAttachmentToComments(comment.children)
-    }));
-  }, [renderAttachment]);
+  const addRenderAttachmentToComments = useCallback(
+    (comments: Comment[]): Comment[] => {
+      return comments.map((comment) => ({
+        ...comment,
+        renderAttachment,
+        children: addRenderAttachmentToComments(comment.children),
+      }));
+    },
+    [renderAttachment]
+  );
 
   // Load state from localStorage on mount
   useEffect(() => {
     if (storeLocally) {
-      const storedComments = localStorage.getItem('comments');
-      const storedUserId = localStorage.getItem('userId');
+      const storedComments = localStorage.getItem("comments");
+      const storedUserId = localStorage.getItem("userId");
       if (storedComments) {
         try {
           const parsedComments = JSON.parse(storedComments);
@@ -403,7 +424,7 @@ function App() {
           const commentsWithUI = addRenderAttachmentToComments(parsedComments);
           setComments(commentsWithUI);
         } catch (error) {
-          console.error('Error parsing stored comments:', error);
+          console.error("Error parsing stored comments:", error);
         }
       }
       if (storedUserId) setUserId(storedUserId);
@@ -418,10 +439,12 @@ function App() {
 
     if (storeLocally) {
       // Strip UI-specific properties before storing
-      const commentsToStore = comments.map(comment => stripUIProperties(comment));
-      localStorage.setItem('comments', JSON.stringify(commentsToStore));
-      localStorage.setItem('userId', userId);
-      localStorage.setItem('storeLocally', 'true');
+      const commentsToStore = comments.map((comment) =>
+        stripUIProperties(comment)
+      );
+      localStorage.setItem("comments", JSON.stringify(commentsToStore));
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("storeLocally", "true");
     } else {
       localStorage.clear();
     }
@@ -431,12 +454,15 @@ function App() {
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       // Only handle shortcuts if not in a text input or textarea
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
 
       // New comment: just 'n'
-      if (e.key === 'n') {
+      if (e.key === "n") {
         e.preventDefault();
         setShowEditor(true);
         setReplyToId(undefined);
@@ -444,8 +470,8 @@ function App() {
       }
     };
 
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
   const generateContentHash = (content: string): string => {
@@ -465,33 +491,31 @@ function App() {
       <main className="container mx-auto px-4 pt-20 h-full">
         {activeTab === "arrange" ? (
           <>
-            <div className="space-y-4">
-              {commentTree}
-            </div>
-            {showEditor && (
-              <CommentEditor
-                onSubmit={addComment}
-                userId={userId}
-                setUserId={setUserId}
-                attachments={attachments}
-                onAttachmentUpload={handleAttachmentUpload}
-                onAttachmentRemove={handleAttachmentRemove}
-                content={draftContent}
-                setContent={setDraftContent}
-                onCancel={() => setShowEditor(false)}
-                parentId={replyToId}
-                rootComments={comments}
-                autoSetUserId={autoReplySettings.userId}
-                autoGenerate={autoReplySettings.autoGenerate}
-              />
-            )}
+            <div className="space-y-4">{commentTree}</div>
           </>
         ) : (
           <ExportPreview comments={comments} format={activeTab} />
         )}
       </main>
+      {showEditor && (
+        <CommentEditor
+          onSubmit={addComment}
+          userId={userId}
+          setUserId={setUserId}
+          attachments={attachments}
+          onAttachmentUpload={handleAttachmentUpload}
+          onAttachmentRemove={handleAttachmentRemove}
+          content={draftContent}
+          setContent={setDraftContent}
+          onCancel={() => setShowEditor(false)}
+          parentId={replyToId}
+          rootComments={comments}
+          autoSetUserId={autoReplySettings.userId}
+          autoGenerate={autoReplySettings.autoGenerate}
+        />
+      )}
       {/* Floating action button */}
-      <div 
+      <div
         className="floating-action-button"
         onClick={() => {
           setShowEditor(true);
