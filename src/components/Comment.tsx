@@ -14,7 +14,7 @@ interface CommentProps {
   onUserIdChange?: (id: string, newUserId: string) => void;
   onTypeChange?: (id: string, newType: string) => void;
   onUpdate?: (id: string, newContent: string, newAttachments: Attachment[]) => void;
-  onClone?: (id: string, comment: CommentType) => void;
+  onClone?: (id: string, comment: CommentType, cloneChildren?: boolean) => void;
   onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   onAttachmentRemove?: (id: string, index: number) => void;
   canPopUp?: boolean;
@@ -143,9 +143,9 @@ const Comment: React.FC<CommentProps> = ({
         e.preventDefault();
         onReply(comment.id, true); // Auto-reply
       }
-      else if (e.key === 'l' && onClone) {
+      else if (e.key === 'c' && onClone) {
         e.preventDefault();
-        onClone(comment.id, comment);
+        onClone(comment.id, comment, e.metaKey); // Clone childeren with metakey
       }
       else if (e.key === 't' && !disableEditing) {
         e.preventDefault();
@@ -167,7 +167,7 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleClone = () => {
-    onClone?.(comment.id, comment);
+    onClone?.(comment.id, comment, true); // Pass cloneChildren parameter
   };
   const depth_bg = DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
   const depth_text = DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];

@@ -325,17 +325,23 @@ function App() {
   );
 
   const handleClone = useCallback(
-    (commentId: string, originalComment: Comment) => {
+    (commentId: string, originalComment: Comment, cloneChildren: boolean = false) => {
       const clonedComment: Comment = {
         id: generateUniqueId(),
         content: originalComment.content,
-        children: [],
-        userId: originalComment.userId, // Keep original user's ID
-        type: originalComment.type, // Keep original comment type
+        children: cloneChildren ? originalComment.children.map(child => ({
+          ...child,
+          id: generateUniqueId(),
+          timestamp: Date.now(),
+          contentHash: generateContentHash(child.content + Date.now().toString()),
+          renderAttachment
+        })) : [],
+        userId: originalComment.userId,
+        type: originalComment.type,
         timestamp: Date.now(),
         contentHash: generateContentHash(
           originalComment.content + Date.now().toString()
-        ), // Generate new hash using content + timestamp
+        ),
         attachments: [...originalComment.attachments],
         renderAttachment,
       };
