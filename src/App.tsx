@@ -326,25 +326,22 @@ function App() {
 
   const handleClone = useCallback(
     (commentId: string, originalComment: Comment, cloneChildren: boolean = false) => {
-      const clonedComment: Comment = {
-        id: generateUniqueId(),
-        content: originalComment.content,
-        children: cloneChildren ? originalComment.children.map(child => ({
-          ...child,
+      // Helper function to deep clone a comment and its children
+      const deepCloneComment = (comment: Comment): Comment => {
+        return {
           id: generateUniqueId(),
+          content: comment.content,
+          children: cloneChildren ? comment.children.map(deepCloneComment) : [],
+          userId: comment.userId,
+          type: comment.type,
           timestamp: Date.now(),
-          contentHash: generateContentHash(child.content + Date.now().toString()),
-          renderAttachment
-        })) : [],
-        userId: originalComment.userId,
-        type: originalComment.type,
-        timestamp: Date.now(),
-        contentHash: generateContentHash(
-          originalComment.content + Date.now().toString()
-        ),
-        attachments: [...originalComment.attachments],
-        renderAttachment,
+          contentHash: generateContentHash(comment.content + Date.now().toString()),
+          attachments: [...comment.attachments],
+          renderAttachment,
+        };
       };
+
+      const clonedComment = deepCloneComment(originalComment);
 
       setComments((prevComments) => {
         // Helper function to insert clone after original
