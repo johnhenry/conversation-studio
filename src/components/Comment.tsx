@@ -114,6 +114,11 @@ const Comment: React.FC<CommentProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isEditing) {
+      // Prevent arrow key events from propagating in edit mode
+      if (e.key.startsWith('Arrow')) {
+        e.stopPropagation();
+        return;
+      }
       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
         handleEditSubmit();
       } 
