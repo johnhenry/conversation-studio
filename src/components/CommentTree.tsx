@@ -130,49 +130,83 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     // Don't allow dropping on itself
     if (targetId === droppedComment.id) return;
 
-    // If dropping onto a target (not root level), check for circular reference
+    // If dropping onto a target (not root level)
     if (targetId) {
       const targetComment = findComment(allComments, targetId);
       if (!targetComment) return;
 
-      if (isDescendant(droppedComment, targetId)) {
-        return; // Prevent dropping onto descendant
+      // Check if target is a descendant of dropped comment or vice versa
+      if (isDescendant(droppedComment, targetId) || isDescendant(targetComment, droppedComment.id)) {
+        // Create a deep copy of the tree to work with
+        const updatedComments = allComments.map(comment => ({ ...comment }));
+
+        // Helper function to swap two nodes in the tree
+        const swapNodes = (items: CommentType[], id1: string, id2: string): CommentType[] => {
+          return items.map(item => {
+            // If this is one of our target items, swap its content but keep its position
+            if (item.id === id1 || item.id === id2) {
+              const newContent = item.id === id1 ? targetComment : droppedComment;
+              return {
+                ...item,
+                content: newContent.content,
+                userId: newContent.userId,
+                type: newContent.type,
+                timestamp: newContent.timestamp,
+                attachments: [...newContent.attachments],
+                children: swapNodes(item.children, id1, id2)
+              };
+            }
+            // For all other items, just process their children
+            if (item.children.length > 0) {
+              return {
+                ...item,
+                children: swapNodes(item.children, id1, id2)
+              };
+            }
+            return item;
+          });
+        };
+
+        // Perform the swap
+        const result = swapNodes(updatedComments, droppedComment.id, targetId);
+        topLevelUpdate(result);
+        return;
       }
-    }
 
-    // Find and remove the comment from its current position
-    const [foundComment, remainingComments] = findAndRemoveComment(
-      allComments,
-      droppedComment.id
-    );
-    if (!foundComment) return;
+      // Normal case - not ancestor/descendant
+      const [foundComment, remainingComments] = findAndRemoveComment(
+        allComments,
+        droppedComment.id
+      );
+      if (!foundComment) return;
 
-    // If dropping at root level
-    if (!targetId) {
-      topLevelUpdate([...remainingComments, foundComment]);
+      // Add the comment to its new position
+      const addToTarget = (items: CommentType[]): CommentType[] => {
+        return items.map((item) => {
+          if (item.id === targetId) {
+            return {
+              ...item,
+              children: [...item.children, foundComment],
+            };
+          }
+          if (item.children.length > 0) {
+            return {
+              ...item,
+              children: addToTarget(item.children),
+            };
+          }
+          return item;
+        });
+      };
+
+      topLevelUpdate(addToTarget(remainingComments));
       return;
     }
 
-    // Add the comment to its new position
-    const addToTarget = (items: CommentType[]): CommentType[] => {
-      return items.map((item) => {
-        if (item.id === targetId) {
-          return {
-            ...item,
-            children: [...item.children, foundComment],
-          };
-        }
-        if (item.children.length > 0) {
-          return {
-            ...item,
-            children: addToTarget(item.children),
-          };
-        }
-        return item;
-      });
-    };
-
-    topLevelUpdate(addToTarget(remainingComments));
+    // If dropping at root level
+    const [foundComment, remainingComments] = findAndRemoveComment(allComments, droppedComment.id);
+    if (!foundComment) return;
+    topLevelUpdate([...remainingComments, foundComment]);
   };
 
   const handlePopUp = (commentId: string) => {
