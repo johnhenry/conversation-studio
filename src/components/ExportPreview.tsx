@@ -3,19 +3,19 @@ import { Download, Copy } from "lucide-react";
 import { ExportPreviewProps } from "../types";
 import { exportComments } from "../utils/export";
 
-const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
+const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format, exportSettings }) => {
   const [state, setState] = useState({
     data: "",
     isLoading: false,
     error: null as string | null,
   });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const exportRef = useRef({ comments, format });
+  const exportRef = useRef({ comments, format, exportSettings });
 
   // Update ref when props change
   useEffect(() => {
-    exportRef.current = { comments, format };
-  }, [comments, format]);
+    exportRef.current = { comments, format, exportSettings };
+  }, [comments, format, exportSettings]);
 
   // Handle export
   useEffect(() => {
@@ -36,10 +36,11 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
         console.log("Attempting export:", {
           format,
           commentsCount: comments.length,
+          exportSettings,
         });
 
         // Generate export
-        const result = exportComments(comments, format);
+        const result = exportComments(comments, format, exportSettings);
 
         if (mounted) {
           setState((prev) => ({
@@ -70,7 +71,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
       mounted = false;
       clearTimeout(timeoutId);
     };
-  }, [comments, format]);
+  }, [comments, format, exportSettings]);
 
   const handleDownload = useCallback(() => {
     try {
@@ -78,7 +79,8 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
 
       const result = exportComments(
         exportRef.current.comments,
-        exportRef.current.format
+        exportRef.current.format,
+        exportRef.current.exportSettings
       );
 
       const blob = new Blob([result], { type: `application/${format}` });
@@ -106,7 +108,8 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
 
       const result = exportComments(
         exportRef.current.comments,
-        exportRef.current.format
+        exportRef.current.format,
+        exportRef.current.exportSettings
       );
       navigator.clipboard.writeText(result);
 
@@ -169,11 +172,4 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
   );
 };
 
-// Use React.memo to prevent unnecessary re-renders
-export default React.memo(ExportPreview, (prevProps, nextProps) => {
-  // Only re-render if the format changes or if the comments array reference changes
-  return (
-    prevProps.format === nextProps.format &&
-    prevProps.comments === nextProps.comments
-  );
-});
+export default ExportPreview;

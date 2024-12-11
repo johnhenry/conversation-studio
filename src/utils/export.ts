@@ -49,7 +49,7 @@
  *    </comments>
  */
 
-import { CommentData, ExportFormat } from "../types";
+import { CommentData, ExportFormat, ExportSettings } from "../types";
 import { create } from "xmlbuilder2";
 import type { XMLBuilder } from "xmlbuilder2/lib/interfaces";
 
@@ -74,9 +74,15 @@ interface JSONComment {
   children: JSONComment[];
 }
 
+const truncateContent = (content: string, maxLength: number): string => {
+  if (content.length <= maxLength) return content;
+  return content.substring(0, maxLength) + "...";
+};
+
 const formatTextComment = (
   comment: CommentData,
   boundary: string,
+  settings: ExportSettings,
   processedIds: Set<string> = new Set()
 ): string => {
   try {
@@ -89,6 +95,10 @@ const formatTextComment = (
     // Add current comment ID to processed set
     processedIds.add(comment.id);
 
+    const content = settings.truncateContent && settings.maxContentLength
+      ? truncateContent(comment.content, settings.maxContentLength)
+      : comment.content;
+
     const parts = [
       `--${boundary}\n`,
       `Content-Type: text/plain; charset="UTF-8"\n`,
@@ -97,14 +107,18 @@ const formatTextComment = (
       `Hash: ${comment.contentHash}\n`,
       `Timestamp: ${comment.timestamp}\n`,
       `Id: ${comment.id}\n\n`,
-      `${comment.content}\n`,
+      `${content}\n`,
     ];
 
-    // Add attachments info with URL
+    // Add attachments info with URL if enabled
     if (comment.attachments.length > 0) {
       parts.push(`\nAttachments:\n`);
       comment.attachments.forEach((att) => {
-        parts.push(`- ${att.name} (${att.type || "unknown type"})\n  URL: ${att.url}\n`);
+        const attachmentInfo = [`- ${att.name} (${att.type || "unknown type"})`];
+        if (settings.includeAttachmentUrls) {
+          attachmentInfo.push(`  URL: ${att.url}`);
+        }
+        parts.push(attachmentInfo.join("\n") + "\n");
       });
     }
 
@@ -114,7 +128,7 @@ const formatTextComment = (
       parts.push(
         `\n--${boundary}\n`,
         `Content-Type: multipart/mixed; boundary="${childBoundary}"\n`,
-        formatTextComment(child, childBoundary, new Set(processedIds)),
+        formatTextComment(child, childBoundary, settings, new Set(processedIds)),
         `\n--${childBoundary}--\n`
       );
     });
@@ -130,21 +144,25 @@ const formatTextComment = (
   }
 };
 
-const formatJSONComment = (comment: CommentData): JSONComment => {
+const formatJSONComment = (comment: CommentData, settings: ExportSettings): JSONComment => {
   try {
+    const content = settings.truncateContent && settings.maxContentLength
+      ? truncateContent(comment.content, settings.maxContentLength)
+      : comment.content;
+
     return {
       id: comment.id,
       userId: comment.userId,
       type: comment.type,
       timestamp: comment.timestamp,
-      content: comment.content,
+      content,
       contentHash: comment.contentHash,
       attachments: comment.attachments.map((att) => ({
         name: att.name,
         type: att.type,
-        url: att.url,
+        ...(settings.includeAttachmentUrls ? { url: att.url } : {}),
       })),
-      children: comment.children.map(formatJSONComment),
+      children: comment.children.map(child => formatJSONComment(child, settings)),
     };
   } catch (error) {
     console.error("Error formatting JSON comment:", error);
@@ -156,7 +174,7 @@ const formatJSONComment = (comment: CommentData): JSONComment => {
   }
 };
 
-const formatXMLComment = (comment: CommentData, parent: XMLBuilder): void => {
+const formatXMLComment = (comment: CommentData, parent: XMLBuilder, settings: ExportSettings): void => {
   try {
     const elem = parent.ele("comment");
     elem.ele("id").txt(comment.id);
@@ -164,7 +182,11 @@ const formatXMLComment = (comment: CommentData, parent: XMLBuilder): void => {
     elem.ele("type").txt(comment.type);
     elem.ele("timestamp").txt(comment.timestamp.toString());
     elem.ele("contentHash").txt(comment.contentHash);
-    elem.ele("content").dat(comment.content);
+
+    const content = settings.truncateContent && settings.maxContentLength
+      ? truncateContent(comment.content, settings.maxContentLength)
+      : comment.content;
+    elem.ele("content").dat(content);
 
     if (comment.attachments.length > 0) {
       const attachments = elem.ele("attachments");
@@ -174,13 +196,15 @@ const formatXMLComment = (comment: CommentData, parent: XMLBuilder): void => {
         if (att.type) {
           attElem.ele("type").txt(att.type);
         }
-        attElem.ele("url").dat(att.url);
+        if (settings.includeAttachmentUrls) {
+          attElem.ele("url").txt(att.url);
+        }
       });
     }
 
     if (comment.children.length > 0) {
       const children = elem.ele("children");
-      comment.children.forEach((child) => formatXMLComment(child, children));
+      comment.children.forEach((child) => formatXMLComment(child, children, settings));
     }
   } catch (error) {
     console.error("Error formatting XML comment:", error);
@@ -194,9 +218,9 @@ const formatXMLComment = (comment: CommentData, parent: XMLBuilder): void => {
 
 export const exportComments = (
   comments: CommentData[],
-  format: ExportFormat
+  format: ExportFormat,
+  settings: ExportSettings = { includeAttachmentUrls: true, truncateContent: false }
 ): string => {
-
   if (!Array.isArray(comments)) {
     throw new Error("Comments must be an array");
   }
@@ -204,54 +228,33 @@ export const exportComments = (
   try {
     switch (format) {
       case "text": {
-        const mainBoundary = generateBoundary();
-        const parts = [
-          `Content-Type: multipart/mixed; boundary="${mainBoundary}"\n`,
-        ];
-
-        comments.forEach((comment, index) => {
-          parts.push(formatTextComment(comment, mainBoundary, new Set()));
-        });
-
-        parts.push(`\n--${mainBoundary}--\n`);
-        return parts.join("");
+        const boundary = generateBoundary();
+        const parts = comments.map((comment) =>
+          formatTextComment(comment, boundary, settings)
+        );
+        return parts.join("\n") + `\n--${boundary}--\n`;
       }
-
       case "json": {
-        const processed = comments.map(formatJSONComment);
-        return JSON.stringify(processed, null, 2);
+        const jsonComments = comments.map((comment) =>
+          formatJSONComment(comment, settings)
+        );
+        return JSON.stringify(jsonComments, null, 2);
       }
-
       case "xml": {
-        const builder = create({ version: "1.0", encoding: "UTF-8" });
-        const root = builder.ele("comments");
-
-        comments.forEach((comment, index) => {
-          formatXMLComment(comment, root);
-        });
-
-        return builder.end({ prettyPrint: true });
+        const doc = create({ version: "1.0", encoding: "UTF-8" });
+        const root = doc.ele("comments");
+        comments.forEach((comment) => formatXMLComment(comment, root, settings));
+        return doc.end({ prettyPrint: true });
       }
-
       default:
         throw new Error(`Unsupported format: ${format}`);
     }
   } catch (error) {
-    console.error("Export failed:", error);
+    console.error("Error exporting comments:", error);
     throw new Error(
-      `Export failed: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to export comments: ${
+        error instanceof Error ? error.message : String(error)
+      }`
     );
   }
-};
-
-export const exportCommentsText = (comments: CommentData[]): string => {
-  return exportComments(comments, "text");
-};
-
-export const exportCommentsJSON = (comments: CommentData[]): string => {
-  return exportComments(comments, "json");
-};
-
-export const exportCommentsXML = (comments: CommentData[]): string => {
-  return exportComments(comments, "xml");
 };

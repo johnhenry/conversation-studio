@@ -34,6 +34,7 @@ export type ExportFormat = "text" | "json" | "xml";
 export interface ExportPreviewProps {
   comments: CommentData[];
   format: ExportFormat;
+  exportSettings: ExportSettings;
 }
 
 // Props type for CommentTree component
@@ -89,4 +90,21 @@ export interface AIConfig {
   debug: boolean;
   logLevel: "error" | "warn" | "info" | "debug";
   systemPrompt?: string;
+}
+
+// Export settings type
+export interface ExportSettings {
+  includeAttachmentUrls: boolean;
+  truncateContent: boolean;
+  maxContentLength?: number;
+}
+
+// Props type for SettingsModal component
+export interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  aiConfig: AIConfig;
+  onAIConfigChange: (config: AIConfig) => void;
+  exportSettings: ExportSettings;
+  onExportSettingsChange: (settings: ExportSettings) => void;
 }

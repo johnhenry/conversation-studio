@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
-import { Comment, CommentData, Attachment, ExportFormat, AIConfig } from "./types";
+import { Comment, CommentData, Attachment, ExportFormat, AIConfig, ExportSettings } from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
@@ -60,6 +60,11 @@ function App() {
   });
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>();
+  const [exportSettings, setExportSettings] = useState<ExportSettings>({
+    includeAttachmentUrls: true,
+    truncateContent: false,
+    maxContentLength: 1000,
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Counter for ensuring unique IDs
@@ -452,11 +457,12 @@ function App() {
           key={`${activeTab}-${exportCommentData.length}`}
           comments={exportCommentData}
           format={activeTab}
+          exportSettings={exportSettings}
         />
       );
     }
     return null;
-  }, [activeTab, exportCommentData]);
+  }, [activeTab, exportCommentData, exportSettings]);
 
   const handleTabChange = useCallback((tab: ExportFormat | "forum") => {
     // Clear any existing error state
@@ -571,7 +577,11 @@ function App() {
             <div className="space-y-4">{commentTree}</div>
           </>
         ) : (
-          <ExportPreview comments={comments} format={activeTab} />
+          <ExportPreview
+            comments={comments}
+            format={activeTab as ExportFormat}
+            exportSettings={exportSettings}
+          />
         )}
       </main>
 
@@ -594,12 +604,16 @@ function App() {
         />
       )}
 
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        aiConfig={aiConfig}
-        onAIConfigChange={setAIConfig}
-      />
+      {showSettings && (
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          aiConfig={aiConfig}
+          onAIConfigChange={setAIConfig}
+          exportSettings={exportSettings}
+          onExportSettingsChange={setExportSettings}
+        />
+      )}
     </div>
   );
 }
