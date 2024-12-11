@@ -21,8 +21,8 @@ interface CommentTreeProps {
   selectedCommentId?: string;
   onCommentSelect?: (id: string) => void;
   aiConfig: AIConfig;
-  displayMode: string;
-  setDisplayMode: (mode: string) => void;
+  chatFocustId: string;
+  setChatFocustId: (mode: string) => void;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -43,8 +43,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   selectedCommentId,
   onCommentSelect,
   aiConfig,
-  displayMode,
-  setDisplayMode
+  chatFocustId,
+  setChatFocustId
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -452,8 +452,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             disableEditing={disableEditing || isPreview}
             data-comment-id={comment.id}
             aiConfig={aiConfig}
-            displayMode={displayMode}
-            setDisplayMode={setDisplayMode}
+            chatFocustId={chatFocustId}
+            setChatFocustId={setChatFocustId}
           />
           {comment.children.length > 0 && (
             <CommentTree
@@ -479,8 +479,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               selectedCommentId={selectedCommentId}
               onCommentSelect={onCommentSelect}
               aiConfig={aiConfig}
-              displayMode={displayMode}
-              setDisplayMode={setDisplayMode}
+              chatFocustId={chatFocustId}
+              setChatFocustId={setChatFocustId}
             />
           )}
         </div>

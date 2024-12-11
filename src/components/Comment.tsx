@@ -27,8 +27,8 @@ interface CommentProps {
   onSelect?: () => void;
   disableEditing?: boolean;
   aiConfig?: AIConfig;
-  displayMode: string;
-  setDisplayMode: (mode: string) => void;
+  chatFocustId: string;
+  setChatFocustId: (mode: string) => void;
 }
 
 
@@ -54,14 +54,14 @@ const Comment: React.FC<CommentProps> = ({
   onSelect,
   disableEditing,
   aiConfig,
-  displayMode,
-  setDisplayMode
+  chatFocustId,
+  setChatFocustId
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
-  const indent = !displayMode ? 24 : 0
+  const indent = !chatFocustId ? 24 : 0
   useEffect(() => {
     if (isEditing && commentRef.current) {
       const textarea = commentRef.current.querySelector('textarea');
@@ -365,15 +365,15 @@ const Comment: React.FC<CommentProps> = ({
               <button
                 title="Delete comment"
                 onClick={() => {
-                  if(displayMode){
-                    setDisplayMode("");
+                  if(chatFocustId){
+                    setChatFocustId("");
                   }else{
-                    setDisplayMode(comment.id );
+                    setChatFocustId(comment.id );
                   }
                 }}
                 className="text-gray-400 hover:text-red-400 transition-colors"
               >
-                {!displayMode ? <GitMerge size={16} /> : <Spline size={16}  />}
+                {!chatFocustId ? <GitMerge size={16} /> : <Spline size={16}  />}
               </button>
             </>
           )}

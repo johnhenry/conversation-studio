@@ -47,7 +47,7 @@ function App() {
   const [showEditor, setShowEditor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
-  const [displayMode, setDisplayMode] = useState<string>("");
+  const [chatFocustId, setChatFocustId] = useState<string>("");
 
   const { aiConfig, setAIConfig } = useAIConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
@@ -417,8 +417,8 @@ function App() {
           onCommentSelect={setSelectedCommentId}
           disableEditing={showEditor}
           aiConfig={aiConfig}
-          displayMode={displayMode}
-          setDisplayMode={setDisplayMode}
+          chatFocustId={chatFocustId}
+          setChatFocustId={setChatFocustId}
         />
       );
     }
@@ -435,8 +435,8 @@ function App() {
     selectedCommentId,
     showEditor,
     aiConfig,
-    displayMode,
-    setDisplayMode
+    chatFocustId,
+    setChatFocustId
   ]);
 
   // Memoize the export preview component
@@ -556,8 +556,8 @@ function App() {
         onImport={handleImport}
         onNewComment={handleNewComment}
         onOpenSettings={handleOpenSettings}
-        displayMode={displayMode}
-        setDisplayMode={setDisplayMode}
+        chatFocustId={chatFocustId}
+        setChatFocustId={setChatFocustId}
       />
 
       <main className="flex-1 container mx-auto px-4 pt-20 pb-4 overflow-y-auto">

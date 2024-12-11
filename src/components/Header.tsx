@@ -10,8 +10,8 @@ interface HeaderProps {
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNewComment: () => void;
   onOpenSettings: () => void;
-  displayMode: string;
-  setDisplayMode: (mode: string) => void;
+  chatFocustId: string;
+  setChatFocustId: (mode: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -22,8 +22,8 @@ const Header: React.FC<HeaderProps> = ({
   onImport,
   onNewComment,
   onOpenSettings,
-  displayMode,
-  setDisplayMode
+  chatFocustId,
+  setChatFocustId
 }) => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50">
@@ -39,14 +39,14 @@ const Header: React.FC<HeaderProps> = ({
           {/* Navigation */}
           <nav className="flex items-center space-x-4">
             <button
-              onClick={() =>{ setActiveTab("forum"); setDisplayMode("")}}
+              onClick={() =>{ setActiveTab("forum"); setChatFocustId("")}}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "forum"
                   ? "bg-gray-700 text-white"
                   : "text-gray-300 hover:bg-gray-700"
               }`}
             >
-              {!displayMode ?  "Forum" :  "Chat"}
+              {!chatFocustId ?  "Forum" :  "Chat"}
             </button>
             <button
               onClick={() => setActiveTab("text")}
