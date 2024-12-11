@@ -321,8 +321,13 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       : (currentIndex - 1 + siblings.length) % siblings.length;
     
     const nextSibling = siblings[nextIndex];
-    if (nextSibling && onCommentSelect) {
-      onCommentSelect(nextSibling.id);
+    if (nextSibling) {
+      // Update the chatFocustId to switch focus to the new sibling
+      setChatFocustId(nextSibling.id);
+      // Also update selection if needed
+      if (onCommentSelect) {
+        onCommentSelect(nextSibling.id);
+      }
     }
   };
 
@@ -348,6 +353,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               const nextId = siblings[nextIndex].id;
               nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
               if (nextElement && onCommentSelect) {
+                if (chatFocustId) {
+                  setChatFocustId(nextId);
+                }
                 onCommentSelect(nextId);
               }
             }
@@ -360,6 +368,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               const nextId = siblings[nextIndex].id;
               nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
               if (nextElement && onCommentSelect) {
+                if (chatFocustId) {
+                  setChatFocustId(nextId);
+                }
                 onCommentSelect(nextId);
               }
             }
@@ -371,6 +382,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               e.preventDefault();
               nextElement = document.querySelector(`[data-comment-id="${parentId}"]`);
               if (nextElement && onCommentSelect) {
+                if (chatFocustId) {
+                  setChatFocustId(parentId);
+                }
                 onCommentSelect(parentId);
               }
             }
@@ -382,6 +396,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               const childId = currentComment.children[0].id;
               nextElement = document.querySelector(`[data-comment-id="${childId}"]`);
               if (nextElement && onCommentSelect) {
+                if (chatFocustId) {
+                  setChatFocustId(childId);
+                }
                 onCommentSelect(childId);
               }
             }
@@ -418,7 +435,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         document.removeEventListener("click", handleClickOutside);
       };
     }
-  }, [selectedCommentId, allComments, onCommentSelect, level]);
+  }, [selectedCommentId, allComments, onCommentSelect, level, chatFocustId, setChatFocustId]);
 
   const findAncestorIds = (
     comments: CommentType[],
