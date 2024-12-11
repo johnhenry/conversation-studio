@@ -539,7 +539,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#030303] text-gray-300">
+    <div className="h-screen flex flex-col bg-[#030303] text-gray-300">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -550,7 +550,7 @@ function App() {
         onOpenSettings={handleOpenSettings}
       />
 
-      <main className="container mx-auto px-4 pt-20 pb-4">
+      <main className="flex-1 container mx-auto px-4 pt-20 pb-4 overflow-y-auto">
         {activeTab === "arrange" ? (
           <>
             <div className="space-y-4">{commentTree}</div>
