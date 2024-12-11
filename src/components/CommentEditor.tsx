@@ -25,6 +25,7 @@ interface CommentEditorProps {
   buttonText?: string;
   parentId?: string;
   onCancel?: () => void;
+  onSelectParent?: () => void;
   rootComments?: CommentType[];
   autoSetUserId?: string;
   autoGenerate?: boolean;
@@ -83,6 +84,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   buttonText = "Add",
   parentId,
   onCancel,
+  onSelectParent,
   rootComments = [],
   autoSetUserId,
   autoGenerate,
@@ -123,15 +125,18 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Submit comment
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      submitComment();
-    }
-    // Cancel editing
-    else if (e.key === "Escape") {
-      e.preventDefault();
-      handleClose();
+    // Only handle keyboard shortcuts when not in edit mode
+    if (activeTab !== 'edit') {
+      // Submit comment
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        submitComment();
+      }
+      // Cancel editing
+      else if (e.key === "Escape") {
+        e.preventDefault();
+        handleClose();
+      }
     }
   };
 
@@ -140,6 +145,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     // Wait for fade animation to complete before calling onCancel
     setTimeout(() => {
       if (onCancel) onCancel();
+      if (onSelectParent) onSelectParent();
     }, 200);
   };
 

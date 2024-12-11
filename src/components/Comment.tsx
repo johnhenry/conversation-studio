@@ -94,7 +94,14 @@ const Comment: React.FC<CommentProps> = ({
     if (onUpdate) {
       onUpdate(comment.id, editContent, comment.attachments);
       setIsEditing(false);
+      if (onSelect) onSelect(); // Select the comment after editing
     }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditContent(comment.content);
+    if (onSelect) onSelect(); // Select the comment after canceling edit
   };
 
   const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -371,10 +378,7 @@ const Comment: React.FC<CommentProps> = ({
                 <Check size={16} />
               </button>
               <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditContent(comment.content);
-                }}
+                onClick={handleEditCancel}
                 title="Cancel editing"
                 className="text-gray-400 hover:text-red-400 transition-colors"
               >
