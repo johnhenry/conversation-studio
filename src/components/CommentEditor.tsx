@@ -4,7 +4,7 @@ import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import { CYCLE_USER_IDS, CYCLE_TYPES, DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "src:/config";
-
+import AI from "ai.matey/openai";
 // import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
 interface CommentEditorProps {
   onSubmit: (
@@ -169,8 +169,42 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       handleSubmitGenerate();
     }
   }, [autoGenerate, parents]);
-
+  type SETTINGS_OBJECT = {
+    AI:{
+      type:""|"openai"|"window.ai",
+      endpoint:string,
+      apiKey:string,
+      model:string,
+      temperature:number,
+      topK:number,
+      maxTokens:number,
+      seed:number,
+      maxRetries:number,
+      retryDelay:number,
+      debug:boolean,
+      logLevel:"error"|"warn"|"info"|"debug"
+    }
+  }
   const handleSubmitGenerate = async () => {
+    const SETTINGS :SETTINGS_OBJECT = {
+      AI: {
+        type: "openai",
+        endpoint: "",
+        apiKey: "",
+        model: "llama3.2:latest",
+        temperature: 0.5,
+        topK: 1,
+        maxTokens: 1024,
+        seed: 0,
+        maxRetries: 3,
+        retryDelay: 1000,
+        debug: false,
+        logLevel: "error"
+      }
+    };
+    if(!SETTINGS.AI.type){
+      throw new Error("AI Responses disabled");
+    }
     if (!parents.length) {
       return;
     }
@@ -191,24 +225,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         role: string;
         content: string;
       };
-      model = await window.ai.languageModel.create({
-        temperature: 0.7,
-        initialPrompts,
-        topK: 1,
-        maxTokens: 200,
-        // seed:1
-      });
-      //Pull 10 random words from prompt
-      const seededPromt =
-        "---\n(ignore this section)\n" +
-        prompt
-          .split(" ")
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 10)
-          .join(",") +
-        "\n---\n" +
-        prompt;
-      console.log(seededPromt);
+      const ai = SETTINGS?.AI.type === "window.ai" ? window.ai : new AI(SETTINGS?.AI);
+      model = await ai.languageModel.create(
+        SETTINGS.AI,
+      );
       const content = await model.prompt(prompt, {
         signal: abortControllerRef.current.signal,
       });
