@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, GitMerge, ArrowBigUpDash, MessageSquare, Spline, X, Check, File, Copy, Sparkles, CopyPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChartNoAxesGantt, ArrowBigUpDash, MessageSquare, Menu, X, Check, File, Copy, Sparkles, CopyPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
@@ -407,7 +407,7 @@ const Comment: React.FC<CommentProps> = ({
                     }}
                     className="text-gray-400 hover:text-red-400 transition-colors"
                   >
-                    {!chatFocustId ? <GitMerge size={16} /> : <Spline size={16}  />}
+                    {!chatFocustId ?  <Menu size={16}  />:<ChartNoAxesGantt size={16} />}
                   </button>
                 </>
               )}

@@ -108,13 +108,13 @@ const Header: React.FC<HeaderProps> = ({
                 />
               </label>
               <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                <span>Save</span>
                 <input
                   type="checkbox"
                   checked={storeLocally}
                   onChange={(e) => setStoreLocally(e.target.checked)}
                   className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
                 />
-                <span>Store</span>
               </label>
             </div>
           </nav>

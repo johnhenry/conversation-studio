@@ -165,6 +165,11 @@ function App() {
       // Set selected comment ID first
       setSelectedCommentId(newId);
       
+      // If in chat mode, update the focus to the new comment
+      if (chatFocustId) {
+        setChatFocustId(newId);
+      }
+      
       // Focus after a short delay to ensure the component is mounted
       requestAnimationFrame(() => {
         const newComment = document.querySelector(`[data-comment-id="${newId}"]`) as HTMLElement;
@@ -173,7 +178,7 @@ function App() {
         }
       });
     },
-    [userId, findAndAddReply, renderAttachment, commentType]
+    [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
   );
 
   const handleAttachmentUpload = useCallback(
