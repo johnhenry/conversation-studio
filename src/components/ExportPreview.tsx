@@ -135,7 +135,7 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format }) => {
           <div className="font-medium">Error generating preview:</div>
           <div>{state.error}</div>
           <div className="text-sm opacity-75">
-            Try switching back to the Arrange tab and then back to this tab.
+            Try switching back to the Forum tab and then back to this tab.
           </div>
         </div>
       ) : (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, File, Copy, Sparkles, CopyPlus } from "lucide-react";
+import { Trash2, GitMerge, ArrowBigUpDash, MessageSquare, Spline, X, Check, File, Copy, Sparkles, CopyPlus } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
@@ -27,6 +27,8 @@ interface CommentProps {
   onSelect?: () => void;
   disableEditing?: boolean;
   aiConfig?: AIConfig;
+  displayMode: string;
+  setDisplayMode: (mode: string) => void;
 }
 
 
@@ -51,13 +53,15 @@ const Comment: React.FC<CommentProps> = ({
   isSelected,
   onSelect,
   disableEditing,
-  aiConfig
+  aiConfig,
+  displayMode,
+  setDisplayMode
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
-  const [indent, setIndent] = useState(24);
+  const indent = !displayMode ? 24 : 0
   useEffect(() => {
     if (isEditing && commentRef.current) {
       const textarea = commentRef.current.querySelector('textarea');
@@ -357,6 +361,19 @@ const Comment: React.FC<CommentProps> = ({
                 className="text-gray-400 hover:text-red-400 transition-colors"
               >
                 <Trash2 size={16} />
+              </button>
+              <button
+                title="Delete comment"
+                onClick={() => {
+                  if(displayMode){
+                    setDisplayMode("");
+                  }else{
+                    setDisplayMode(comment.id );
+                  }
+                }}
+                className="text-gray-400 hover:text-red-400 transition-colors"
+              >
+                {!displayMode ? <GitMerge size={16} /> : <Spline size={16}  />}
               </button>
             </>
           )}

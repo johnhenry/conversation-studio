@@ -3,13 +3,15 @@ import { ExportFormat } from '../types';
 import { Plus, Settings, Import } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: ExportFormat | "arrange";
-  setActiveTab: (tab: ExportFormat | "arrange") => void;
+  activeTab: ExportFormat | "forum";
+  setActiveTab: (tab: ExportFormat | "forum") => void;
   storeLocally: boolean;
   setStoreLocally: (store: boolean) => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNewComment: () => void;
   onOpenSettings: () => void;
+  displayMode: string;
+  setDisplayMode: (mode: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -20,6 +22,8 @@ const Header: React.FC<HeaderProps> = ({
   onImport,
   onNewComment,
   onOpenSettings,
+  displayMode,
+  setDisplayMode
 }) => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50">
@@ -35,14 +39,14 @@ const Header: React.FC<HeaderProps> = ({
           {/* Navigation */}
           <nav className="flex items-center space-x-4">
             <button
-              onClick={() => setActiveTab("arrange")}
+              onClick={() =>{ setActiveTab("forum"); setDisplayMode("")}}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                activeTab === "arrange"
+                activeTab === "forum"
                   ? "bg-gray-700 text-white"
                   : "text-gray-300 hover:bg-gray-700"
               }`}
             >
-              Arrange
+              {!displayMode ?  "Forum" :  "Chat"}
             </button>
             <button
               onClick={() => setActiveTab("text")}

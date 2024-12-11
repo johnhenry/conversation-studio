@@ -37,8 +37,8 @@ const stripUIProperties = (comment: Comment): CommentData => ({
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeTab, setActiveTab] = useState<ExportFormat | "arrange">(
-    "arrange"
+  const [activeTab, setActiveTab] = useState<ExportFormat | "forum">(
+    "forum"
   );
   const [userId, setUserId] = useState("");
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
@@ -47,6 +47,8 @@ function App() {
   const [showEditor, setShowEditor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
+  const [displayMode, setDisplayMode] = useState<string>("");
+
   const { aiConfig, setAIConfig } = useAIConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
@@ -242,7 +244,7 @@ function App() {
           renderAttachment,
         }));
         setComments(commentsWithUI);
-        setActiveTab("arrange");
+        setActiveTab("forum");
       };
 
       reader.readAsText(file);
@@ -387,7 +389,7 @@ function App() {
 
   // Memoize the comments data for export preview
   const exportCommentData = useMemo(() => {
-    if (activeTab === "arrange") {
+    if (activeTab === "forum") {
       return [];
     }
     return comments.map(stripUIProperties);
@@ -395,7 +397,7 @@ function App() {
 
   // Memoize the comment tree
   const commentTree = useMemo(() => {
-    if (activeTab === "arrange") {
+    if (activeTab === "forum") {
       return comments.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           No comments yet. Add one to get started!
@@ -415,6 +417,8 @@ function App() {
           onCommentSelect={setSelectedCommentId}
           disableEditing={showEditor}
           aiConfig={aiConfig}
+          displayMode={displayMode}
+          setDisplayMode={setDisplayMode}
         />
       );
     }
@@ -431,6 +435,8 @@ function App() {
     selectedCommentId,
     showEditor,
     aiConfig,
+    displayMode,
+    setDisplayMode
   ]);
 
   // Memoize the export preview component
@@ -447,7 +453,7 @@ function App() {
     return null;
   }, [activeTab, exportCommentData]);
 
-  const handleTabChange = useCallback((tab: ExportFormat | "arrange") => {
+  const handleTabChange = useCallback((tab: ExportFormat | "forum") => {
     // Clear any existing error state
     setActiveTab(tab);
   }, []);
@@ -550,10 +556,12 @@ function App() {
         onImport={handleImport}
         onNewComment={handleNewComment}
         onOpenSettings={handleOpenSettings}
+        displayMode={displayMode}
+        setDisplayMode={setDisplayMode}
       />
 
       <main className="flex-1 container mx-auto px-4 pt-20 pb-4 overflow-y-auto">
-        {activeTab === "arrange" ? (
+        {activeTab === "forum" ? (
           <>
             <div className="space-y-4">{commentTree}</div>
           </>

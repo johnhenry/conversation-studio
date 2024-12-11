@@ -21,6 +21,8 @@ interface CommentTreeProps {
   selectedCommentId?: string;
   onCommentSelect?: (id: string) => void;
   aiConfig: AIConfig;
+  displayMode: string;
+  setDisplayMode: (mode: string) => void;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -40,7 +42,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   disableEditing,
   selectedCommentId,
   onCommentSelect,
-  aiConfig
+  aiConfig,
+  displayMode,
+  setDisplayMode
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -448,6 +452,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             disableEditing={disableEditing || isPreview}
             data-comment-id={comment.id}
             aiConfig={aiConfig}
+            displayMode={displayMode}
+            setDisplayMode={setDisplayMode}
           />
           {comment.children.length > 0 && (
             <CommentTree
@@ -473,6 +479,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               selectedCommentId={selectedCommentId}
               onCommentSelect={onCommentSelect}
               aiConfig={aiConfig}
+              displayMode={displayMode}
+              setDisplayMode={setDisplayMode}
             />
           )}
         </div>
