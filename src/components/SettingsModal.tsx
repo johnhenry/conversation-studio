@@ -2,6 +2,22 @@ import React from 'react';
 import { X } from 'lucide-react';
 import type { AIConfig } from '../types';
 
+const DEFAULT_AI_CONFIG: AIConfig = {
+    type: '',
+    model: '',
+    endpoint: '',
+    apiKey: '',
+    temperature: 0.5,
+    topK: 40,
+    maxTokens: 2048,
+    seed: 0,
+    maxRetries: 3,
+    retryDelay: 500,
+    logLevel: 'error',
+    debug: false,
+    systemPrompt: '',
+};
+
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -18,10 +34,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     if (!isOpen) return null;
 
     const handleChange = (field: keyof AIConfig, value: any) => {
+        // Validate and convert numeric values
+        let processedValue = value;
+        if (['temperature', 'topK', 'maxTokens', 'seed', 'maxRetries', 'retryDelay'].includes(field)) {
+            const num = Number(value);
+            if (!isNaN(num)) {
+                processedValue = num;
+            }
+        }
+
         onAIConfigChange({
             ...aiConfig,
-            [field]: value
+            [field]: processedValue
         });
+    };
+
+    const handleDebugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        handleChange('debug', e.target.checked);
     };
 
     return (
@@ -29,12 +58,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="bg-[#1A1A1B] rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-semibold text-gray-100">AI Settings</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-200 transition-colors"
-                    >
-                        <X size={24} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => onAIConfigChange({ ...DEFAULT_AI_CONFIG })}
+                            className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded-md text-gray-200"
+                        >
+                            Reset to Defaults
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-200 transition-colors"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-6">
@@ -104,7 +141,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     max="1"
                                     step="0.1"
                                     value={aiConfig.temperature}
-                                    onChange={(e) => handleChange('temperature', parseFloat(e.target.value))}
+                                    onChange={(e) => handleChange('temperature', e.target.value)}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -117,7 +154,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     type="number"
                                     min="1"
                                     value={aiConfig.topK}
-                                    onChange={(e) => handleChange('topK', parseInt(e.target.value))}
+                                    onChange={(e) => handleChange('topK', e.target.value)}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -130,7 +167,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     type="number"
                                     min="1"
                                     value={aiConfig.maxTokens}
-                                    onChange={(e) => handleChange('maxTokens', parseInt(e.target.value))}
+                                    onChange={(e) => handleChange('maxTokens', e.target.value)}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -143,7 +180,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     type="number"
                                     min="0"
                                     value={aiConfig.seed}
-                                    onChange={(e) => handleChange('seed', parseInt(e.target.value))}
+                                    onChange={(e) => handleChange('seed', e.target.value)}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -161,7 +198,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     type="number"
                                     min="0"
                                     value={aiConfig.maxRetries}
-                                    onChange={(e) => handleChange('maxRetries', parseInt(e.target.value))}
+                                    onChange={(e) => handleChange('maxRetries', e.target.value)}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -174,7 +211,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     type="number"
                                     min="0"
                                     value={aiConfig.retryDelay}
-                                    onChange={(e) => handleChange('retryDelay', parseInt(e.target.value))}
+                                    onChange={(e) => handleChange('retryDelay', e.target.value)}
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -200,7 +237,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     <input
                                         type="checkbox"
                                         checked={aiConfig.debug}
-                                        onChange={(e) => handleChange('debug', e.target.checked)}
+                                        onChange={handleDebugChange}
                                         className="w-4 h-4 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
                                     />
                                     <span>Debug Mode</span>

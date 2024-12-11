@@ -14,6 +14,7 @@ import { importComments } from "./utils/import";
 import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE, DEFAULT_AI_CONFIG } from "./config";
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
+import { useAIConfig } from "./hooks/useAIConfig";
 
 // Convert Comment to CommentData by removing UI-specific properties
 const stripUIProperties = (comment: Comment): CommentData => ({
@@ -46,6 +47,7 @@ function App() {
   const [showEditor, setShowEditor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
+  const { aiConfig, setAIConfig } = useAIConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
     autoGenerate?: boolean;
@@ -56,7 +58,6 @@ function App() {
   });
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>();
-  const [aiConfig, setAIConfig] = useState<AIConfig>(DEFAULT_AI_CONFIG);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Counter for ensuring unique IDs
@@ -429,6 +430,7 @@ function App() {
     handleCommentAttachmentRemove,
     selectedCommentId,
     showEditor,
+    aiConfig,
   ]);
 
   // Memoize the export preview component
