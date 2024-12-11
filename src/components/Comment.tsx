@@ -376,6 +376,19 @@ const Comment: React.FC<CommentProps> = ({
                     <MessageSquare size={16} />
                   </button>
                   <button
+                    title="Toggle Chat Mode"
+                    onClick={() => {
+                      if(chatFocustId){
+                        setChatFocustId("");
+                      }else{
+                        setChatFocustId(comment.id );
+                      }
+                    }}
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    {!chatFocustId ?  <Menu size={16}  />:<ChartNoAxesGantt size={16} />}
+                  </button>
+                  <button
                     onClick={handleCopy}
                     title="Copy content"
                     className="text-gray-400 hover:text-blue-400 transition-colors"
@@ -389,6 +402,7 @@ const Comment: React.FC<CommentProps> = ({
                   >
                     <CopyPlus size={16} />
                   </button>
+
                   <button
                     onClick={() => onDelete?.(comment.id)}
                     title="Delete comment"
@@ -396,19 +410,7 @@ const Comment: React.FC<CommentProps> = ({
                   >
                     <Trash2 size={16} />
                   </button>
-                  <button
-                    title="Delete comment"
-                    onClick={() => {
-                      if(chatFocustId){
-                        setChatFocustId("");
-                      }else{
-                        setChatFocustId(comment.id );
-                      }
-                    }}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
-                  >
-                    {!chatFocustId ?  <Menu size={16}  />:<ChartNoAxesGantt size={16} />}
-                  </button>
+
                 </>
               )}
 
