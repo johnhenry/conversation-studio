@@ -21,6 +21,7 @@
  *    
  *    Attachments:
  *    - file1.jpg (image/jpeg)
+ *      URL: https://example.com/file1.jpg
  *    
  * 2. JSON Format:
  *    A hierarchical JSON structure where each comment is an object containing:
@@ -30,7 +31,7 @@
  *    - timestamp: number - Unix timestamp
  *    - content: string - Comment content
  *    - contentHash: string - Content hash for verification
- *    - attachments: Array of {name: string, type?: string}
+ *    - attachments: Array of {name: string, type?: string, url: string}
  *    - children: Array of nested comments with the same structure
  * 
  * 3. XML Format:
@@ -39,7 +40,7 @@
  *      <comment id="..." userId="..." type="..." timestamp="..." contentHash="...">
  *        <content>Comment text</content>
  *        <attachments>
- *          <attachment name="..." type="..."/>
+ *          <attachment name="..." type="..." url="..."/>
  *        </attachments>
  *        <children>
  *          <!-- Nested comments -->
@@ -59,6 +60,7 @@ const generateBoundary = (): string => {
 interface JSONAttachment {
   name: string;
   type?: string;
+  url: string;
 }
 
 interface JSONComment {
@@ -98,11 +100,11 @@ const formatTextComment = (
       `${comment.content}\n`,
     ];
 
-    // Add attachments info without the actual data
+    // Add attachments info with URL
     if (comment.attachments.length > 0) {
       parts.push(`\nAttachments:\n`);
       comment.attachments.forEach((att) => {
-        parts.push(`- ${att.name} (${att.type || "unknown type"})\n`);
+        parts.push(`- ${att.name} (${att.type || "unknown type"})\n  URL: ${att.url}\n`);
       });
     }
 
@@ -140,6 +142,7 @@ const formatJSONComment = (comment: CommentData): JSONComment => {
       attachments: comment.attachments.map((att) => ({
         name: att.name,
         type: att.type,
+        url: att.url,
       })),
       children: comment.children.map(formatJSONComment),
     };
@@ -171,6 +174,7 @@ const formatXMLComment = (comment: CommentData, parent: XMLBuilder): void => {
         if (att.type) {
           attElem.ele("type").txt(att.type);
         }
+        attElem.ele("url").dat(att.url);
       });
     }
 
