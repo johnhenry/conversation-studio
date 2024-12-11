@@ -1,7 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
 body {
   @apply bg-[#030303] text-gray-300;
 }

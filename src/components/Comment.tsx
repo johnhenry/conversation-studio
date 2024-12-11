@@ -5,7 +5,6 @@ import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
 import { DEPTH_COLORS, DEPTH_TEXT } from "src:/config";
 
-
 interface CommentProps {
   comment: CommentType;
   onDelete?: (id: string) => void;
@@ -58,7 +57,7 @@ const Comment: React.FC<CommentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
-
+  const [indent, setIndent] = useState(24);
   useEffect(() => {
     if (isEditing && commentRef.current) {
       const textarea = commentRef.current.querySelector('textarea');
@@ -94,14 +93,7 @@ const Comment: React.FC<CommentProps> = ({
     if (onUpdate) {
       onUpdate(comment.id, editContent, comment.attachments);
       setIsEditing(false);
-      if (onSelect) onSelect(); // Select the comment after editing
     }
-  };
-
-  const handleEditCancel = () => {
-    setIsEditing(false);
-    setEditContent(comment.content);
-    if (onSelect) onSelect(); // Select the comment after canceling edit
   };
 
   const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,20 +187,31 @@ const Comment: React.FC<CommentProps> = ({
       className={`relative transition-all duration-200 group ${
         isDragOver ? "ring-2 ring-blue-500 ring-opacity-50" : ""
       }`}
-      style={{ marginLeft: `${Math.max(0, level * 24)}px` }}
+      style={{ marginLeft: `${Math.max(0, level * indent)}px` }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       role="article"
       aria-label={`Comment by ${comment.userId}`}
     >
       {/* Indentation lines for nested comments */}
+      {comment.children.length > 0 && (
+          <>
+          <div
+            className={`absolute w-[2px] ${depth_bg}`}
+            style={{
+              left: indent/2 + "px",
+              height: "50%",
+              top: "50%"
+            }}
+          /></>
+        )}
       {level > 0 && (
         <>
           {/* Current level connector */}
           <div className="absolute left-0 top-0 bottom-0 flex">
-            <div 
+            <div
               className={`w-[2px] relative ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
-              style={{ left: "-12px" }}
+              style={{ left: (-1 * indent/2 )+ "px" }}
             >
               {/* Horizontal line */}
               <div
@@ -217,13 +220,13 @@ const Comment: React.FC<CommentProps> = ({
               />
             </div>
           </div>
-          
+
           {/* Parent level connectors */}
           {Array.from({ length: level - 1 }).map((_, index) => (
             <div
               key={index}
               className={`absolute left-0 top-0 bottom-0 w-[2px] ${DEPTH_COLORS[(level - index - 1) % DEPTH_COLORS.length]}`}
-              style={{ left: `${-36 - index * 24}px` }}
+              style={{ left: `${-(1.5 + index) * indent}px` }}
             />
           ))}
         </>
@@ -267,6 +270,7 @@ const Comment: React.FC<CommentProps> = ({
         aria-selected={isSelected}
         data-comment-id={comment.id}
       >
+
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
@@ -274,18 +278,7 @@ const Comment: React.FC<CommentProps> = ({
                 className={`absolute top-[50%] w-[12px] h-[12px] rounded-full ${depth_bg}`}
                 style={{ left: "7px" }}
               />
-          {comment.children.length > 0 && (
-            <>
 
-            <div
-              className={`absolute w-[2px] ${depth_bg}`}
-              style={{
-                left: "12px",
-                height: "50%",
-                top: "50%"
-              }}
-            /></>
-          )}
 
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
@@ -378,7 +371,10 @@ const Comment: React.FC<CommentProps> = ({
                 <Check size={16} />
               </button>
               <button
-                onClick={handleEditCancel}
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditContent(comment.content);
+                }}
                 title="Cancel editing"
                 className="text-gray-400 hover:text-red-400 transition-colors"
               >
