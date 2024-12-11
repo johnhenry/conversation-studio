@@ -1,3 +1,4 @@
+import type { AIConfig } from "../types";
 import React, { useEffect } from "react";
 import { Comment as CommentType, Attachment } from "../types";
 import Comment from "./Comment";
@@ -19,6 +20,7 @@ interface CommentTreeProps {
   disableEditing?: boolean;
   selectedCommentId?: string;
   onCommentSelect?: (id: string) => void;
+  aiConfig: AIConfig;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -38,6 +40,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   disableEditing,
   selectedCommentId,
   onCommentSelect,
+  aiConfig
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -410,6 +413,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onSelect={() => onCommentSelect?.(comment.id)}
             disableEditing={disableEditing || isPreview}
             data-comment-id={comment.id}
+            aiConfig={aiConfig}
           />
           {comment.children.length > 0 && (
             <CommentTree
@@ -434,6 +438,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               disableEditing={disableEditing}
               selectedCommentId={selectedCommentId}
               onCommentSelect={onCommentSelect}
+              aiConfig={aiConfig}
             />
           )}
         </div>

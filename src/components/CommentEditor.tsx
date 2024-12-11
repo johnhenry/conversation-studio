@@ -1,3 +1,4 @@
+import type { AIConfig } from "../types";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MessageSquarePlus, X, File, Sparkles, ArrowUpRightFromCircle } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
@@ -174,7 +175,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   }, [autoGenerate, parents]);
 
   const handleSubmitGenerate = async () => {
-    console.log({aiConfig});
     if(!aiConfig.type){
       throw new Error("AI Responses disabled");
     }
@@ -598,7 +598,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               >
                 Cancel
               </button>
-              {parentId && (
+              {aiConfig.type && parentId && (
                 <button
                   type="button"
                   onClick={handleSubmitGenerate}

@@ -13,7 +13,6 @@ import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
 import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE, DEFAULT_AI_CONFIG } from "./config";
 import Header from "./components/Header";
-import { Plus } from "lucide-react";
 import SettingsModal from "./components/SettingsModal";
 
 // Convert Comment to CommentData by removing UI-specific properties
@@ -414,6 +413,7 @@ function App() {
           selectedCommentId={selectedCommentId}
           onCommentSelect={setSelectedCommentId}
           disableEditing={showEditor}
+          aiConfig={aiConfig}
         />
       );
     }

@@ -3,6 +3,8 @@ import { Trash2, GripVertical, ArrowBigUpDash, MessageSquare, Edit2, X, Check, F
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
+import { DEPTH_COLORS, DEPTH_TEXT } from "src:/config";
+
 
 interface CommentProps {
   comment: CommentType;
@@ -25,24 +27,9 @@ interface CommentProps {
   isSelected?: boolean;
   onSelect?: () => void;
   disableEditing?: boolean;
+  aiConfig?: AIConfig;
 }
 
-const DEPTH_COLORS = [
-  "bg-gray-700",     // Level 0
-  "bg-blue-700",     // Level 1
-  "bg-green-700",    // Level 2
-  "bg-purple-700",   // Level 3
-  "bg-orange-700",   // Level 4
-  "bg-red-700",      // Level 5
-];
-const DEPTH_TEXT = [
-  "text-gray-700",     // Level 0
-  "text-blue-700",     // Level 1
-  "text-green-700",    // Level 2
-  "text-purple-700",   // Level 3
-  "text-orange-700",   // Level 4
-  "text-red-700",      // Level 5
-];
 
 const Comment: React.FC<CommentProps> = ({
   comment,
@@ -65,6 +52,7 @@ const Comment: React.FC<CommentProps> = ({
   isSelected,
   onSelect,
   disableEditing,
+  aiConfig
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -335,13 +323,13 @@ const Comment: React.FC<CommentProps> = ({
           <div className="flex justify-end gap-2 ml-auto">
           {showDelete && !isEditing && !disableEditing && (
             <>
-              <button
+              {aiConfig?.type && <button
                 onClick={handleAutoReply}
                 title="Auto Reply"
                 className="text-gray-400 hover:text-blue-400 transition-colors"
               >
                 <Sparkles size={16} />
-              </button>
+              </button>}
               <button
                 onClick={() => onReply?.(comment.id)}
                 title="Reply"
