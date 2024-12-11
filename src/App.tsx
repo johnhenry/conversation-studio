@@ -139,7 +139,7 @@ function App() {
   }, []);
 
   const addComment = useCallback(
-    (content: string, attachments: Attachment[], parentId?: string) => {
+    ({content, attachments, parentId, commentType, autoReply} : {content: string, attachments: Attachment[], parentId?: string, commentType:string, autoReply?: boolean}) => {
       const newId = generateUniqueId();
       const comment: Comment = {
         id: newId,
@@ -151,13 +151,17 @@ function App() {
         contentHash: generateContentHash(content),
         attachments,
         renderAttachment,
+        newAction: autoReply ? 'auto-reply':""
       };
 
       setComments((prevComments) => {
         if (parentId) {
           return findAndAddReply(prevComments, parentId, comment);
         }
-        return [...prevComments, comment];
+        return [...prevComments.map(comment=>{
+          comment.newAction = "";
+          return comment;
+        }), comment];
       });
 
       setAttachments([]);

@@ -20,6 +20,7 @@ export interface CommentData {
   children: CommentData[];
   parentId?: string | null;
   deleted?: boolean;
+  newAction?: "" | "auto-reply"
 }
 
 // UI-specific comment type

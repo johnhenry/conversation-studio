@@ -100,6 +100,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [autoReply, setAutoReply] = useState(false);
 
   // Focus the editor when it becomes visible
   useEffect(() => {
@@ -115,7 +116,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   const submitComment = () => {
     if (content.trim() || attachments.length > 0) {
-      onSubmit(content, attachments, parentId, commentType);
+      onSubmit({content, attachments, parentId, commentType, autoReply});
       setContent("");
       setCommentType(DEFAULT_COMMENT_TYPE);
       handleClose();
@@ -221,7 +222,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       const content = await model.prompt(prompt, {
         signal: abortControllerRef.current.signal,
       });
-      onSubmit(content, attachments, parentId, 'assistant');
+      onSubmit({content, attachments, parentId, commentType:'assistant', autoReply});
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("Generation was cancelled");
@@ -235,6 +236,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       if (model) {
         model.destroy();
       }
+      handleClose();
     }
   };
 
@@ -591,6 +593,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
+                <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                <span>Auto-reply</span>
+                <input
+                  onChange={(e) => setAutoReply(e.target.checked)}
+                  defaultChecked={autoReply}
+                  type="checkbox"
+                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
+                />
+              </label>
               <button
                 type="button"
                 onClick={handleClose}

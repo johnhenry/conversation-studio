@@ -68,6 +68,8 @@ const Comment: React.FC<CommentProps> = ({
   const commentRef = useRef<HTMLDivElement>(null);
   const indent = !chatFocustId ? 24 : 0;
 
+
+
   useEffect(() => {
     if (isEditing && commentRef.current) {
       const textarea = commentRef.current.querySelector('textarea');
@@ -171,6 +173,12 @@ const Comment: React.FC<CommentProps> = ({
   const handleAutoReply = () => {
     onReply?.(comment.id, true);
   };
+  useEffect(()=>{
+    if(comment.newAction === 'auto-reply'){
+      comment.newAction = "";
+      onReply?.(comment.id, true);
+    }
+  },[]);
 
   const handleClone = () => {
     onClone?.(comment.id, comment, false);
