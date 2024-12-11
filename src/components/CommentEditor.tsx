@@ -1,4 +1,5 @@
-import type { AIConfig } from "../types";
+import type { AIConfig, ADD_COMMENT_PROPS} from "../types";
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MessageSquarePlus, X, File, Sparkles, ArrowUpRightFromCircle } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
@@ -8,13 +9,9 @@ import { CYCLE_USER_IDS, CYCLE_TYPES, DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } fr
 import AI from "ai.matey/openai";
 
 // import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
+
 interface CommentEditorProps {
-  onSubmit: (
-    content: string,
-    attachments: CommentType["attachments"],
-    parentId?: string,
-    type?: string
-  ) => void;
+  onSubmit: (props:ADD_COMMENT_PROPS) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
   attachments: CommentType["attachments"];
@@ -32,44 +29,7 @@ interface CommentEditorProps {
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
-const findParentComments = (
-  comments: CommentType[],
-  childId: string
-): CommentType[] => {
-  const parents: CommentType[] = [];
-  let targetComment: CommentType | null = null;
 
-  const findCommentAndParents = (comments: CommentType[], targetId: string) => {
-    for (const comment of comments) {
-      // Check if current comment is the target
-      if (comment.id === targetId) {
-        targetComment = comment;
-        return true;
-      }
-
-      // Check children
-      for (const child of comment.children) {
-        if (findCommentAndParents([child], targetId)) {
-          parents.push(comment);
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  // Start the search from root comments
-  findCommentAndParents(comments, childId);
-
-  // Reverse the array so it's ordered from root to immediate parent
-  // and add the target comment at the end
-  const result = parents.reverse();
-  if (targetComment) {
-    result.push(targetComment);
-  }
-
-  return result;
-};
 
 const CommentEditor: React.FC<CommentEditorProps> = ({
   onSubmit,
@@ -114,15 +74,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     submitComment();
   };
 
-  const submitComment = () => {
-    if (content.trim() || attachments.length > 0) {
-      onSubmit({content, attachments, parentId, commentType, autoReply});
-      setContent("");
-      setCommentType(DEFAULT_COMMENT_TYPE);
-      handleClose();
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Submit comment with Cmd/Ctrl + Enter
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -158,7 +109,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   useEffect(() => {
     if (parentId && rootComments) {
-      const parents = findParentComments(rootComments, parentId);
+      // const parents = findParentComments(rootComments, parentId);
       setParents(parents);
     }
   }, [parentId, rootComments]);
@@ -170,75 +121,109 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   }, [autoSetUserId, setUserId]);
 
   useEffect(() => {
-    if (autoGenerate && parents.length) {
+    if (autoGenerate && parentId) {
       handleSubmitGenerate();
     }
-  }, [autoGenerate, parents]);
+  }, [autoGenerate, parentId]);
 
-  const handleSubmitGenerate = async () => {
-    if(!aiConfig.type){
-      throw new Error("AI Responses disabled");
-    }
-    if (!parents.length) {
-      return;
-    }
-    let model;
+  const handleSubmitGenerate = ()=>submitComment(true);
+
+  const submitComment = async (autoGenerate:boolean=false) => {
     try {
-      setLoadingGen(true);
       abortControllerRef.current = new AbortController();
-      const initialPrompts: { role: string; content: string }[] = [];
-      const localParents = [...parents];
-      while (localParents.length > 0) {
-        const parent = localParents.shift()!;
-        initialPrompts.push({
-          role: parent.type,
-          content: parent.content,
-        });
+      setLoadingGen(true);
+      if(!(content.trim() || attachments.length > 0 || autoGenerate)){
+        throw new Error("Content Required");
       }
-      if(aiConfig.systemPrompt?.trim()){
-        initialPrompts.unshift({
-          role: "system",
-          content: aiConfig.systemPrompt,
-        });
-      }
-      const { content: prompt } = initialPrompts.pop() as {
-        role: string;
-        content: string;
-      };
-      const ai = aiConfig.type === "window.ai" ? window.ai : new AI({
-        endpoint: aiConfig.endpoint,
-        credentials : {
-            apiKey: aiConfig.apiKey
-        },
-        model: aiConfig.model
+      await onSubmit({
+        content,
+        attachments,
+        parentId,
+        commentType,
+        autoGenerate,
+        autoReply,
+        abortController: abortControllerRef.current
       });
-      model = await ai.languageModel.create(
-        {
-          temperature: aiConfig.temperature,
-          topK: aiConfig.topK,
-          systemPrompt: aiConfig.systemPrompt
-        }
-      );
-      const content = await model.prompt(prompt, {
-        signal: abortControllerRef.current.signal,
-      });
-      onSubmit({content, attachments, parentId, commentType:'assistant', autoReply});
-    } catch (error) {
+    }catch(error) {
       if (error.name === "AbortError") {
         console.log("Generation was cancelled");
       } else {
         console.error(error);
         setGenError(error);
       }
-      setLoadingGen(false);
-      abortControllerRef.current = null;
-    } finally {
-      if (model) {
-        model.destroy();
-      }
       handleClose();
+    } finally {
+      abortControllerRef.current = null
+      setContent("");
+      setCommentType(DEFAULT_COMMENT_TYPE);
+      setLoadingGen(false);
     }
   };
+
+  // const handleSubmitGenerate = async () => {
+  //   if(!aiConfig.type){
+  //     throw new Error("AI Responses disabled");
+  //   }
+  //   if (!parents.length) {
+  //     return;
+  //   }
+  //   let model;
+  //   try {
+  //     setLoadingGen(true);
+  //     abortControllerRef.current = new AbortController();
+  //     const initialPrompts: { role: string; content: string }[] = [];
+  //     const localParents = [...parents];
+  //     while (localParents.length > 0) {
+  //       const parent = localParents.shift()!;
+  //       initialPrompts.push({
+  //         role: parent.type,
+  //         content: parent.content,
+  //       });
+  //     }
+  //     if(aiConfig.systemPrompt?.trim()){
+  //       initialPrompts.unshift({
+  //         role: "system",
+  //         content: aiConfig.systemPrompt,
+  //       });
+  //     }
+  //     const { content: prompt } = initialPrompts.pop() as {
+  //       role: string;
+  //       content: string;
+  //     };
+  //     const ai = aiConfig.type === "window.ai" ? window.ai : new AI({
+  //       endpoint: aiConfig.endpoint,
+  //       credentials : {
+  //           apiKey: aiConfig.apiKey
+  //       },
+  //       model: aiConfig.model
+  //     });
+  //     model = await ai.languageModel.create(
+  //       {
+  //         temperature: aiConfig.temperature,
+  //         topK: aiConfig.topK,
+  //         systemPrompt: aiConfig.systemPrompt
+  //       }
+  //     );
+  //     const content = await model.prompt(prompt, {
+  //       signal: abortControllerRef.current.signal,
+  //     });
+  //     onSubmit({content, attachments, parentId, commentType:'assistant', autoReply});
+  //   } catch (error) {
+  //     if (error.name === "AbortError") {
+  //       console.log("Generation was cancelled");
+  //     } else {
+  //       console.error(error);
+  //       setGenError(error);
+  //     }
+  //     setLoadingGen(false);
+  //     abortControllerRef.current = null;
+  //   } finally {
+  //     if (model) {
+  //       model.destroy();
+  //     }
+  //     handleClose();
+  //   }
+  // };
 
   const renderAttachment = useCallback((attachment: Attachment) => {
     if (attachment.type?.startsWith("image/")) {

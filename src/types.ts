@@ -109,3 +109,14 @@ export interface SettingsModalProps {
   exportSettings: ExportSettings;
   onExportSettingsChange: (settings: ExportSettings) => void;
 }
+
+export type ADD_COMMENT_PROPS = {
+  content: string,
+  attachments: Attachment[],
+  parentId?: string,
+  commentType:string,
+  autoReply?: boolean,
+  autoGenerate?: boolean,
+  generateContent?:boolean
+  abortController?: AbortController
+}

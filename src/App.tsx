@@ -1,3 +1,4 @@
+import type { ADD_COMMENT_PROPS} from "./types";
 import React, {
   useState,
   useRef,
@@ -15,6 +16,7 @@ import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE, DEFAULT_AI_CONFIG } from "./conf
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
 import { useAIConfig } from "./hooks/useAIConfig";
+import AI from "ai.matey/openai";
 
 // Convert Comment to CommentData by removing UI-specific properties
 const stripUIProperties = (comment: Comment): CommentData => ({
@@ -34,6 +36,44 @@ const stripUIProperties = (comment: Comment): CommentData => ({
   deleted: comment.deleted,
   type: comment.type,
 });
+const findParentComments = (
+  comments: CommentType[],
+  childId: string
+): CommentType[] => {
+  const parents: CommentType[] = [];
+  let targetComment: CommentType | null = null;
+
+  const findCommentAndParents = (comments: CommentType[], targetId: string) => {
+    for (const comment of comments) {
+      // Check if current comment is the target
+      if (comment.id === targetId) {
+        targetComment = comment;
+        return true;
+      }
+
+      // Check children
+      for (const child of comment.children) {
+        if (findCommentAndParents([child], targetId)) {
+          parents.push(comment);
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  // Start the search from root comments
+  findCommentAndParents(comments, childId);
+
+  // Reverse the array so it's ordered from root to immediate parent
+  // and add the target comment at the end
+  const result = parents.reverse();
+  if (targetComment) {
+    result.push(targetComment);
+  }
+
+  return result;
+};
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -139,8 +179,57 @@ function App() {
   }, []);
 
   const addComment = useCallback(
-    ({content, attachments, parentId, commentType, autoReply} : {content: string, attachments: Attachment[], parentId?: string, commentType:string, autoReply?: boolean}) => {
+    async ({content:initialContent, attachments, parentId, commentType, autoReply, autoGenerate, abortController} : ADD_COMMENT_PROPS ) => {
       const newId = generateUniqueId();
+      let content = initialContent;
+      if(autoGenerate && parentId){
+        let model;
+        try {
+          const initialPrompts: { role: string; content: string }[] = [];
+          const parents = findParentComments(comments, parentId);
+          const localParents = [...parents];
+          while (localParents.length > 0) {
+            const parent = localParents.shift()!;
+            initialPrompts.push({
+              role: parent.type,
+              content: parent.content,
+            });
+          }
+          if(aiConfig.systemPrompt?.trim()){
+            initialPrompts.unshift({
+              role: "system",
+              content: aiConfig.systemPrompt,
+            });
+          }
+          const { content: prompt } = initialPrompts.pop() as {
+            role: string;
+            content: string;
+          };
+          const ai = aiConfig.type === "window.ai" ? window.ai : new AI({
+            endpoint: aiConfig.endpoint,
+            credentials : {
+                apiKey: aiConfig.apiKey
+            },
+            model: aiConfig.model
+          });
+          model = await ai.languageModel.create(
+            {
+              temperature: aiConfig.temperature,
+              topK: aiConfig.topK,
+              systemPrompt: aiConfig.systemPrompt
+            }
+          );
+          content = await model.prompt(prompt, {
+            signal: abortController?.signal,
+          });
+        }finally{
+          if(model){
+            model.destroy();
+          }
+        }
+
+      }
+
       const comment: Comment = {
         id: newId,
         content,
@@ -170,7 +259,7 @@ function App() {
       setReplyToId(undefined);
       setCommentType(DEFAULT_COMMENT_TYPE);
       setAutoReplySettings({});
-      
+
       // Set selected comment ID first
       setSelectedCommentId(newId);
       
