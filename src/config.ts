@@ -7,3 +7,13 @@ export const CYCLE_USER_IDS =  [
     "donna",
 ];
 export const CYCLE_TYPES =["user", "assistant", "system"];
+
+export interface AIConfig {
+    endpoint: string;
+    model: string;
+}
+
+export const DEFAULT_AI_CONFIG: AIConfig = {
+    endpoint: "http://localhost:11434/v1/chat/completions",
+    model: "llama3.2:latest"
+};

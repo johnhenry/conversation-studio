@@ -7,13 +7,14 @@ import React, {
 } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
-import { Comment, CommentData, Attachment, ExportFormat } from "./types";
+import { Comment, CommentData, Attachment, ExportFormat, AIConfig } from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
-import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "./config";
+import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE, DEFAULT_AI_CONFIG } from "./config";
 import Header from "./components/Header";
 import { Plus } from "lucide-react";
+import SettingsModal from "./components/SettingsModal";
 
 // Convert Comment to CommentData by removing UI-specific properties
 const stripUIProperties = (comment: Comment): CommentData => ({
@@ -44,6 +45,7 @@ function App() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [draftContent, setDraftContent] = useState("");
   const [showEditor, setShowEditor] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
@@ -55,6 +57,7 @@ function App() {
   });
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>();
+  const [aiConfig, setAIConfig] = useState<AIConfig>(DEFAULT_AI_CONFIG);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Counter for ensuring unique IDs
@@ -526,16 +529,28 @@ function App() {
     return hash.toString().substring(0, 10);
   };
 
+  const handleNewComment = useCallback(() => {
+    setShowEditor(true);
+    setReplyToId(undefined);
+  }, []);
+
+  const handleOpenSettings = useCallback(() => {
+    setShowSettings(true);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-[#030303] text-gray-300">
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         storeLocally={storeLocally}
         setStoreLocally={setStoreLocally}
         onImport={handleImport}
+        onNewComment={handleNewComment}
+        onOpenSettings={handleOpenSettings}
       />
-      <main className="flex-1 container mx-auto px-4 pt-20 flex flex-col min-h-0">
+
+      <main className="container mx-auto px-4 pt-20 pb-4">
         {activeTab === "arrange" ? (
           <>
             <div className="space-y-4">{commentTree}</div>
@@ -544,6 +559,7 @@ function App() {
           <ExportPreview comments={comments} format={activeTab} />
         )}
       </main>
+
       {showEditor && (
         <CommentEditor
           onSubmit={addComment}
@@ -559,20 +575,16 @@ function App() {
           rootComments={comments}
           autoSetUserId={autoReplySettings.userId}
           autoGenerate={autoReplySettings.autoGenerate}
-          commentType={commentType}
-          setCommentType={setCommentType}
+          aiConfig={aiConfig}
         />
       )}
-      {/* Floating action button */}
-      <div
-        className="floating-action-button"
-        onClick={() => {
-          setShowEditor(true);
-          setReplyToId(undefined);
-        }}
-      >
-        <Plus size={24} />
-      </div>
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        aiConfig={aiConfig}
+        onAIConfigChange={setAIConfig}
+      />
     </div>
   );
 }

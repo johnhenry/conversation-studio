@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { MessageSquarePlus, X, File, Sparkles } from "lucide-react";
+import { MessageSquarePlus, X, File, Sparkles, ArrowUpRightFromCircle } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import { CYCLE_USER_IDS, CYCLE_TYPES, DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "src:/config";
 import AI from "ai.matey/openai";
+
 // import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
 interface CommentEditorProps {
   onSubmit: (
@@ -26,6 +27,7 @@ interface CommentEditorProps {
   rootComments?: CommentType[];
   autoSetUserId?: string;
   autoGenerate?: boolean;
+  aiConfig: AIConfig;
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
@@ -83,6 +85,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   rootComments = [],
   autoSetUserId,
   autoGenerate,
+  aiConfig,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
@@ -169,40 +172,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       handleSubmitGenerate();
     }
   }, [autoGenerate, parents]);
-  type SETTINGS_OBJECT = {
-    AI:{
-      type:""|"openai"|"window.ai",
-      endpoint:string,
-      apiKey:string,
-      model:string,
-      temperature:number,
-      topK:number,
-      maxTokens:number,
-      seed:number,
-      maxRetries:number,
-      retryDelay:number,
-      debug:boolean,
-      logLevel:"error"|"warn"|"info"|"debug"
-    }
-  }
+
   const handleSubmitGenerate = async () => {
-    const SETTINGS :SETTINGS_OBJECT = {
-      AI: {
-        type: "openai",
-        endpoint: "",
-        apiKey: "",
-        model: "llama3.2:latest",
-        temperature: 0.5,
-        topK: 1,
-        maxTokens: 1024,
-        seed: 0,
-        maxRetries: 3,
-        retryDelay: 1000,
-        debug: false,
-        logLevel: "error"
-      }
-    };
-    if(!SETTINGS.AI.type){
+    if(!aiConfig.type){
       throw new Error("AI Responses disabled");
     }
     if (!parents.length) {
@@ -225,9 +197,19 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         role: string;
         content: string;
       };
-      const ai = SETTINGS?.AI.type === "window.ai" ? window.ai : new AI(SETTINGS?.AI);
+      const ai = aiConfig.type === "window.ai" ? window.ai : new AI({
+        endpoint: aiConfig.endpoint,
+        credentials : {
+            apiKey: aiConfig.apiKey
+        },
+        model: aiConfig.model
+      });
       model = await ai.languageModel.create(
-        SETTINGS.AI,
+        {
+          temperature: aiConfig.temperature,
+          topK: aiConfig.topK,
+          systemPrompt: aiConfig.systemPrompt
+        }
       );
       const content = await model.prompt(prompt, {
         signal: abortControllerRef.current.signal,

@@ -74,3 +74,8 @@ export interface CommentEditorProps {
   autoSetUserId?: string;
   autoGenerate?: boolean;
 }
+
+export interface AIConfig {
+  endpoint: string;
+  model: string;
+}

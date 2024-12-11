@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExportFormat } from '../types';
+import { Plus, Settings } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: ExportFormat | "arrange";
@@ -7,6 +8,8 @@ interface HeaderProps {
   storeLocally: boolean;
   setStoreLocally: (store: boolean) => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onNewComment: () => void;
+  onOpenSettings: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -15,6 +18,8 @@ const Header: React.FC<HeaderProps> = ({
   storeLocally,
   setStoreLocally,
   onImport,
+  onNewComment,
+  onOpenSettings,
 }) => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50">
@@ -69,6 +74,24 @@ const Header: React.FC<HeaderProps> = ({
             >
               XML
             </button>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={onNewComment}
+                className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                title="New Comment"
+              >
+                <Plus size={20} />
+              </button>
+              <button
+                onClick={onOpenSettings}
+                className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                title="Settings"
+              >
+                <Settings size={20} />
+              </button>
+            </div>
 
             {/* Settings and Import */}
             <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-700">
