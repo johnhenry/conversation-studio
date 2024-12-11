@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, GitMerge, ArrowBigUpDash, MessageSquare, Spline, X, Check, File, Copy, Sparkles, CopyPlus } from "lucide-react";
+import { Trash2, GitMerge, ArrowBigUpDash, MessageSquare, Spline, X, Check, File, Copy, Sparkles, CopyPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
@@ -29,8 +29,12 @@ interface CommentProps {
   aiConfig?: AIConfig;
   chatFocustId: string;
   setChatFocustId: (mode: string) => void;
+  siblingInfo?: {
+    currentIndex: number;
+    totalSiblings: number;
+    onNavigate: (direction: 'prev' | 'next') => void;
+  };
 }
-
 
 const Comment: React.FC<CommentProps> = ({
   comment,
@@ -55,13 +59,15 @@ const Comment: React.FC<CommentProps> = ({
   disableEditing,
   aiConfig,
   chatFocustId,
-  setChatFocustId
+  setChatFocustId,
+  siblingInfo
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
-  const indent = !chatFocustId ? 24 : 0
+  const indent = !chatFocustId ? 24 : 0;
+
   useEffect(() => {
     if (isEditing && commentRef.current) {
       const textarea = commentRef.current.querySelector('textarea');
@@ -141,11 +147,11 @@ const Comment: React.FC<CommentProps> = ({
       }
       else if (e.key === 'c' && onClone) {
         e.preventDefault();
-        onClone(comment.id, comment, false); // Clone childeren with metakey
+        onClone(comment.id, comment, false);
       }
       else if (e.key === 'C' && onClone) {
         e.preventDefault();
-        onClone(comment.id, comment, true); // Clone childeren with metakey
+        onClone(comment.id, comment, true);
       }
       else if (e.key === 't' && !disableEditing) {
         e.preventDefault();
@@ -167,8 +173,9 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleClone = () => {
-    onClone?.(comment.id, comment, false); // Pass cloneChildren parameter
+    onClone?.(comment.id, comment, false);
   };
+
   const depth_bg = DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
   const depth_text = DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];
 
@@ -276,10 +283,9 @@ const Comment: React.FC<CommentProps> = ({
         }}
         tabIndex={0}
         role="article"
-        aria-selected={isSelected}
+        aria-selected={isSelected ? "true" : "false"}
         data-comment-id={comment.id}
       >
-
         {/* Comment content section with proper padding to avoid grip overlap */}
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
@@ -288,18 +294,17 @@ const Comment: React.FC<CommentProps> = ({
                 style={{ left: "7px" }}
               />
 
-
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
-          {canPopUp && !isEditing && !disableEditing && (
-            <button
-              onClick={() => onPopUp?.(comment.id)}
-              title="Move up one level"
-              className="text-gray-400 hover:text-blue-400 transition-colors"
-            >
-              <ArrowBigUpDash size={16} />
-            </button>
-          )}
+            {canPopUp && !isEditing && !disableEditing && (
+              <button
+                onClick={() => onPopUp?.(comment.id)}
+                title="Move up one level"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <ArrowBigUpDash size={16} />
+              </button>
+            )}
             <button
               onClick={handleTypeClick}
               className={`${depth_text} hover:text-blue-300 cursor-pointer`}
@@ -328,83 +333,107 @@ const Comment: React.FC<CommentProps> = ({
                 <span className="text-blue-400">Replying to this comment</span>
               </>
             )}
-            {/* Footer with action buttons */}
-          <div className="flex justify-end gap-2 ml-auto">
-          {showDelete && !isEditing && !disableEditing && (
-            <>
-              {aiConfig?.type && <button
-                onClick={handleAutoReply}
-                title="Auto Reply"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <Sparkles size={16} />
-              </button>}
-              <button
-                onClick={() => onReply?.(comment.id)}
-                title="Reply"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <MessageSquare size={16} />
-              </button>
-              <button
-                onClick={handleCopy}
-                title="Copy content"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <Copy size={16} />
-              </button>
-              <button
-                onClick={handleClone}
-                title="Clone comment (creates copy at same level)"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <CopyPlus size={16} />
-              </button>
-              <button
-                onClick={() => onDelete?.(comment.id)}
-                title="Delete comment"
-                className="text-gray-400 hover:text-red-400 transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
-              <button
-                title="Delete comment"
-                onClick={() => {
-                  if(chatFocustId){
-                    setChatFocustId("");
-                  }else{
-                    setChatFocustId(comment.id );
-                  }
-                }}
-                className="text-gray-400 hover:text-red-400 transition-colors"
-              >
-                {!chatFocustId ? <GitMerge size={16} /> : <Spline size={16}  />}
-              </button>
-            </>
-          )}
 
-          {isEditing && (
-            <>
-              <button
-                onClick={handleEditSubmit}
-                title="Save changes"
-                className="text-gray-400 hover:text-green-400 transition-colors"
-              >
-                <Check size={16} />
-              </button>
-              <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditContent(comment.content);
-                }}
-                title="Cancel editing"
-                className="text-gray-400 hover:text-red-400 transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </>
-          )}
-        </div>
+            {/* Sibling Navigation Controls in Chat Mode */}
+            {chatFocustId && siblingInfo && siblingInfo.totalSiblings > 1 && (
+              <div className="flex items-center gap-1 ml-2">
+                <button
+                  onClick={() => siblingInfo.onNavigate('prev')}
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                  title="Previous sibling"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-gray-400">
+                  {siblingInfo.currentIndex + 1}/{siblingInfo.totalSiblings}
+                </span>
+                <button
+                  onClick={() => siblingInfo.onNavigate('next')}
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                  title="Next sibling"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Footer with action buttons */}
+            <div className="flex justify-end gap-2 ml-auto">
+              {showDelete && !isEditing && !disableEditing && (
+                <>
+                  {aiConfig?.type && <button
+                    onClick={handleAutoReply}
+                    title="Auto Reply"
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <Sparkles size={16} />
+                  </button>}
+                  <button
+                    onClick={() => onReply?.(comment.id)}
+                    title="Reply"
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <MessageSquare size={16} />
+                  </button>
+                  <button
+                    onClick={handleCopy}
+                    title="Copy content"
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <Copy size={16} />
+                  </button>
+                  <button
+                    onClick={handleClone}
+                    title="Clone comment (creates copy at same level)"
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <CopyPlus size={16} />
+                  </button>
+                  <button
+                    onClick={() => onDelete?.(comment.id)}
+                    title="Delete comment"
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <button
+                    title="Delete comment"
+                    onClick={() => {
+                      if(chatFocustId){
+                        setChatFocustId("");
+                      }else{
+                        setChatFocustId(comment.id );
+                      }
+                    }}
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    {!chatFocustId ? <GitMerge size={16} /> : <Spline size={16}  />}
+                  </button>
+                </>
+              )}
+
+              {isEditing && (
+                <>
+                  <button
+                    onClick={handleEditSubmit}
+                    title="Save changes"
+                    className="text-gray-400 hover:text-green-400 transition-colors"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditContent(comment.content);
+                    }}
+                    title="Cancel editing"
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Content section */}
@@ -446,8 +475,6 @@ const Comment: React.FC<CommentProps> = ({
             )}
           </div>
         </div>
-
-
 
         {/* Attachment section in edit mode */}
         {isEditing && (
