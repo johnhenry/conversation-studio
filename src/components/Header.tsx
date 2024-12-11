@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExportFormat } from '../types';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Settings, Import } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: ExportFormat | "arrange";
@@ -75,8 +75,11 @@ const Header: React.FC<HeaderProps> = ({
               XML
             </button>
 
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-2">
+
+
+            {/* Settings and Import */}
+            <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-700">
+               {/* Action Buttons */}
               <button
                 onClick={onNewComment}
                 className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
@@ -91,11 +94,16 @@ const Header: React.FC<HeaderProps> = ({
               >
                 <Settings size={20} />
               </button>
-            </div>
-
-            {/* Settings and Import */}
-            <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-700">
-              <label className="flex items-center space-x-2 text-gray-300">
+              <label className="inline-flex items-center p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                <Import size={20} />
+                <input
+                  type="file"
+                  onChange={onImport}
+                  className="hidden"
+                  accept=".json,.xml,.txt"
+                />
+              </label>
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
                 <input
                   type="checkbox"
                   checked={storeLocally}
@@ -103,15 +111,6 @@ const Header: React.FC<HeaderProps> = ({
                   className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
                 />
                 <span>Store</span>
-              </label>
-              <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-                <span>Import</span>
-                <input
-                  type="file"
-                  onChange={onImport}
-                  className="hidden"
-                  accept=".json,.xml,.txt"
-                />
               </label>
             </div>
           </nav>

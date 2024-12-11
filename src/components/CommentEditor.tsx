@@ -174,6 +174,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   }, [autoGenerate, parents]);
 
   const handleSubmitGenerate = async () => {
+    console.log({aiConfig});
     if(!aiConfig.type){
       throw new Error("AI Responses disabled");
     }
@@ -191,6 +192,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         initialPrompts.push({
           role: parent.type,
           content: parent.content,
+        });
+      }
+      if(aiConfig.systemPrompt?.trim()){
+        initialPrompts.unshift({
+          role: "system",
+          content: aiConfig.systemPrompt,
         });
       }
       const { content: prompt } = initialPrompts.pop() as {

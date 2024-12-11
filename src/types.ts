@@ -76,6 +76,17 @@ export interface CommentEditorProps {
 }
 
 export interface AIConfig {
+  type: "" | "openai" | "window.ai";
   endpoint: string;
+  apiKey: string;
   model: string;
+  temperature: number;
+  topK: number;
+  maxTokens: number;
+  seed: number;
+  maxRetries: number;
+  retryDelay: number;
+  debug: boolean;
+  logLevel: "error" | "warn" | "info" | "debug";
+  systemPrompt?: string;
 }
