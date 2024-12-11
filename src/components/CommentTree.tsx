@@ -409,6 +409,100 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     }
   }, [selectedCommentId, allComments, onCommentSelect, level]);
 
+  // Find all ancestor IDs of a comment
+  const findAncestorIds = (
+    comments: CommentType[],
+    targetId: string,
+    ancestors: Set<string> = new Set()
+  ): Set<string> => {
+    for (const comment of comments) {
+      if (comment.id === targetId) {
+        return ancestors;
+      }
+      
+      // Add current comment ID before checking children
+      const currentAncestors = new Set(ancestors);
+      currentAncestors.add(comment.id);
+      
+      // Check children with the current ancestors
+      for (const child of comment.children) {
+        const foundAncestors = findAncestorIds([child], targetId, currentAncestors);
+        if (foundAncestors.size > 0) {
+          return foundAncestors;
+        }
+      }
+    }
+    return new Set();
+  };
+
+  // Get the first descendant at each level
+  const getFirstLineage = (comment: CommentType): Set<string> => {
+    const lineage = new Set<string>();
+    
+    const addFirstLineage = (current: CommentType) => {
+      if (current.children.length > 0) {
+        const firstChild = current.children[0];
+        lineage.add(firstChild.id);
+        addFirstLineage(firstChild);
+      }
+    };
+    
+    addFirstLineage(comment);
+    return lineage;
+  };
+
+  // Filter comments to show only focused comment, its ancestors, and first lineage of descendants
+  const filterComments = (comments: CommentType[]): CommentType[] => {
+    if (!chatFocustId) return comments;
+
+
+    const ancestorIds = findAncestorIds(comments, chatFocustId);
+
+    let focusedComment: CommentType | null = null;
+
+    // Find the focused comment and get its first lineage
+    const findFocusedComment = (items: CommentType[]): void => {
+      for (const item of items) {
+        if (item.id === chatFocustId) {
+          focusedComment = item;
+          console.log('Found focused comment:', item);
+          return;
+        }
+        if (item.children.length > 0) {
+          findFocusedComment(item.children);
+        }
+      }
+    };
+    findFocusedComment(comments);
+
+    if (!focusedComment) {
+      console.warn('Could not find focused comment with ID:', chatFocustId);
+      return comments;
+    }
+
+    const firstLineageIds = getFirstLineage(focusedComment);
+
+    const visibleIds = new Set([...ancestorIds, chatFocustId, ...firstLineageIds]);
+
+    // Filter the comment tree to only show visible comments
+    const filterTree = (items: CommentType[]): CommentType[] => {
+      return items
+        .filter(item => {
+          const isVisible = visibleIds.has(item.id);
+          return isVisible;
+        })
+        .map(item => ({
+          ...item,
+          children: filterTree(item.children)
+        }));
+    };
+
+    const filtered = filterTree(comments);
+    return filtered;
+  };
+
+  const visibleComments = filterComments(comments);
+
   return (
     <div
       onDragOver={(e) => {
@@ -426,7 +520,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       }}
       className={`${parentId ? "pl-0" : ""}`}
     >
-      {comments.map((comment) => (
+      {visibleComments.map((comment) => (
         <div key={`container-${comment.id}`}>
           <Comment
             key={comment.id}
