@@ -179,9 +179,10 @@ function App() {
   }, []);
 
   const addComment = useCallback(
-    async ({content:initialContent, attachments, parentId, commentType, autoReply, autoGenerate, abortController} : ADD_COMMENT_PROPS ) => {
+    async ({content:initialContent, attachments, parentId, commentType:initialType, autoReply, autoGenerate, abortController} : ADD_COMMENT_PROPS ) => {
       const newId = generateUniqueId();
       let content = initialContent;
+      let type = initialType || DEFAULT_COMMENT_TYPE;
       if(autoGenerate && parentId){
         let model;
         try {
@@ -222,12 +223,12 @@ function App() {
           content = await model.prompt(prompt, {
             signal: abortController?.signal,
           });
+          type = 'assistant';
         }finally{
           if(model){
             model.destroy();
           }
         }
-
       }
 
       const comment: Comment = {
@@ -235,7 +236,7 @@ function App() {
         content,
         children: [],
         userId: userId || DEFAULT_USER_ID,
-        type: commentType || DEFAULT_COMMENT_TYPE,
+        type,
         timestamp: Date.now(),
         contentHash: generateContentHash(content),
         attachments,
