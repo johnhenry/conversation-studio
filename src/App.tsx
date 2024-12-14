@@ -238,13 +238,6 @@ function App() {
     },
     [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
   );
-  // const generationQueueRef = useRef<
-  //   {
-  //     userId: string;
-  //     parentId: string;
-  //     abort: () => void;
-  //   }[]
-  // >([]);
   const [generationQueue, setGenerationQueue] = useState<
     {
       userId: string;
@@ -262,15 +255,15 @@ function App() {
       if (!parentId) {
         throw new Error("Generated comment must have a parent");
       }
-      const abortController = new AbortController();
+
+      let abortController: AbortController | null = new AbortController();
+      let localModel: any = null;
+      let model;
+
       const remove = () => {
-        // generationQueueRef.current.splice(
-        //   generationQueueRef.current.indexOf(generation),
-        //   1
-        // );
-        // setGenerationQueue(generationQueueRef.current);
-        generationQueue.splice(generationQueue.indexOf(generation), 1);
-        setGenerationQueue(generationQueue);
+        setGenerationQueue((prevQueue) =>
+          prevQueue.filter((gen) => gen !== generation)
+        );
       };
 
       const generation = {
@@ -278,17 +271,19 @@ function App() {
         parentId,
         abort: () => {
           console.log("aborting");
-          abortController.abort();
+          if (abortController) {
+            abortController.abort();
+            abortController = null;
+          }
+          if (localModel) {
+            localModel.destroy();
+          }
           remove();
         },
       };
-      // generationQueueRef.current.push(generation);
-      // setGenerationQueue(generationQueueRef.current);
-      generationQueue.push(generation);
-      setGenerationQueue(generationQueue);
 
-      let content;
-      let model;
+      setGenerationQueue((prevQueue) => [...prevQueue, generation]);
+
       try {
         const initialPrompts: { role: string; content: string }[] = [];
         const parents = findParentComments(comments, parentId);
@@ -320,14 +315,27 @@ function App() {
                 },
                 model: aiConfig.model,
               });
-        model = await ai.languageModel.create({
+              model = await ai.languageModel.create({
           temperature: aiConfig.temperature,
           topK: aiConfig.topK,
           systemPrompt: aiConfig.systemPrompt,
         });
-        content = await model.prompt(prompt, {
+
+        if (!abortController) {
+          // If already aborted, don't proceed
+          return;
+        }
+
+        const content = await model.prompt(prompt, {
           signal: abortController.signal,
         });
+
+        if (!abortController) {
+          // If aborted during generation, don't add the comment
+          return;
+        }
+
+        addComment({ content, attachments, parentId, commentType, userId });
       } catch (error) {
         console.log(error);
         if (error.name === "AbortError") {
@@ -340,9 +348,8 @@ function App() {
           model.destroy();
         }
         remove();
+        abortController = null;
       }
-      console.log(10);
-      addComment({ content, attachments, parentId, commentType, userId });
     },
     [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
   );
