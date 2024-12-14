@@ -13,17 +13,12 @@ import {
   CommentData,
   Attachment,
   ExportFormat,
-  AIConfig,
   ExportSettings,
 } from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
-import {
-  DEFAULT_USER_ID,
-  DEFAULT_COMMENT_TYPE,
-  DEFAULT_AI_CONFIG,
-} from "./config";
+import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "./config";
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
 import { useAIConfig } from "./hooks/useAIConfig";
@@ -48,13 +43,13 @@ const stripUIProperties = (comment: Comment): CommentData => ({
   type: comment.type,
 });
 const findParentComments = (
-  comments: CommentType[],
+  comments: Comment[],
   childId: string
-): CommentType[] => {
-  const parents: CommentType[] = [];
-  let targetComment: CommentType | null = null;
+): Comment[] => {
+  const parents: Comment[] = [];
+  let targetComment: Comment | null = null;
 
-  const findCommentAndParents = (comments: CommentType[], targetId: string) => {
+  const findCommentAndParents = (comments: Comment[], targetId: string) => {
     for (const comment of comments) {
       // Check if current comment is the target
       if (comment.id === targetId) {
@@ -102,10 +97,6 @@ function App() {
     userId?: string;
     autoGenerate?: boolean;
   }>({});
-  const [storeLocally, setStoreLocally] = useState(() => {
-    const stored = localStorage.getItem("storeLocally");
-    return stored ? stored === "true" : false;
-  });
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState<
     string | undefined
@@ -116,9 +107,6 @@ function App() {
     maxContentLength: 1000,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Counter for ensuring unique IDs
-  const idCounterRef = useRef(0);
 
   // Memoize the renderAttachment function
   const renderAttachment = useCallback((attachment: Attachment) => {
@@ -189,7 +177,12 @@ function App() {
   }, []);
 
   const addComment = useCallback(
-    ({ content, attachments, parentId, commentType }: ADD_COMMENT_PROPS) => {
+    ({
+      content,
+      attachments = [],
+      parentId,
+      commentType,
+    }: ADD_COMMENT_PROPS) => {
       const newId = generateUniqueId();
       const comment: Comment = {
         id: newId,
@@ -257,8 +250,7 @@ function App() {
       }
 
       let abortController: AbortController | null = new AbortController();
-      let localModel: any = null;
-      let model;
+      let model: any = null;
 
       const remove = () => {
         setGenerationQueue((prevQueue) =>
@@ -275,8 +267,8 @@ function App() {
             abortController.abort();
             abortController = null;
           }
-          if (localModel) {
-            localModel.destroy();
+          if (model) {
+            model.destroy();
           }
           remove();
         },
@@ -315,7 +307,8 @@ function App() {
                 },
                 model: aiConfig.model,
               });
-              model = await ai.languageModel.create({
+
+        model = await ai.languageModel.create({
           temperature: aiConfig.temperature,
           topK: aiConfig.topK,
           systemPrompt: aiConfig.systemPrompt,
@@ -338,7 +331,7 @@ function App() {
         addComment({ content, attachments, parentId, commentType, userId });
       } catch (error) {
         console.log(error);
-        if (error.name === "AbortError") {
+        if ((error as Error).name === "AbortError") {
           console.log("Generation was cancelled");
         } else {
           console.error(error);
@@ -375,13 +368,6 @@ function App() {
       })}
     </div>
   );
-  // const cancelGeneration = () => {
-  //   if (abortControllerRef.current) {
-  //     abortControllerRef.current.abort();
-  //     abortControllerRef.current = null;
-  //     setLoadingGen(false);
-  //   }
-  // };
 
   const handleAttachmentUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -634,7 +620,9 @@ function App() {
           aiConfig={aiConfig}
           chatFocustId={chatFocustId}
           setChatFocustId={setChatFocustId}
-          onGenerate={generateComment}
+          onGenerate={(props) =>
+            generateComment({ ...props, content: "", commentType: "assistant" })
+          }
         />
       );
     }
@@ -653,8 +641,8 @@ function App() {
     aiConfig,
     chatFocustId,
     setChatFocustId,
+    generateComment,
   ]);
-
   // Memoize the export preview component
   const exportPreview = useMemo(() => {
     if (activeTab === "text" || activeTab === "json" || activeTab === "xml") {
@@ -689,7 +677,7 @@ function App() {
 
   // Load state from localStorage on mount
   useEffect(() => {
-    if (storeLocally) {
+    if (aiConfig.storeLocally) {
       const storedComments = localStorage.getItem("comments");
       const storedUserId = localStorage.getItem("userId");
       if (storedComments) {
@@ -705,25 +693,24 @@ function App() {
       if (storedUserId) setUserId(storedUserId);
     }
     setIsInitialized(true);
-  }, [storeLocally, addRenderAttachmentToComments]);
+  }, [aiConfig.storeLocally, addRenderAttachmentToComments]);
 
   // Save state to localStorage when it changes
   useEffect(() => {
     // Don't save until initial load is complete
     if (!isInitialized) return;
 
-    if (storeLocally) {
+    if (aiConfig.storeLocally) {
       // Strip UI-specific properties before storing
       const commentsToStore = comments.map((comment) =>
         stripUIProperties(comment)
       );
       localStorage.setItem("comments", JSON.stringify(commentsToStore));
       localStorage.setItem("userId", userId);
-      localStorage.setItem("storeLocally", "true");
     } else {
       localStorage.clear();
     }
-  }, [storeLocally, comments, userId, isInitialized]);
+  }, [aiConfig.storeLocally, comments, userId, isInitialized]);
 
   // Add global keyboard shortcuts
   useEffect(() => {
@@ -768,8 +755,8 @@ function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        storeLocally={storeLocally}
-        setStoreLocally={setStoreLocally}
+        storeLocally={aiConfig.storeLocally}
+        setStoreLocally={(value) => setAIConfig({ storeLocally: value })}
         onImport={handleImport}
         onNewComment={handleNewComment}
         onOpenSettings={handleOpenSettings}
@@ -794,7 +781,9 @@ function App() {
       {showEditor && (
         <CommentEditor
           onSubmit={addComment}
-          onGenerate={generateComment}
+          onGenerate={(props) =>
+            generateComment({ ...props, content: "", commentType: "user" })
+          }
           onCancel={handleCancel}
           userId={userId}
           setUserId={setUserId}

@@ -115,7 +115,7 @@ export type ADD_COMMENT_PROPS = {
   attachments?: Attachment[];
   parentId?: string;
   commentType: string;
-  userId: string;
+  userId?: string;
   // autoReply?: boolean,
   // autoGenerate?: boolean,
   // generateContent?:boolean

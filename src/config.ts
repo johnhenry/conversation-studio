@@ -17,6 +17,7 @@ export interface AIConfig {
   debug: boolean;
   logLevel: "error" | "warn" | "info" | "debug";
   systemPrompt: string;
+  storeLocally: boolean;
 }
 
 export const DEFAULT_AI_CONFIG: AIConfig = {
@@ -34,22 +35,23 @@ export const DEFAULT_AI_CONFIG: AIConfig = {
   logLevel: "info",
   systemPrompt:
     "You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user's questions or comments. Be professional but friendly in your communication style.",
+  storeLocally: false,
 };
 
 export const DEPTH_COLORS = [
-    "bg-gray-700",     // Level 0
-    "bg-blue-700",     // Level 1
-    "bg-green-700",    // Level 2
-    "bg-purple-700",   // Level 3
-    "bg-orange-700",   // Level 4
-    "bg-red-700",      // Level 5
+  "bg-gray-700", // Level 0
+  "bg-blue-700", // Level 1
+  "bg-green-700", // Level 2
+  "bg-purple-700", // Level 3
+  "bg-orange-700", // Level 4
+  "bg-red-700", // Level 5
 ];
 
 export const DEPTH_TEXT = [
-    "text-gray-700",     // Level 0
-    "text-blue-700",     // Level 1
-    "text-green-700",    // Level 2
-    "text-purple-700",   // Level 3
-    "text-orange-700",   // Level 4
-    "text-red-700",      // Level 5
+  "text-gray-700", // Level 0
+  "text-blue-700", // Level 1
+  "text-green-700", // Level 2
+  "text-purple-700", // Level 3
+  "text-orange-700", // Level 4
+  "text-red-700", // Level 5
 ];
