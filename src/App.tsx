@@ -193,13 +193,14 @@ function App() {
       attachments = [],
       parentId,
       commentType,
+      autoReply,
     }: ADD_COMMENT_PROPS) => {
       const newId = generateUniqueId();
       const comment: Comment = {
         id: newId,
         content,
         children: [],
-        userId: userId || appConfig.general.userId,
+        userId,
         type: commentType || DEFAULT_COMMENT_TYPE,
         timestamp: Date.now(),
         contentHash: generateContentHash(content),
@@ -237,8 +238,18 @@ function App() {
         ) as HTMLElement;
         if (newComment) {
           newComment.focus();
+          if (autoReply) {
+            generateComment({
+              content: "",
+              parentId: newId,
+              commentType: "assistant",
+              userId,
+              autoReply: false,
+            });
+          }
         }
       });
+      return newId;
     },
     [
       userId,
@@ -262,6 +273,7 @@ function App() {
       parentId,
       commentType = "assistant",
       userId,
+      autoReply,
     }: ADD_COMMENT_PROPS) => {
       if (!parentId) {
         throw new Error("Generated comment must have a parent");
@@ -297,6 +309,9 @@ function App() {
       try {
         const initialPrompts: { role: string; content: string }[] = [];
         const parents = findParentComments(comments, parentId);
+        if (!comments.length) {
+          throw new Error("Comments not loaded");
+        }
         const localParents = [...parents];
         while (localParents.length > 0) {
           const parent = localParents.shift()!;
@@ -346,7 +361,14 @@ function App() {
           return;
         }
 
-        addComment({ content, attachments, parentId, commentType, userId });
+        addComment({
+          content,
+          attachments,
+          parentId,
+          commentType,
+          userId,
+          autoReply,
+        });
       } catch (error) {
         console.log(error);
         if ((error as Error).name === "AbortError") {
@@ -371,8 +393,7 @@ function App() {
           <div key={index} className="flex items-center gap-2">
             <span>
               {generation.userId || "[DEFAULT AGENT]"} is generating a response
-              to
-              {generation.parentId}
+              to {generation.parentId}
             </span>
             <button
               onClick={() => {

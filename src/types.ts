@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { AppConfig } from './config';
+import { AppConfig } from "./config";
 
 // Base attachment type
 export interface Attachment {
@@ -102,4 +102,5 @@ export interface ADD_COMMENT_PROPS {
   parentId?: string;
   commentType: string;
   userId?: string;
+  autoReply?: boolean;
 }

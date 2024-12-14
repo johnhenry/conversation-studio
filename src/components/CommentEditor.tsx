@@ -123,6 +123,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       attachments,
       parentId,
       commentType,
+      autoReply,
     });
     handleClose();
   };
@@ -135,6 +136,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       attachments,
       parentId,
       userId,
+      autoReply,
     });
     setContent("");
     setCommentType(DEFAULT_COMMENT_TYPE);
@@ -449,27 +451,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
-              {appConfig.ai.base.type && (
-                <>
-                  <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
-                    <span>Auto-reply</span>
-                    <input
-                      onChange={(e) => setAutoReply(e.target.checked)}
-                      defaultChecked={autoReply}
-                      type="checkbox"
-                      className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleSubmitGenerate}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Sparkles size={20} />
-                    Generate
-                  </button>
-                </>
-              )}
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                <span>Auto-reply</span>
+                <input
+                  onChange={(e) => setAutoReply(e.target.checked)}
+                  defaultChecked={autoReply}
+                  type="checkbox"
+                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
+                />
+              </label>
               <button
                 type="button"
                 onClick={handleClose}
@@ -477,15 +467,42 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={!content.trim() && attachments.length === 0}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <MessageSquarePlus size={20} />
-                {buttonText}
-              </button>
+              {appConfig.ai.base.type && parentId ? (
+                <>
+                  {!(!content.trim() && attachments.length === 0) ? (
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={!content.trim() && attachments.length === 0}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <MessageSquarePlus size={20} />
+                      {parentId ? "Reply" : "Add"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSubmitGenerate}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Sparkles size={20} />
+                      Gen
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={!content.trim() && attachments.length === 0}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <MessageSquarePlus size={20} />
+                    {parentId ? "Reply" : "Add"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </form>
