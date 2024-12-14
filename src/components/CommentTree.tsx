@@ -154,13 +154,20 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       const targetComment = findComment(allComments, targetId);
       if (!targetComment) return;
 
+      // First remove the dropped comment from its current position
+      const [foundComment, remainingComments] = findAndRemoveComment(
+        allComments,
+        droppedComment.id
+      );
+      if (!foundComment) return;
+
       // Check if target is a descendant of dropped comment or vice versa
       if (
         isDescendant(droppedComment, targetId) ||
         isDescendant(targetComment, droppedComment.id)
       ) {
-        // Create a deep copy of the tree to work with
-        const updatedComments = allComments.map((comment) => ({ ...comment }));
+        // Create a deep copy of the remaining comments to work with
+        const updatedComments = remainingComments.map((comment) => ({ ...comment }));
 
         // Helper function to swap two nodes in the tree
         const swapNodes = (
@@ -172,7 +179,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             // If this is one of our target items, swap its content but keep its position
             if (item.id === id1 || item.id === id2) {
               const newContent =
-                item.id === id1 ? targetComment : droppedComment;
+                item.id === id1 ? targetComment : foundComment;
               return {
                 ...item,
                 content: newContent.content,
@@ -195,18 +202,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         };
 
         // Perform the swap
-        const result = swapNodes(updatedComments, droppedComment.id, targetId);
+        const result = swapNodes(updatedComments, foundComment.id, targetId);
         topLevelUpdate(result);
         return;
       }
 
       // Normal case - not ancestor/descendant
-      const [foundComment, remainingComments] = findAndRemoveComment(
-        allComments,
-        droppedComment.id
-      );
-      if (!foundComment) return;
-
       // Add the comment to its new position
       const addToTarget = (items: CommentType[]): CommentType[] => {
         return items.map((item) => {
