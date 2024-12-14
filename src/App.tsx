@@ -92,6 +92,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [chatFocustId, _setChatFocustId] = useState<string>("");
+  const [isLoadingComments, setIsLoadingComments] = useState(true); // New state to track comment loading
 
   const setChatFocustId = (id: string | null) => {
     if (id === null) {
@@ -206,7 +207,6 @@ function App() {
         contentHash: generateContentHash(content),
         attachments,
         renderAttachment,
-        // newAction: autoReply ? "auto-reply" : "",
       };
 
       setComments((prevComments) => {
@@ -230,7 +230,15 @@ function App() {
       if (chatFocustId) {
         setChatFocustId(newId);
       }
-
+      if (autoReply) {
+        generateComment({
+          content: "",
+          parentId: newId,
+          commentType: "assistant",
+          userId,
+          autoReply: false,
+        });
+      }
       // Focus after a short delay to ensure the component is mounted
       requestAnimationFrame(() => {
         const newComment = document.querySelector(
@@ -238,15 +246,6 @@ function App() {
         ) as HTMLElement;
         if (newComment) {
           newComment.focus();
-          if (autoReply) {
-            generateComment({
-              content: "",
-              parentId: newId,
-              commentType: "assistant",
-              userId,
-              autoReply: false,
-            });
-          }
         }
       });
       return newId;
@@ -258,6 +257,7 @@ function App() {
       renderAttachment,
       commentType,
       chatFocustId,
+      isLoadingComments,
     ]
   );
   const [generationQueue, setGenerationQueue] = useState<
@@ -275,8 +275,19 @@ function App() {
       userId,
       autoReply,
     }: ADD_COMMENT_PROPS) => {
+      if (!comments.length) {
+        return; // Early return if no comments found
+      }
       if (!parentId) {
         throw new Error("Generated comment must have a parent");
+      }
+
+      // Check if comments are still loading
+      if (isLoadingComments) {
+        console.warn(
+          "Cannot generate comment while comments are still loading"
+        );
+        return;
       }
 
       let abortController: AbortController | null = new AbortController();
@@ -309,9 +320,7 @@ function App() {
       try {
         const initialPrompts: { role: string; content: string }[] = [];
         const parents = findParentComments(comments, parentId);
-        if (!comments.length) {
-          throw new Error("Comments not loaded");
-        }
+
         const localParents = [...parents];
         while (localParents.length > 0) {
           const parent = localParents.shift()!;
@@ -384,7 +393,15 @@ function App() {
         abortController = null;
       }
     },
-    [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
+    [
+      userId,
+      findAndAddReply,
+      renderAttachment,
+      commentType,
+      chatFocustId,
+      comments,
+      isLoadingComments,
+    ]
   );
   const QuedGenerations = () => (
     <div className="qg fixed bottom-0 right-0 bg-gray-800 text-white p-2">
@@ -733,6 +750,7 @@ function App() {
         }
       }
     }
+    setIsLoadingComments(false); // Mark comments as loaded
     setIsInitialized(true);
   }, [appConfig.general.storeLocally, addRenderAttachmentToComments]);
 
