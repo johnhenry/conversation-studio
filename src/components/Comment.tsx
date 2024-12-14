@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, ChartNoAxesGantt, ArrowBigUpDash, MessageSquare, Menu, X, Check, File, Copy, Sparkles, CopyPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Trash2,
+  ChartNoAxesGantt,
+  ArrowBigUpDash,
+  MessageSquare,
+  Menu,
+  X,
+  Check,
+  File,
+  Copy,
+  Sparkles,
+  CopyPlus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
@@ -14,9 +28,16 @@ interface CommentProps {
   onReply?: (id: string, autoReply?: boolean) => void;
   onUserIdChange?: (id: string, newUserId: string) => void;
   onTypeChange?: (id: string, newType: string) => void;
-  onUpdate?: (id: string, newContent: string, newAttachments: Attachment[]) => void;
+  onUpdate?: (
+    id: string,
+    newContent: string,
+    newAttachments: Attachment[]
+  ) => void;
   onClone?: (id: string, comment: CommentType, cloneChildren?: boolean) => void;
-  onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentUpload?: (
+    id: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
   onAttachmentRemove?: (id: string, index: number) => void;
   canPopUp?: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode;
@@ -32,8 +53,9 @@ interface CommentProps {
   siblingInfo?: {
     currentIndex: number;
     totalSiblings: number;
-    onNavigate: (direction: 'prev' | 'next') => void;
+    onNavigate: (direction: "prev" | "next") => void;
   };
+  onGenerate: (props: { attachments: Attachment[]; parentId: string }) => void;
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -60,7 +82,8 @@ const Comment: React.FC<CommentProps> = ({
   aiConfig,
   chatFocustId,
   setChatFocustId,
-  siblingInfo
+  siblingInfo,
+  onGenerate,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -68,11 +91,9 @@ const Comment: React.FC<CommentProps> = ({
   const commentRef = useRef<HTMLDivElement>(null);
   const indent = !chatFocustId ? 24 : 0;
 
-
-
   useEffect(() => {
     if (isEditing && commentRef.current) {
-      const textarea = commentRef.current.querySelector('textarea');
+      const textarea = commentRef.current.querySelector("textarea");
       textarea?.focus();
     }
   }, [isEditing]);
@@ -123,39 +144,33 @@ const Comment: React.FC<CommentProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isEditing) {
       // Prevent arrow key events from propagating in edit mode
-      if (e.key.startsWith('Arrow')) {
+      if (e.key.startsWith("Arrow")) {
         e.stopPropagation();
         return;
       }
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         handleEditSubmit();
-      } 
-      else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         setIsEditing(false);
         setEditContent(comment.content);
       }
     } else {
-      if (e.key === 'e' && !disableEditing) {
+      if (e.key === "e" && !disableEditing) {
         e.preventDefault();
         setIsEditing(true);
-      }
-      else if (e.key === 'r' && onReply) {
+      } else if (e.key === "r" && onReply) {
         e.preventDefault();
         onReply(comment.id, false);
-      }
-      else if (e.key === 'R' && onReply) {
+      } else if (e.key === "R" && onReply) {
         e.preventDefault();
         onReply(comment.id, true);
-      }
-      else if (e.key === 'c' && onClone) {
+      } else if (e.key === "c" && onClone) {
         e.preventDefault();
         onClone(comment.id, comment, false);
-      }
-      else if (e.key === 'C' && onClone) {
+      } else if (e.key === "C" && onClone) {
         e.preventDefault();
         onClone(comment.id, comment, true);
-      }
-      else if (e.key === 't' && !disableEditing) {
+      } else if (e.key === "t" && !disableEditing) {
         e.preventDefault();
         handleTypeClick();
       }
@@ -166,19 +181,13 @@ const Comment: React.FC<CommentProps> = ({
     try {
       await navigator.clipboard.writeText(comment.content);
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      console.error("Failed to copy text:", err);
     }
   };
 
   const handleAutoReply = () => {
-    onReply?.(comment.id, true);
+    onGenerate?.({ parentId: comment.id });
   };
-  useEffect(()=>{
-    if(comment.newAction === 'auto-reply'){
-      comment.newAction = "";
-      onReply?.(comment.id, true);
-    }
-  },[]);
 
   const handleClone = () => {
     onClone?.(comment.id, comment, false);
@@ -219,27 +228,32 @@ const Comment: React.FC<CommentProps> = ({
     >
       {/* Indentation lines for nested comments */}
       {comment.children.length > 0 && (
-          <>
+        <>
           <div
             className={`absolute w-[2px] ${depth_bg}`}
             style={{
-              left: indent/2 + "px",
+              left: indent / 2 + "px",
               height: "50%",
-              top: "50%"
+              top: "50%",
             }}
-          /></>
-        )}
+          />
+        </>
+      )}
       {level > 0 && (
         <>
           {/* Current level connector */}
           <div className="absolute left-0 top-0 bottom-0 flex">
             <div
-              className={`w-[2px] relative ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
-              style={{ left: (-1 * indent/2 )+ "px" }}
+              className={`w-[2px] relative ${
+                DEPTH_COLORS[level % DEPTH_COLORS.length]
+              }`}
+              style={{ left: (-1 * indent) / 2 + "px" }}
             >
               {/* Horizontal line */}
               <div
-                className={`absolute top-[20px] w-[12px] h-[2px] ${DEPTH_COLORS[level % DEPTH_COLORS.length]}`}
+                className={`absolute top-[20px] w-[12px] h-[2px] ${
+                  DEPTH_COLORS[level % DEPTH_COLORS.length]
+                }`}
                 style={{ left: "0px" }}
               />
             </div>
@@ -249,7 +263,9 @@ const Comment: React.FC<CommentProps> = ({
           {Array.from({ length: level - 1 }).map((_, index) => (
             <div
               key={index}
-              className={`absolute left-0 top-0 bottom-0 w-[2px] ${DEPTH_COLORS[(level - index - 1) % DEPTH_COLORS.length]}`}
+              className={`absolute left-0 top-0 bottom-0 w-[2px] ${
+                DEPTH_COLORS[(level - index - 1) % DEPTH_COLORS.length]
+              }`}
               style={{ left: `${-(1.5 + index) * indent}px` }}
             />
           ))}
@@ -259,11 +275,18 @@ const Comment: React.FC<CommentProps> = ({
       <div
         ref={commentRef}
         className={`relative transition-colors cursor-all-scroll outline-none
-          ${isBeingRepliedTo ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset" : ""}
+          ${
+            isBeingRepliedTo
+              ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset"
+              : ""
+          }
           ${isDragOver ? "bg-[#1d2535]" : ""}
-          ${isSelected 
-            ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30`
-            : `hover:${DEPTH_COLORS[level % DEPTH_COLORS.length]} hover:bg-opacity-30`
+          ${
+            isSelected
+              ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30`
+              : `hover:${
+                  DEPTH_COLORS[level % DEPTH_COLORS.length]
+                } hover:bg-opacity-30`
           }
           focus-visible:ring-2 focus-visible:ring-blue-500
         `}
@@ -298,9 +321,9 @@ const Comment: React.FC<CommentProps> = ({
         <div className="pl-8 pr-3 pt-3 pb-3">
           {/* Continuation line for comments with children */}
           <div
-                className={`absolute top-[50%] w-[12px] h-[12px] rounded-full ${depth_bg}`}
-                style={{ left: "7px" }}
-              />
+            className={`absolute top-[50%] w-[12px] h-[12px] rounded-full ${depth_bg}`}
+            style={{ left: "7px" }}
+          />
 
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
@@ -346,7 +369,7 @@ const Comment: React.FC<CommentProps> = ({
             {chatFocustId && siblingInfo && siblingInfo.totalSiblings > 1 && (
               <div className="flex items-center gap-1 ml-2">
                 <button
-                  onClick={() => siblingInfo.onNavigate('prev')}
+                  onClick={() => siblingInfo.onNavigate("prev")}
                   className="text-gray-400 hover:text-blue-400 transition-colors"
                   title="Previous sibling"
                 >
@@ -356,7 +379,7 @@ const Comment: React.FC<CommentProps> = ({
                   {siblingInfo.currentIndex + 1}/{siblingInfo.totalSiblings}
                 </span>
                 <button
-                  onClick={() => siblingInfo.onNavigate('next')}
+                  onClick={() => siblingInfo.onNavigate("next")}
                   className="text-gray-400 hover:text-blue-400 transition-colors"
                   title="Next sibling"
                 >
@@ -369,13 +392,15 @@ const Comment: React.FC<CommentProps> = ({
             <div className="flex justify-end gap-2 ml-auto">
               {showDelete && !isEditing && !disableEditing && (
                 <>
-                  {aiConfig?.type && <button
-                    onClick={handleAutoReply}
-                    title="Auto Reply"
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
-                  >
-                    <Sparkles size={16} />
-                  </button>}
+                  {aiConfig?.type && (
+                    <button
+                      onClick={handleAutoReply}
+                      title="Auto Reply"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
+                      <Sparkles size={16} />
+                    </button>
+                  )}
                   <button
                     onClick={() => onReply?.(comment.id)}
                     title="Reply"
@@ -386,15 +411,19 @@ const Comment: React.FC<CommentProps> = ({
                   <button
                     title="Toggle Chat Mode"
                     onClick={() => {
-                      if(chatFocustId){
+                      if (chatFocustId) {
                         setChatFocustId("");
-                      }else{
-                        setChatFocustId(comment.id );
+                      } else {
+                        setChatFocustId(comment.id);
                       }
                     }}
                     className="text-gray-400 hover:text-red-400 transition-colors"
                   >
-                    {!chatFocustId ?  <Menu size={16}  />:<ChartNoAxesGantt size={16} />}
+                    {!chatFocustId ? (
+                      <Menu size={16} />
+                    ) : (
+                      <ChartNoAxesGantt size={16} />
+                    )}
                   </button>
                   <button
                     onClick={handleCopy}
@@ -418,7 +447,6 @@ const Comment: React.FC<CommentProps> = ({
                   >
                     <Trash2 size={16} />
                   </button>
-
                 </>
               )}
 
@@ -447,9 +475,11 @@ const Comment: React.FC<CommentProps> = ({
           </div>
 
           {/* Content section */}
-          <div 
+          <div
             className="text-gray-300 leading-relaxed"
-            onDoubleClick={() => !disableEditing && !isEditing && setIsEditing(true)}
+            onDoubleClick={() =>
+              !disableEditing && !isEditing && setIsEditing(true)
+            }
           >
             {isEditing ? (
               <textarea
@@ -505,10 +535,11 @@ const Comment: React.FC<CommentProps> = ({
             {comment.attachments.length > 0 && (
               <div className="space-y-2">
                 {comment.attachments.map((attachment, index) => (
-                  <div key={index} className="flex items-center space-x-2 text-sm">
-                    <div className="flex-1">
-                      {renderAttachment(attachment)}
-                    </div>
+                  <div
+                    key={index}
+                    className="flex items-center space-x-2 text-sm"
+                  >
+                    <div className="flex-1">{renderAttachment(attachment)}</div>
                     <button
                       onClick={() => handleAttachmentRemove(index)}
                       className="text-gray-400 hover:text-red-400"

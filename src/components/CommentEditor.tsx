@@ -1,17 +1,28 @@
-import type { AIConfig, ADD_COMMENT_PROPS} from "../types";
+import type { AIConfig, ADD_COMMENT_PROPS } from "../types";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { MessageSquarePlus, X, File, Sparkles, ArrowUpRightFromCircle } from "lucide-react";
+import {
+  MessageSquarePlus,
+  X,
+  File,
+  Sparkles,
+  ArrowUpRightFromCircle,
+} from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
-import { CYCLE_USER_IDS, CYCLE_TYPES, DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "src:/config";
-import AI from "ai.matey/openai";
+import {
+  CYCLE_USER_IDS,
+  CYCLE_TYPES,
+  DEFAULT_USER_ID,
+  DEFAULT_COMMENT_TYPE,
+} from "src:/config";
 
 // import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
 
 interface CommentEditorProps {
-  onSubmit: (props:ADD_COMMENT_PROPS) => void;
+  onSubmit: (props: ADD_COMMENT_PROPS) => void;
+  onGenerate: (props: { attachments: Attachment[]; parentId: string }) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
   attachments: CommentType["attachments"];
@@ -30,9 +41,9 @@ interface CommentEditorProps {
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
 
-
 const CommentEditor: React.FC<CommentEditorProps> = ({
   onSubmit,
+  onGenerate,
   userId,
   setUserId,
   attachments,
@@ -45,7 +56,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   onCancel,
   rootComments = [],
   autoSetUserId,
-  autoGenerate,
   aiConfig,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
@@ -55,11 +65,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [parents, setParents] = useState<CommentType[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
-  const [genError, setGenError] = useState(null);
+  const [genError, setGenError] = useState<null | Error>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const editorRef = useRef<HTMLTextAreaElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const [autoReply, setAutoReply] = useState(false);
 
   // Focus the editor when it becomes visible
@@ -95,14 +104,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     }, 200);
   };
 
-  const handleCancel = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-      setLoadingGen(false);
-    }
-  };
-
   useEffect(() => {
     setPreviewUserId(userId || DEFAULT_USER_ID);
   }, [userId]);
@@ -120,110 +121,30 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     }
   }, [autoSetUserId, setUserId]);
 
-  useEffect(() => {
-    if (autoGenerate && parentId) {
-      handleSubmitGenerate();
+  const submitComment = async () => {
+    if (!(content.trim() || attachments.length > 0)) {
+      throw new Error("Content Required");
     }
-  }, [autoGenerate, parentId]);
-
-  const handleSubmitGenerate = ()=>submitComment(true);
-
-  const submitComment = async (autoGenerate:boolean=false) => {
-    try {
-      abortControllerRef.current = new AbortController();
-      setLoadingGen(true);
-      if(!(content.trim() || attachments.length > 0 || autoGenerate)){
-        throw new Error("Content Required");
-      }
-      await onSubmit({
-        content,
-        attachments,
-        parentId,
-        commentType,
-        autoGenerate,
-        autoReply,
-        abortController: abortControllerRef.current
-      });
-    }catch(error) {
-      if (error.name === "AbortError") {
-        console.log("Generation was cancelled");
-      } else {
-        console.error(error);
-        setGenError(error);
-      }
-      handleClose();
-    } finally {
-      abortControllerRef.current = null
-      setContent("");
-      setCommentType(DEFAULT_COMMENT_TYPE);
-      setLoadingGen(false);
-    }
+    onSubmit({
+      content,
+      attachments,
+      parentId,
+      commentType,
+    });
   };
 
-  // const handleSubmitGenerate = async () => {
-  //   if(!aiConfig.type){
-  //     throw new Error("AI Responses disabled");
-  //   }
-  //   if (!parents.length) {
-  //     return;
-  //   }
-  //   let model;
-  //   try {
-  //     setLoadingGen(true);
-  //     abortControllerRef.current = new AbortController();
-  //     const initialPrompts: { role: string; content: string }[] = [];
-  //     const localParents = [...parents];
-  //     while (localParents.length > 0) {
-  //       const parent = localParents.shift()!;
-  //       initialPrompts.push({
-  //         role: parent.type,
-  //         content: parent.content,
-  //       });
-  //     }
-  //     if(aiConfig.systemPrompt?.trim()){
-  //       initialPrompts.unshift({
-  //         role: "system",
-  //         content: aiConfig.systemPrompt,
-  //       });
-  //     }
-  //     const { content: prompt } = initialPrompts.pop() as {
-  //       role: string;
-  //       content: string;
-  //     };
-  //     const ai = aiConfig.type === "window.ai" ? window.ai : new AI({
-  //       endpoint: aiConfig.endpoint,
-  //       credentials : {
-  //           apiKey: aiConfig.apiKey
-  //       },
-  //       model: aiConfig.model
-  //     });
-  //     model = await ai.languageModel.create(
-  //       {
-  //         temperature: aiConfig.temperature,
-  //         topK: aiConfig.topK,
-  //         systemPrompt: aiConfig.systemPrompt
-  //       }
-  //     );
-  //     const content = await model.prompt(prompt, {
-  //       signal: abortControllerRef.current.signal,
-  //     });
-  //     onSubmit({content, attachments, parentId, commentType:'assistant', autoReply});
-  //   } catch (error) {
-  //     if (error.name === "AbortError") {
-  //       console.log("Generation was cancelled");
-  //     } else {
-  //       console.error(error);
-  //       setGenError(error);
-  //     }
-  //     setLoadingGen(false);
-  //     abortControllerRef.current = null;
-  //   } finally {
-  //     if (model) {
-  //       model.destroy();
-  //     }
-  //     handleClose();
-  //   }
-  // };
+  const handleSubmitGenerate = () => {
+    if (!parentId) {
+      throw new Error("Parent Required");
+    }
+    onGenerate({
+      attachments,
+      parentId,
+    });
+    setContent("");
+    setCommentType(DEFAULT_COMMENT_TYPE);
+    handleClose();
+  };
 
   const renderAttachment = useCallback((attachment: Attachment) => {
     if (attachment.type?.startsWith("image/")) {
@@ -475,26 +396,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     }
   };
 
-  if (loadingGen) {
-    return (
-      <div className="modal-overlay show cursor-pointer" onClick={handleCancel}>
-        <div className="modal-content p-4">
-          <div className="flex justify-center p-4 ">
-            <div
-              className="sparkle-loader cursor-pointer hover:opacity-80 transition-opacity"
-              title="Click to cancel generation"
-            >
-              <Sparkles size={20} className="sparkle" />
-              <Sparkles size={20} className="sparkle" />
-              <Sparkles size={20} className="sparkle" />
-            </div>
-          </div>
-          <div className="flex justify-center p-4 ">(click to cancel)</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
@@ -578,7 +479,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
-                <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
                 <span>Auto-reply</span>
                 <input
                   onChange={(e) => setAutoReply(e.target.checked)}

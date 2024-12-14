@@ -1,4 +1,4 @@
-import type { ADD_COMMENT_PROPS} from "./types";
+import type { ADD_COMMENT_PROPS } from "./types";
 import React, {
   useState,
   useRef,
@@ -8,11 +8,22 @@ import React, {
 } from "react";
 import CommentTree from "./components/CommentTree";
 import CommentEditor from "./components/CommentEditor";
-import { Comment, CommentData, Attachment, ExportFormat, AIConfig, ExportSettings } from "./types";
+import {
+  Comment,
+  CommentData,
+  Attachment,
+  ExportFormat,
+  AIConfig,
+  ExportSettings,
+} from "./types";
 import * as crypto from "crypto-js";
 import ExportPreview from "./components/ExportPreview";
 import { importComments } from "./utils/import";
-import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE, DEFAULT_AI_CONFIG } from "./config";
+import {
+  DEFAULT_USER_ID,
+  DEFAULT_COMMENT_TYPE,
+  DEFAULT_AI_CONFIG,
+} from "./config";
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
 import { useAIConfig } from "./hooks/useAIConfig";
@@ -77,9 +88,7 @@ const findParentComments = (
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeTab, setActiveTab] = useState<ExportFormat | "forum">(
-    "forum"
-  );
+  const [activeTab, setActiveTab] = useState<ExportFormat | "forum">("forum");
   const [userId, setUserId] = useState("");
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -88,7 +97,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [chatFocustId, setChatFocustId] = useState<string>("");
-
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { aiConfig, setAIConfig } = useAIConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
@@ -99,7 +108,9 @@ function App() {
     return stored ? stored === "true" : false;
   });
   const [isInitialized, setIsInitialized] = useState(false);
-  const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>();
+  const [selectedCommentId, setSelectedCommentId] = useState<
+    string | undefined
+  >();
   const [exportSettings, setExportSettings] = useState<ExportSettings>({
     includeAttachmentUrls: true,
     truncateContent: false,
@@ -173,85 +184,32 @@ function App() {
     const randomBytes = new Uint8Array(16);
     window.crypto.getRandomValues(randomBytes);
     const uuid = Array.from(randomBytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
     return `${timestamp}-${uuid}`;
   }, []);
 
   const addComment = useCallback(
-    async ({content:initialContent, attachments, parentId, commentType:initialType, autoReply, autoGenerate, abortController} : ADD_COMMENT_PROPS ) => {
+    ({ content, attachments, parentId, commentType }: ADD_COMMENT_PROPS) => {
       const newId = generateUniqueId();
-      let content = initialContent;
-      let type = initialType || DEFAULT_COMMENT_TYPE;
-      if(autoGenerate && parentId){
-        let model;
-        try {
-          const initialPrompts: { role: string; content: string }[] = [];
-          const parents = findParentComments(comments, parentId);
-          const localParents = [...parents];
-          while (localParents.length > 0) {
-            const parent = localParents.shift()!;
-            initialPrompts.push({
-              role: parent.type,
-              content: parent.content,
-            });
-          }
-          if(aiConfig.systemPrompt?.trim()){
-            initialPrompts.unshift({
-              role: "system",
-              content: aiConfig.systemPrompt,
-            });
-          }
-          const { content: prompt } = initialPrompts.pop() as {
-            role: string;
-            content: string;
-          };
-          const ai = aiConfig.type === "window.ai" ? window.ai : new AI({
-            endpoint: aiConfig.endpoint,
-            credentials : {
-                apiKey: aiConfig.apiKey
-            },
-            model: aiConfig.model
-          });
-          model = await ai.languageModel.create(
-            {
-              temperature: aiConfig.temperature,
-              topK: aiConfig.topK,
-              systemPrompt: aiConfig.systemPrompt
-            }
-          );
-          content = await model.prompt(prompt, {
-            signal: abortController?.signal,
-          });
-          type = 'assistant';
-        }finally{
-          if(model){
-            model.destroy();
-          }
-        }
-      }
-
       const comment: Comment = {
         id: newId,
         content,
         children: [],
         userId: userId || DEFAULT_USER_ID,
-        type,
+        type: commentType || DEFAULT_COMMENT_TYPE,
         timestamp: Date.now(),
         contentHash: generateContentHash(content),
         attachments,
         renderAttachment,
-        newAction: autoReply ? 'auto-reply':""
+        // newAction: autoReply ? "auto-reply" : "",
       };
 
       setComments((prevComments) => {
         if (parentId) {
           return findAndAddReply(prevComments, parentId, comment);
         }
-        return [...prevComments.map(comment=>{
-          comment.newAction = "";
-          return comment;
-        }), comment];
+        return [...prevComments, comment];
       });
 
       setAttachments([]);
@@ -263,15 +221,17 @@ function App() {
 
       // Set selected comment ID first
       setSelectedCommentId(newId);
-      
+
       // If in chat mode, update the focus to the new comment
       if (chatFocustId) {
         setChatFocustId(newId);
       }
-      
+
       // Focus after a short delay to ensure the component is mounted
       requestAnimationFrame(() => {
-        const newComment = document.querySelector(`[data-comment-id="${newId}"]`) as HTMLElement;
+        const newComment = document.querySelector(
+          `[data-comment-id="${newId}"]`
+        ) as HTMLElement;
         if (newComment) {
           newComment.focus();
         }
@@ -279,6 +239,78 @@ function App() {
     },
     [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
   );
+  const generateComment = useCallback(
+    async ({
+      attachments = [],
+      parentId,
+      commentType = "assistant",
+    }: ADD_COMMENT_PROPS) => {
+      abortControllerRef.current = new AbortController();
+      let content;
+      let model;
+      try {
+        const initialPrompts: { role: string; content: string }[] = [];
+        const parents = findParentComments(comments, parentId);
+        const localParents = [...parents];
+        while (localParents.length > 0) {
+          const parent = localParents.shift()!;
+          initialPrompts.push({
+            role: parent.type,
+            content: parent.content,
+          });
+        }
+        if (aiConfig.systemPrompt?.trim()) {
+          initialPrompts.unshift({
+            role: "system",
+            content: aiConfig.systemPrompt,
+          });
+        }
+        const { content: prompt } = initialPrompts.pop() as {
+          role: string;
+          content: string;
+        };
+        const ai =
+          aiConfig.type === "window.ai"
+            ? window.ai
+            : new AI({
+                endpoint: aiConfig.endpoint,
+                credentials: {
+                  apiKey: aiConfig.apiKey,
+                },
+                model: aiConfig.model,
+              });
+        model = await ai.languageModel.create({
+          temperature: aiConfig.temperature,
+          topK: aiConfig.topK,
+          systemPrompt: aiConfig.systemPrompt,
+        });
+        content = await model.prompt(prompt, {
+          signal: abortControllerRef.current?.signal,
+        });
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("Generation was cancelled");
+        } else {
+          console.error(error);
+          // setGenError(error);
+        }
+      } finally {
+        if (model) {
+          model.destroy();
+        }
+        abortControllerRef.current = null;
+      }
+      addComment({ content, attachments, parentId, commentType });
+    },
+    [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
+  );
+  // const cancelGeneration = () => {
+  //   if (abortControllerRef.current) {
+  //     abortControllerRef.current.abort();
+  //     abortControllerRef.current = null;
+  //     setLoadingGen(false);
+  //   }
+  // };
 
   const handleAttachmentUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -434,7 +466,11 @@ function App() {
   );
 
   const handleClone = useCallback(
-    (commentId: string, originalComment: Comment, cloneChildren: boolean = false) => {
+    (
+      commentId: string,
+      originalComment: Comment,
+      cloneChildren: boolean = false
+    ) => {
       // Helper function to deep clone a comment and its children
       const deepCloneComment = (comment: Comment): Comment => {
         return {
@@ -444,7 +480,9 @@ function App() {
           userId: comment.userId,
           type: comment.type,
           timestamp: Date.now(),
-          contentHash: generateContentHash(comment.content + Date.now().toString()),
+          contentHash: generateContentHash(
+            comment.content + Date.now().toString()
+          ),
           attachments: [...comment.attachments],
           renderAttachment,
         };
@@ -458,23 +496,25 @@ function App() {
           comments: Comment[],
           targetId: string
         ): Comment[] => {
-          return comments.map((comment) => {
-            // Create a new comment object with updated children if needed
-            if (comment.children.length > 0) {
-              return {
-                ...comment,
-                children: insertCloneAtSameLevel(comment.children, targetId),
-              };
-            }
-            return comment;
-          }).reduce((acc: Comment[], comment) => {
-            acc.push(comment);
-            // If this is the target comment, add the clone right after
-            if (comment.id === targetId) {
-              acc.push(clonedComment);
-            }
-            return acc;
-          }, []);
+          return comments
+            .map((comment) => {
+              // Create a new comment object with updated children if needed
+              if (comment.children.length > 0) {
+                return {
+                  ...comment,
+                  children: insertCloneAtSameLevel(comment.children, targetId),
+                };
+              }
+              return comment;
+            })
+            .reduce((acc: Comment[], comment) => {
+              acc.push(comment);
+              // If this is the target comment, add the clone right after
+              if (comment.id === targetId) {
+                acc.push(clonedComment);
+              }
+              return acc;
+            }, []);
         };
 
         return insertCloneAtSameLevel(prevComments, commentId);
@@ -523,6 +563,7 @@ function App() {
           aiConfig={aiConfig}
           chatFocustId={chatFocustId}
           setChatFocustId={setChatFocustId}
+          onGenerate={generateComment}
         />
       );
     }
@@ -540,7 +581,7 @@ function App() {
     showEditor,
     aiConfig,
     chatFocustId,
-    setChatFocustId
+    setChatFocustId,
   ]);
 
   // Memoize the export preview component
@@ -682,6 +723,7 @@ function App() {
       {showEditor && (
         <CommentEditor
           onSubmit={addComment}
+          onGenerate={generateComment}
           onCancel={handleCancel}
           userId={userId}
           setUserId={setUserId}

@@ -15,7 +15,10 @@ interface CommentTreeProps {
   onReply?: (id: string, autoReply?: boolean) => void;
   onClone?: (id: string, comment: CommentType) => void;
   replyToId?: string;
-  onAttachmentUpload?: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentUpload?: (
+    id: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
   onAttachmentRemove?: (id: string, index: number) => void;
   disableEditing?: boolean;
   selectedCommentId?: string;
@@ -23,6 +26,7 @@ interface CommentTreeProps {
   aiConfig: AIConfig;
   chatFocustId: string;
   setChatFocustId: (mode: string) => void;
+  onGenerate: (props: { attachments: Attachment[]; parentId: string }) => void;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -44,7 +48,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   onCommentSelect,
   aiConfig,
   chatFocustId,
-  setChatFocustId
+  setChatFocustId,
+  onGenerate,
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -92,7 +97,10 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     return parentComment.children.some((child) => isDescendant(child, childId));
   };
 
-  const findSiblings = (comments: CommentType[], targetId: string): CommentType[] => {
+  const findSiblings = (
+    comments: CommentType[],
+    targetId: string
+  ): CommentType[] => {
     for (const comment of comments) {
       if (comment.id === targetId) {
         return comments;
@@ -105,9 +113,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     return [];
   };
 
-  const findParentId = (comments: CommentType[], targetId: string): string | null => {
+  const findParentId = (
+    comments: CommentType[],
+    targetId: string
+  ): string | null => {
     for (const comment of comments) {
-      if (comment.children.some(child => child.id === targetId)) {
+      if (comment.children.some((child) => child.id === targetId)) {
         return comment.id;
       }
       const parentId = findParentId(comment.children, targetId);
@@ -140,16 +151,24 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       if (!targetComment) return;
 
       // Check if target is a descendant of dropped comment or vice versa
-      if (isDescendant(droppedComment, targetId) || isDescendant(targetComment, droppedComment.id)) {
+      if (
+        isDescendant(droppedComment, targetId) ||
+        isDescendant(targetComment, droppedComment.id)
+      ) {
         // Create a deep copy of the tree to work with
-        const updatedComments = allComments.map(comment => ({ ...comment }));
+        const updatedComments = allComments.map((comment) => ({ ...comment }));
 
         // Helper function to swap two nodes in the tree
-        const swapNodes = (items: CommentType[], id1: string, id2: string): CommentType[] => {
-          return items.map(item => {
+        const swapNodes = (
+          items: CommentType[],
+          id1: string,
+          id2: string
+        ): CommentType[] => {
+          return items.map((item) => {
             // If this is one of our target items, swap its content but keep its position
             if (item.id === id1 || item.id === id2) {
-              const newContent = item.id === id1 ? targetComment : droppedComment;
+              const newContent =
+                item.id === id1 ? targetComment : droppedComment;
               return {
                 ...item,
                 content: newContent.content,
@@ -157,14 +176,14 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 type: newContent.type,
                 timestamp: newContent.timestamp,
                 attachments: [...newContent.attachments],
-                children: swapNodes(item.children, id1, id2)
+                children: swapNodes(item.children, id1, id2),
               };
             }
             // For all other items, just process their children
             if (item.children.length > 0) {
               return {
                 ...item,
-                children: swapNodes(item.children, id1, id2)
+                children: swapNodes(item.children, id1, id2),
               };
             }
             return item;
@@ -208,7 +227,10 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     }
 
     // If dropping at root level
-    const [foundComment, remainingComments] = findAndRemoveComment(allComments, droppedComment.id);
+    const [foundComment, remainingComments] = findAndRemoveComment(
+      allComments,
+      droppedComment.id
+    );
     if (!foundComment) return;
     topLevelUpdate([...remainingComments, foundComment]);
   };
@@ -285,7 +307,11 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     topLevelUpdate(updatedComments);
   };
 
-  const handleUpdateComment = (commentId: string, newContent: string, newAttachments: Attachment[]) => {
+  const handleUpdateComment = (
+    commentId: string,
+    newContent: string,
+    newAttachments: Attachment[]
+  ) => {
     const updateCommentInTree = (comments: CommentType[]): CommentType[] => {
       return comments.map((comment) => {
         if (comment.id === commentId) {
@@ -310,16 +336,20 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     topLevelUpdate(updatedComments);
   };
 
-  const handleSiblingNavigation = (commentId: string, direction: 'prev' | 'next') => {
+  const handleSiblingNavigation = (
+    commentId: string,
+    direction: "prev" | "next"
+  ) => {
     const siblings = findSiblings(allComments, commentId);
-    const currentIndex = siblings.findIndex(c => c.id === commentId);
-    
+    const currentIndex = siblings.findIndex((c) => c.id === commentId);
+
     if (currentIndex === -1 || siblings.length <= 1) return;
-    
-    const nextIndex = direction === 'next'
-      ? (currentIndex + 1) % siblings.length
-      : (currentIndex - 1 + siblings.length) % siblings.length;
-    
+
+    const nextIndex =
+      direction === "next"
+        ? (currentIndex + 1) % siblings.length
+        : (currentIndex - 1 + siblings.length) % siblings.length;
+
     const nextSibling = siblings[nextIndex];
     if (nextSibling) {
       // Update the chatFocustId to switch focus to the new sibling
@@ -337,11 +367,16 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         const target = e.target as HTMLElement;
         if (!target.closest('[role="article"]')) return;
 
-        const currentComment = findComment(allComments, selectedCommentId || '');
+        const currentComment = findComment(
+          allComments,
+          selectedCommentId || ""
+        );
         if (!currentComment) return;
 
-        const siblings = findSiblings(allComments, selectedCommentId || '');
-        const currentIndex = siblings.findIndex(c => c.id === selectedCommentId);
+        const siblings = findSiblings(allComments, selectedCommentId || "");
+        const currentIndex = siblings.findIndex(
+          (c) => c.id === selectedCommentId
+        );
 
         let nextElement: HTMLElement | null = null;
 
@@ -349,9 +384,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
           case "ArrowLeft": {
             if (siblings.length > 0) {
               e.preventDefault();
-              const nextIndex = currentIndex <= 0 ? siblings.length - 1 : currentIndex - 1;
+              const nextIndex =
+                currentIndex <= 0 ? siblings.length - 1 : currentIndex - 1;
               const nextId = siblings[nextIndex].id;
-              nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
+              nextElement = document.querySelector(
+                `[data-comment-id="${nextId}"]`
+              );
               if (nextElement && onCommentSelect) {
                 if (chatFocustId) {
                   setChatFocustId(nextId);
@@ -364,9 +402,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
           case "ArrowRight": {
             if (siblings.length > 0) {
               e.preventDefault();
-              const nextIndex = currentIndex >= siblings.length - 1 ? 0 : currentIndex + 1;
+              const nextIndex =
+                currentIndex >= siblings.length - 1 ? 0 : currentIndex + 1;
               const nextId = siblings[nextIndex].id;
-              nextElement = document.querySelector(`[data-comment-id="${nextId}"]`);
+              nextElement = document.querySelector(
+                `[data-comment-id="${nextId}"]`
+              );
               if (nextElement && onCommentSelect) {
                 if (chatFocustId) {
                   setChatFocustId(nextId);
@@ -377,10 +418,12 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             break;
           }
           case "ArrowUp": {
-            const parentId = findParentId(allComments, selectedCommentId || '');
+            const parentId = findParentId(allComments, selectedCommentId || "");
             if (parentId) {
               e.preventDefault();
-              nextElement = document.querySelector(`[data-comment-id="${parentId}"]`);
+              nextElement = document.querySelector(
+                `[data-comment-id="${parentId}"]`
+              );
               if (nextElement && onCommentSelect) {
                 if (chatFocustId) {
                   setChatFocustId(parentId);
@@ -394,7 +437,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             if (currentComment.children.length > 0) {
               e.preventDefault();
               const childId = currentComment.children[0].id;
-              nextElement = document.querySelector(`[data-comment-id="${childId}"]`);
+              nextElement = document.querySelector(
+                `[data-comment-id="${childId}"]`
+              );
               if (nextElement && onCommentSelect) {
                 if (chatFocustId) {
                   setChatFocustId(childId);
@@ -429,13 +474,20 @@ const CommentTree: React.FC<CommentTreeProps> = ({
 
       document.addEventListener("keydown", handleKeyDown);
       document.addEventListener("click", handleClickOutside);
-      
+
       return () => {
         document.removeEventListener("keydown", handleKeyDown);
         document.removeEventListener("click", handleClickOutside);
       };
     }
-  }, [selectedCommentId, allComments, onCommentSelect, level, chatFocustId, setChatFocustId]);
+  }, [
+    selectedCommentId,
+    allComments,
+    onCommentSelect,
+    level,
+    chatFocustId,
+    setChatFocustId,
+  ]);
 
   const findAncestorIds = (
     comments: CommentType[],
@@ -446,12 +498,16 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       if (comment.id === targetId) {
         return ancestors;
       }
-      
+
       const currentAncestors = new Set(ancestors);
       currentAncestors.add(comment.id);
-      
+
       for (const child of comment.children) {
-        const foundAncestors = findAncestorIds([child], targetId, currentAncestors);
+        const foundAncestors = findAncestorIds(
+          [child],
+          targetId,
+          currentAncestors
+        );
         if (foundAncestors.size > 0) {
           return foundAncestors;
         }
@@ -462,7 +518,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
 
   const getFirstLineage = (comment: CommentType): Set<string> => {
     const lineage = new Set<string>();
-    
+
     const addFirstLineage = (current: CommentType) => {
       if (current.children.length > 0) {
         const firstChild = current.children[0];
@@ -470,7 +526,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         addFirstLineage(firstChild);
       }
     };
-    
+
     addFirstLineage(comment);
     return lineage;
   };
@@ -499,14 +555,18 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     }
 
     const firstLineageIds = getFirstLineage(focusedComment);
-    const visibleIds = new Set([...ancestorIds, chatFocustId, ...firstLineageIds]);
+    const visibleIds = new Set([
+      ...ancestorIds,
+      chatFocustId,
+      ...firstLineageIds,
+    ]);
 
     const filterTree = (items: CommentType[]): CommentType[] => {
       return items
-        .filter(item => visibleIds.has(item.id))
-        .map(item => ({
+        .filter((item) => visibleIds.has(item.id))
+        .map((item) => ({
           ...item,
-          children: filterTree(item.children)
+          children: filterTree(item.children),
         }));
     };
 
@@ -534,13 +594,17 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     >
       {visibleComments.map((comment) => {
         const siblings = findSiblings(allComments, comment.id);
-        const currentIndex = siblings.findIndex(c => c.id === comment.id);
-        
-        const siblingInfo = siblings.length > 1 ? {
-          currentIndex,
-          totalSiblings: siblings.length,
-          onNavigate: (direction: 'prev' | 'next') => handleSiblingNavigation(comment.id, direction)
-        } : undefined;
+        const currentIndex = siblings.findIndex((c) => c.id === comment.id);
+
+        const siblingInfo =
+          siblings.length > 1
+            ? {
+                currentIndex,
+                totalSiblings: siblings.length,
+                onNavigate: (direction: "prev" | "next") =>
+                  handleSiblingNavigation(comment.id, direction),
+              }
+            : undefined;
 
         return (
           <div key={`container-${comment.id}`}>
@@ -571,6 +635,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               chatFocustId={chatFocustId}
               setChatFocustId={setChatFocustId}
               siblingInfo={siblingInfo}
+              onGenerate={onGenerate}
             />
             {comment.children.length > 0 && (
               <CommentTree
@@ -598,6 +663,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 aiConfig={aiConfig}
                 chatFocustId={chatFocustId}
                 setChatFocustId={setChatFocustId}
+                onGenerate={onGenerate}
               />
             )}
           </div>

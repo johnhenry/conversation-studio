@@ -20,7 +20,7 @@ export interface CommentData {
   children: CommentData[];
   parentId?: string | null;
   deleted?: boolean;
-  newAction?: "" | "auto-reply"
+  newAction?: "" | "auto-reply";
 }
 
 // UI-specific comment type
@@ -111,12 +111,12 @@ export interface SettingsModalProps {
 }
 
 export type ADD_COMMENT_PROPS = {
-  content: string,
-  attachments: Attachment[],
-  parentId?: string,
-  commentType:string,
-  autoReply?: boolean,
-  autoGenerate?: boolean,
-  generateContent?:boolean
-  abortController?: AbortController
-}
+  content: string;
+  attachments: Attachment[];
+  parentId?: string;
+  commentType: string;
+  // autoReply?: boolean,
+  // autoGenerate?: boolean,
+  // generateContent?:boolean
+  // abortController?: AbortController
+};
