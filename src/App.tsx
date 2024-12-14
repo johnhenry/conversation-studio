@@ -230,13 +230,13 @@ function App() {
       if (chatFocustId) {
         setChatFocustId(newId);
       }
-      if (autoReply) {
+      if (autoReply && autoReply > 0) {
         generateComment({
           content: "",
           parentId: newId,
           commentType: "assistant",
           userId,
-          autoReply: false,
+          autoReply: autoReply - 1,
         });
       }
       // Focus after a short delay to ensure the component is mounted
@@ -461,7 +461,7 @@ function App() {
     });
   }, []);
 
-  const handleReply = useCallback((commentId: string, autoReply?: boolean) => {
+  const handleReply = useCallback((commentId: string, autoReply?: number) => {
     setReplyToId(commentId);
     setAutoReplySettings(
       autoReply ? { userId: "assistant", autoGenerate: true } : {}

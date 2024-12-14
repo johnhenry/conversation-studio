@@ -102,5 +102,5 @@ export interface ADD_COMMENT_PROPS {
   parentId?: string;
   commentType: string;
   userId?: string;
-  autoReply?: boolean;
+  autoReply?: number;
 }

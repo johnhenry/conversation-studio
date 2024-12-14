@@ -61,7 +61,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const editorRef = useRef<HTMLTextAreaElement>(null);
-  const [autoReply, setAutoReply] = useState(false);
+  const [autoReply, setAutoReply] = useState(0);
 
   // Focus the editor when it becomes visible
   useEffect(() => {
@@ -452,12 +452,19 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
               <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
-                <span>Auto-reply</span>
-                <input
+                Auto-reply
+                {/* <input
                   onChange={(e) => setAutoReply(e.target.checked)}
                   defaultChecked={autoReply}
                   type="checkbox"
                   className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
+                /> */}
+                <input
+                  type="number"
+                  onChange={(e) => setAutoReply(e.target.valueAsNumber)}
+                  defaultValue={autoReply}
+                  min="0"
+                  className="w-16 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </label>
               <button
