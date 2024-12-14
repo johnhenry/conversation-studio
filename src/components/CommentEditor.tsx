@@ -22,7 +22,11 @@ import {
 
 interface CommentEditorProps {
   onSubmit: (props: ADD_COMMENT_PROPS) => void;
-  onGenerate: (props: { attachments: Attachment[]; parentId: string }) => void;
+  onGenerate: (props: {
+    parentId: string;
+    attachments?: Attachment[];
+    userId?: string;
+  }) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
   attachments: CommentType["attachments"];
@@ -140,6 +144,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     onGenerate({
       attachments,
       parentId,
+      userId,
     });
     setContent("");
     setCommentType(DEFAULT_COMMENT_TYPE);

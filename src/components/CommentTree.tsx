@@ -26,7 +26,11 @@ interface CommentTreeProps {
   aiConfig: AIConfig;
   chatFocustId: string;
   setChatFocustId: (mode: string) => void;
-  onGenerate: (props: { attachments: Attachment[]; parentId: string }) => void;
+  onGenerate: (props: {
+    parentId: string;
+    attachments?: Attachment[];
+    userId?: string;
+  }) => void;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({

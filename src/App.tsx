@@ -97,7 +97,6 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [chatFocustId, setChatFocustId] = useState<string>("");
-  const abortControllerRef = useRef<AbortController | null>(null);
   const { aiConfig, setAIConfig } = useAIConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
@@ -239,13 +238,55 @@ function App() {
     },
     [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
   );
+  // const generationQueueRef = useRef<
+  //   {
+  //     userId: string;
+  //     parentId: string;
+  //     abort: () => void;
+  //   }[]
+  // >([]);
+  const [generationQueue, setGenerationQueue] = useState<
+    {
+      userId: string;
+      parentId: string;
+      abort: () => void;
+    }[]
+  >([]);
   const generateComment = useCallback(
     async ({
       attachments = [],
       parentId,
       commentType = "assistant",
+      userId,
     }: ADD_COMMENT_PROPS) => {
-      abortControllerRef.current = new AbortController();
+      if (!parentId) {
+        throw new Error("Generated comment must have a parent");
+      }
+      const abortController = new AbortController();
+      const remove = () => {
+        // generationQueueRef.current.splice(
+        //   generationQueueRef.current.indexOf(generation),
+        //   1
+        // );
+        // setGenerationQueue(generationQueueRef.current);
+        generationQueue.splice(generationQueue.indexOf(generation), 1);
+        setGenerationQueue(generationQueue);
+      };
+
+      const generation = {
+        userId,
+        parentId,
+        abort: () => {
+          console.log("aborting");
+          abortController.abort();
+          remove();
+        },
+      };
+      // generationQueueRef.current.push(generation);
+      // setGenerationQueue(generationQueueRef.current);
+      generationQueue.push(generation);
+      setGenerationQueue(generationQueue);
+
       let content;
       let model;
       try {
@@ -285,24 +326,47 @@ function App() {
           systemPrompt: aiConfig.systemPrompt,
         });
         content = await model.prompt(prompt, {
-          signal: abortControllerRef.current?.signal,
+          signal: abortController.signal,
         });
       } catch (error) {
+        console.log(error);
         if (error.name === "AbortError") {
           console.log("Generation was cancelled");
         } else {
           console.error(error);
-          // setGenError(error);
         }
       } finally {
         if (model) {
           model.destroy();
         }
-        abortControllerRef.current = null;
+        remove();
       }
-      addComment({ content, attachments, parentId, commentType });
+      console.log(10);
+      addComment({ content, attachments, parentId, commentType, userId });
     },
     [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
+  );
+  const QuedGenerations = () => (
+    <div className="qg fixed bottom-0 right-0 bg-gray-800 text-white p-2">
+      {generationQueue.map((generation, index) => {
+        return (
+          <div key={index} className="flex items-center gap-2">
+            <span>
+              {generation.userId} Generating... response to{" "}
+              {generation.parentId}
+            </span>
+            <button
+              onClick={() => {
+                generation.abort();
+              }}
+              className="text-red-400"
+            >
+              Cancel
+            </button>
+          </div>
+        );
+      })}
+    </div>
   );
   // const cancelGeneration = () => {
   //   if (abortControllerRef.current) {
@@ -750,6 +814,7 @@ function App() {
           onExportSettingsChange={setExportSettings}
         />
       )}
+      <QuedGenerations />
     </div>
   );
 }

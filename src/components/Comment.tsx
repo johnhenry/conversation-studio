@@ -55,7 +55,11 @@ interface CommentProps {
     totalSiblings: number;
     onNavigate: (direction: "prev" | "next") => void;
   };
-  onGenerate: (props: { attachments: Attachment[]; parentId: string }) => void;
+  onGenerate: (props: {
+    parentId: string;
+    attachments?: Attachment[];
+    userId?: string;
+  }) => void;
 }
 
 const Comment: React.FC<CommentProps> = ({
