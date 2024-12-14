@@ -421,9 +421,9 @@ const Comment: React.FC<CommentProps> = ({
                     className="text-gray-400 hover:text-red-400 transition-colors"
                   >
                     {!chatFocustId ? (
-                      <Menu size={16} />
-                    ) : (
                       <ChartNoAxesGantt size={16} />
+                    ) : (
+                      <Menu size={16} />
                     )}
                   </button>
                   <button

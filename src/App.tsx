@@ -91,7 +91,18 @@ function App() {
   const [showEditor, setShowEditor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
-  const [chatFocustId, setChatFocustId] = useState<string>("");
+  const [chatFocustId, _setChatFocustId] = useState<string>("");
+
+  const setChatFocustId = (id: string | null) => {
+    if (id === null) {
+      if (comments.length > 0) {
+        _setChatFocustId(comments[comments.length - 1].id);
+        return;
+      }
+    }
+    _setChatFocustId(id || "");
+  };
+
   const { appConfig, setAppConfig } = useAppConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
@@ -229,7 +240,14 @@ function App() {
         }
       });
     },
-    [userId, appConfig, findAndAddReply, renderAttachment, commentType, chatFocustId]
+    [
+      userId,
+      appConfig,
+      findAndAddReply,
+      renderAttachment,
+      commentType,
+      chatFocustId,
+    ]
   );
   const [generationQueue, setGenerationQueue] = useState<
     {
@@ -352,7 +370,8 @@ function App() {
         return (
           <div key={index} className="flex items-center gap-2">
             <span>
-              {generation.userId} Generating... response to{" "}
+              {generation.userId || "[DEFAULT AGENT]"} is generating a response
+              to
               {generation.parentId}
             </span>
             <button
@@ -679,7 +698,7 @@ function App() {
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId) setUserId(storedUserId);
-    
+
     if (appConfig.general.storeLocally) {
       const storedComments = localStorage.getItem("comments");
       if (storedComments) {
@@ -761,7 +780,10 @@ function App() {
         setActiveTab={setActiveTab}
         appConfig={appConfig}
         onStoreLocallyChange={(value) =>
-          setAppConfig({ ...appConfig, general: { ...appConfig.general, storeLocally: value } })
+          setAppConfig({
+            ...appConfig,
+            general: { ...appConfig.general, storeLocally: value },
+          })
         }
         onImport={handleImport}
         onNewComment={handleNewComment}

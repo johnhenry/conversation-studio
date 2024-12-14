@@ -521,19 +521,17 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     return new Set();
   };
 
-  const getFirstLineage = (comment: CommentType): Set<string> => {
-    const lineage = new Set<string>();
-
-    const addFirstLineage = (current: CommentType) => {
-      if (current.children.length > 0) {
-        const firstChild = current.children[0];
-        lineage.add(firstChild.id);
-        addFirstLineage(firstChild);
-      }
-    };
-
-    addFirstLineage(comment);
-    return lineage;
+  const getLineage = (comment: CommentType, last:boolean = false): Set<string> => {
+      const lineage = new Set<string>();
+      const addLineage = (current: CommentType) => {
+        if (current.children.length > 0) {
+          const lastChild = current.children[last ? (current.children.length - 1) : 0];
+          lineage.add(lastChild.id);
+          addLineage(lastChild);
+        }
+      };
+      addLineage(comment);
+      return lineage;
   };
 
   const filterComments = (comments: CommentType[]): CommentType[] => {
@@ -559,11 +557,11 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       return comments;
     }
 
-    const firstLineageIds = getFirstLineage(focusedComment);
+    const lineageIds = getLineage(focusedComment, true);
     const visibleIds = new Set([
       ...ancestorIds,
       chatFocustId,
-      ...firstLineageIds,
+      ...lineageIds,
     ]);
 
     const filterTree = (items: CommentType[]): CommentType[] => {

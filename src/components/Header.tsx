@@ -1,6 +1,6 @@
 import React from "react";
 import { ExportFormat } from "../types";
-import { Plus, Settings, Import } from "lucide-react";
+import { Plus, Settings, Import, Menu, ChartNoAxesGantt } from "lucide-react";
 import { AppConfig } from "../config";
 
 interface HeaderProps {
@@ -32,13 +32,14 @@ const Header: React.FC<HeaderProps> = ({
               Conversation Studio
             </h1>
           </div>
-
           {/* Navigation */}
           <nav className="flex items-center space-x-4">
             <button
               onClick={() => {
                 setActiveTab("forum");
-                setChatFocustId("");
+                if (!["text", "xml", "json"].includes(activeTab)) {
+                  setChatFocustId(chatFocustId === "" ? null : "");
+                }
               }}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "forum"
@@ -46,7 +47,11 @@ const Header: React.FC<HeaderProps> = ({
                   : "text-gray-300 hover:bg-gray-700"
               }`}
             >
-              {!chatFocustId ? "Forum" : "Chat"}
+              {chatFocustId === "" ? (
+                <ChartNoAxesGantt size={16} />
+              ) : (
+                <Menu size={16} />
+              )}
             </button>
             <button
               onClick={() => setActiveTab("text")}

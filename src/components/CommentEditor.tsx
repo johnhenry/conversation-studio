@@ -2,20 +2,11 @@ import type { ADD_COMMENT_PROPS } from "../types";
 import { AppConfig } from "../config";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-  MessageSquarePlus,
-  X,
-  File,
-  Sparkles,
-} from "lucide-react";
+import { MessageSquarePlus, X, File, Sparkles } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
-import {
-  DEFAULT_USER_ID,
-  CYCLE_TYPES,
-  DEFAULT_COMMENT_TYPE,
-} from "src:/config";
+import { CYCLE_TYPES, DEFAULT_COMMENT_TYPE } from "src:/config";
 
 // import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
 
@@ -253,7 +244,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       case "edit":
         return (
           <>
-           <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-2">
               <label
                 htmlFor="typeInput"
                 className="text-gray-300 flex items-center gap-2"
@@ -269,21 +260,21 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 />
               </label>
               {CYCLE_TYPES.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setCommentType(type)}
-                      className="text-blue-400 hover:text-blue-300 text-sm"
-                    >
-                      {type}
-                    </button>
-                  ))}
-                   <button
-                      type="button"
-                      onClick={() => setCommentType("")}
-                      className="text-blue-400 hover:text-blue-300 text-sm"
-                    >
-                      _
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setCommentType(type)}
+                  className="text-blue-400 hover:text-blue-300 text-sm"
+                >
+                  {type}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCommentType("")}
+                className="text-blue-400 hover:text-blue-300 text-sm"
+              >
+                _
               </button>
             </div>
             <div className="flex gap-2 mb-2">
@@ -302,7 +293,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   placeholder={appConfig.general.userId}
                 />
               </label>
-
             </div>
 
             <textarea
