@@ -188,7 +188,7 @@ function App() {
         id: newId,
         content,
         children: [],
-        userId: userId || DEFAULT_USER_ID,
+        userId: userId || appConfig.general.userId,
         type: commentType || DEFAULT_COMMENT_TYPE,
         timestamp: Date.now(),
         contentHash: generateContentHash(content),
@@ -229,7 +229,7 @@ function App() {
         }
       });
     },
-    [userId, findAndAddReply, renderAttachment, commentType, chatFocustId]
+    [userId, appConfig, findAndAddReply, renderAttachment, commentType, chatFocustId]
   );
   const [generationQueue, setGenerationQueue] = useState<
     {

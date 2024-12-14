@@ -184,6 +184,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                User ID
+              </label>
+              <input
+                type="text"
+                value={appConfig.general.userId || ""}
+                onChange={(e) => handleGeneralChange("userId", e.target.value)}
+                className="w-full p-2 bg-[#2A2A2B] rounded border border-gray-700 text-gray-300"
+              />
+            </div>
           </div>
         )}
 

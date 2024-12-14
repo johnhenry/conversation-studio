@@ -7,6 +7,7 @@ export interface GeneralConfig {
   storeLocally: boolean;
   logLevel: "error" | "warn" | "info" | "debug";
   debug: boolean;
+  userId: string;
 }
 
 export interface AIBaseConfig {
@@ -41,6 +42,7 @@ export const DEFAULT_GENERAL_CONFIG: GeneralConfig = {
   storeLocally: true,
   logLevel: "info",
   debug: false,
+  userId: DEFAULT_USER_ID,
 };
 
 export const DEFAULT_AI_BASE_CONFIG: AIBaseConfig = {

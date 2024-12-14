@@ -7,15 +7,13 @@ import {
   X,
   File,
   Sparkles,
-  ArrowUpRightFromCircle,
 } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import {
-  CYCLE_USER_IDS,
-  CYCLE_TYPES,
   DEFAULT_USER_ID,
+  CYCLE_TYPES,
   DEFAULT_COMMENT_TYPE,
 } from "src:/config";
 
@@ -69,8 +67,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [previewUserId, setPreviewUserId] = useState("");
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [parents, setParents] = useState<CommentType[]>([]);
-  const [loadingGen, setLoadingGen] = useState(false);
-  const [genError, setGenError] = useState<null | Error>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const editorRef = useRef<HTMLTextAreaElement>(null);
@@ -102,6 +98,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   };
 
   const handleClose = () => {
+    setUserId(appConfig.general.userId);
     setIsVisible(false);
     // Wait for fade animation to complete before calling onCancel
     setTimeout(() => {
@@ -110,8 +107,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   };
 
   useEffect(() => {
-    setPreviewUserId(userId || DEFAULT_USER_ID);
-  }, [userId]);
+    setPreviewUserId(userId || appConfig.general.userId);
+  }, [userId, appConfig.general.userId]);
 
   useEffect(() => {
     if (parentId && rootComments) {
@@ -136,6 +133,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       parentId,
       commentType,
     });
+    handleClose();
   };
 
   const handleSubmitGenerate = () => {
@@ -255,48 +253,13 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       case "edit":
         return (
           <>
-            <div className="flex gap-2 mb-2">
-              <label
-                htmlFor="userIdInput"
-                className="text-gray-300 flex items-center gap-2"
-                title="Enter your user ID"
-              >
-                User ID:
-                <input
-                  type="text"
-                  id="userIdInput"
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <div className="flex gap-2">
-                  {CYCLE_USER_IDS.map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setUserId(id)}
-                      className="text-blue-400 hover:text-blue-300 text-sm"
-                    >
-                      {id}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setUserId("")}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    _
-                  </button>
-                </div>
-              </label>
-            </div>
-            <div className="flex gap-2 mb-2">
+           <div className="flex gap-2 mb-2">
               <label
                 htmlFor="typeInput"
                 className="text-gray-300 flex items-center gap-2"
                 title="Enter comment type"
               >
-                Type:
+                Type
                 <input
                   type="text"
                   id="typeInput"
@@ -304,8 +267,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   onChange={(e) => setCommentType(e.target.value)}
                   className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <div className="flex gap-2">
-                  {CYCLE_TYPES.map((type) => (
+              </label>
+              {CYCLE_TYPES.map((type) => (
                     <button
                       key={type}
                       type="button"
@@ -315,16 +278,33 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                       {type}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => setCommentType("")}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    _
-                  </button>
-                </div>
-              </label>
+                   <button
+                      type="button"
+                      onClick={() => setCommentType("")}
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      _
+              </button>
             </div>
+            <div className="flex gap-2 mb-2">
+              <label
+                htmlFor="userIdInput"
+                className="text-gray-300 flex items-center gap-2"
+                title="Enter your user ID"
+              >
+                User
+                <input
+                  type="text"
+                  id="userIdInput"
+                  value={userId || appConfig.general.userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={appConfig.general.userId}
+                />
+              </label>
+
+            </div>
+
             <textarea
               ref={editorRef}
               value={content}
@@ -425,12 +405,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <X size={20} />
           </button>
         </div>
-        {genError && (
-          <div className="text-red-500 p-2">
-            Generative AI Error:{" "}
-            {genError instanceof Error ? genError.message : genError}
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
             <button
