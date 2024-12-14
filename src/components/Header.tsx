@@ -10,7 +10,9 @@ interface HeaderProps {
   onNewComment: () => void;
   onOpenSettings: () => void;
   chatFocustId: string;
-  setChatFocustId: (mode: string) => void;
+  setChatFocustId: (mode: string | null) => void;
+  appConfig: AppConfig;
+  onStoreLocallyChange: (value: boolean) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -46,6 +48,7 @@ const Header: React.FC<HeaderProps> = ({
                   ? "bg-gray-700 text-white"
                   : "text-gray-300 hover:bg-gray-700"
               }`}
+              aria-label={chatFocustId === "" ? "Tree View" : "Chat View"}
             >
               {chatFocustId === "" ? (
                 <ChartNoAxesGantt size={16} />
@@ -94,13 +97,17 @@ const Header: React.FC<HeaderProps> = ({
               >
                 <Plus size={20} />
               </button>
-              <label className="inline-flex items-center p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+              <label
+                className="inline-flex items-center p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer"
+                title="Import File"
+              >
                 <Import size={20} />
                 <input
                   type="file"
                   onChange={onImport}
                   className="hidden"
                   accept=".json,.xml,.txt"
+                  aria-label="Import file"
                 />
               </label>
               <button

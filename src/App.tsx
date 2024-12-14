@@ -42,6 +42,7 @@ const stripUIProperties = (comment: Comment): CommentData => ({
   deleted: comment.deleted,
   type: comment.type,
 });
+
 const findParentComments = (
   comments: Comment[],
   childId: string
@@ -92,7 +93,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [chatFocustId, _setChatFocustId] = useState<string>("");
-  const [isLoadingComments, setIsLoadingComments] = useState(true); // New state to track comment loading
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
 
   const setChatFocustId = (id: string | null) => {
     if (id === null) {
@@ -108,6 +109,7 @@ function App() {
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
     autoGenerate?: boolean;
+    autoReply?: number;
   }>({});
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState<
@@ -260,6 +262,7 @@ function App() {
       isLoadingComments,
     ]
   );
+
   const [generationQueue, setGenerationQueue] = useState<
     {
       userId: string;
@@ -267,6 +270,7 @@ function App() {
       abort: () => void;
     }[]
   >([]);
+
   const generateComment = useCallback(
     async ({
       attachments = [],
@@ -300,7 +304,7 @@ function App() {
       };
 
       const generation = {
-        userId,
+        userId: userId || "[DEFAULT AGENT]",
         parentId,
         abort: () => {
           console.log("aborting");
@@ -403,6 +407,7 @@ function App() {
       isLoadingComments,
     ]
   );
+
   const QuedGenerations = () => (
     <div className="qg fixed bottom-0 right-0 bg-gray-800 text-white p-2">
       {generationQueue.map((generation, index) => {
@@ -464,7 +469,13 @@ function App() {
   const handleReply = useCallback((commentId: string, autoReply?: number) => {
     setReplyToId(commentId);
     setAutoReplySettings(
-      autoReply ? { userId: "assistant", autoGenerate: true } : {}
+      autoReply
+        ? {
+            userId: "assistant",
+            autoGenerate: true,
+            autoReply: autoReply,
+          }
+        : {}
     );
     setShowEditor(true);
   }, []);
@@ -585,7 +596,6 @@ function App() {
       originalComment: Comment,
       cloneChildren: boolean = false
     ) => {
-      // Helper function to deep clone a comment and its children
       const deepCloneComment = (comment: Comment): Comment => {
         return {
           id: generateUniqueId(),
@@ -605,14 +615,12 @@ function App() {
       const clonedComment = deepCloneComment(originalComment);
 
       setComments((prevComments) => {
-        // Helper function to insert clone after original
         const insertCloneAtSameLevel = (
           comments: Comment[],
           targetId: string
         ): Comment[] => {
           return comments
             .map((comment) => {
-              // Create a new comment object with updated children if needed
               if (comment.children.length > 0) {
                 return {
                   ...comment,
@@ -623,7 +631,6 @@ function App() {
             })
             .reduce((acc: Comment[], comment) => {
               acc.push(comment);
-              // If this is the target comment, add the clone right after
               if (comment.id === targetId) {
                 acc.push(clonedComment);
               }
@@ -645,7 +652,6 @@ function App() {
     setAttachments([]);
   }, []);
 
-  // Memoize the comments data for export preview
   const exportCommentData = useMemo(() => {
     if (activeTab === "forum") {
       return [];
@@ -653,7 +659,6 @@ function App() {
     return comments.map(stripUIProperties);
   }, [comments, activeTab]);
 
-  // Memoize the comment tree
   const commentTree = useMemo(() => {
     if (activeTab === "forum") {
       return comments.length === 0 ? (
@@ -678,7 +683,12 @@ function App() {
           chatFocustId={chatFocustId}
           setChatFocustId={setChatFocustId}
           onGenerate={(props) =>
-            generateComment({ ...props, content: "", commentType: "assistant" })
+            generateComment({
+              ...props,
+              content: "",
+              commentType: "assistant",
+              autoReply: props.autoReply,
+            })
           }
         />
       );
@@ -700,7 +710,7 @@ function App() {
     setChatFocustId,
     generateComment,
   ]);
-  // Memoize the export preview component
+
   const exportPreview = useMemo(() => {
     if (activeTab === "text" || activeTab === "json" || activeTab === "xml") {
       return (
@@ -716,11 +726,9 @@ function App() {
   }, [activeTab, exportCommentData, exportSettings]);
 
   const handleTabChange = useCallback((tab: ExportFormat | "forum") => {
-    // Clear any existing error state
     setActiveTab(tab);
   }, []);
 
-  // Function to add renderAttachment to comments recursively
   const addRenderAttachmentToComments = useCallback(
     (comments: Comment[]): Comment[] => {
       return comments.map((comment) => ({
@@ -732,7 +740,6 @@ function App() {
     [renderAttachment]
   );
 
-  // Load state from localStorage on mount
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId) setUserId(storedUserId);
@@ -742,7 +749,6 @@ function App() {
       if (storedComments) {
         try {
           const parsedComments = JSON.parse(storedComments);
-          // Reattach the renderAttachment function to each comment
           const commentsWithUI = addRenderAttachmentToComments(parsedComments);
           setComments(commentsWithUI);
         } catch (error) {
@@ -750,21 +756,16 @@ function App() {
         }
       }
     }
-    setIsLoadingComments(false); // Mark comments as loaded
+    setIsLoadingComments(false);
     setIsInitialized(true);
   }, [appConfig.general.storeLocally, addRenderAttachmentToComments]);
 
-  // Save state to localStorage when it changes
   useEffect(() => {
-    // Don't save until initial load is complete
     if (!isInitialized) return;
 
-    // Always save userId
     localStorage.setItem("userId", userId);
 
-    // Only save comments if storeLocally is true
     if (appConfig.general.storeLocally) {
-      // Strip UI-specific properties before storing
       const commentsToStore = comments.map((comment) =>
         stripUIProperties(comment)
       );
@@ -774,10 +775,8 @@ function App() {
     }
   }, [appConfig.general.storeLocally, comments, userId, isInitialized]);
 
-  // Add global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Only handle shortcuts if not in a text input or textarea
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -785,7 +784,6 @@ function App() {
         return;
       }
 
-      // New comment: just 'n'
       if (e.key === "n") {
         e.preventDefault();
         setShowEditor(true);

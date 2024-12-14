@@ -12,7 +12,7 @@ interface CommentTreeProps {
   rootUpdateComments?: (comments: CommentType[]) => void;
   isPreview?: boolean;
   renderAttachment: (attachment: Attachment) => React.ReactNode;
-  onReply?: (id: string, autoReply?: boolean) => void;
+  onReply?: (id: string, autoReply?: number) => void;
   onClone?: (id: string, comment: CommentType) => void;
   replyToId?: string;
   onAttachmentUpload?: (
@@ -30,6 +30,7 @@ interface CommentTreeProps {
     parentId: string;
     attachments?: Attachment[];
     userId?: string;
+    autoReply?: number;
   }) => void;
 }
 

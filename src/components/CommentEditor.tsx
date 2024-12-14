@@ -8,14 +8,13 @@ import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
 import { CYCLE_TYPES, DEFAULT_COMMENT_TYPE } from "src:/config";
 
-// import { exportCommentsText, exportCommentsXML, exportCommentsJSON } from "../utils/export";
-
 interface CommentEditorProps {
   onSubmit: (props: ADD_COMMENT_PROPS) => void;
   onGenerate: (props: {
     parentId: string;
     attachments?: Attachment[];
     userId?: string;
+    autoReply?: number;
   }) => void;
   userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
@@ -24,7 +23,6 @@ interface CommentEditorProps {
   onAttachmentRemove: (index: number) => void;
   content: string;
   setContent: React.Dispatch<React.SetStateAction<string>>;
-  buttonText?: string;
   parentId?: string;
   onCancel?: () => void;
   rootComments?: CommentType[];
@@ -45,11 +43,11 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   onAttachmentRemove,
   content,
   setContent,
-  buttonText = "Add",
   parentId,
   onCancel,
   rootComments = [],
   autoSetUserId,
+  autoGenerate,
   appConfig,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
@@ -61,7 +59,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [commentType, setCommentType] = useState(DEFAULT_COMMENT_TYPE);
   const editorRef = useRef<HTMLTextAreaElement>(null);
-  const [autoReply, setAutoReply] = useState(0);
+  const [autoReply, setAutoReply] = useState(autoGenerate ? 1 : 0);
+  const [previewChatFocusId, setPreviewChatFocusId] = useState("");
 
   // Focus the editor when it becomes visible
   useEffect(() => {
@@ -342,6 +341,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               level={0}
               isPreview={true}
               renderAttachment={renderAttachment}
+              appConfig={appConfig}
+              chatFocustId={previewChatFocusId}
+              setChatFocustId={setPreviewChatFocusId}
+              onGenerate={onGenerate}
             />
           </div>
         );
@@ -453,12 +456,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <div className="flex gap-2">
               <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
                 Auto-reply
-                {/* <input
-                  onChange={(e) => setAutoReply(e.target.checked)}
-                  defaultChecked={autoReply}
-                  type="checkbox"
-                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
-                /> */}
                 <input
                   type="number"
                   onChange={(e) => setAutoReply(e.target.valueAsNumber)}

@@ -26,7 +26,7 @@ interface CommentProps {
   onDragStart: (e: React.DragEvent, comment: CommentType) => void;
   onDrop: (e: React.DragEvent, id: string) => void;
   onPopUp?: (id: string) => void;
-  onReply?: (id: string, autoReply?: boolean) => void;
+  onReply?: (id: string, autoReply?: number) => void;
   onUserIdChange?: (id: string, newUserId: string) => void;
   onTypeChange?: (id: string, newType: string) => void;
   onUpdate?: (
@@ -60,6 +60,7 @@ interface CommentProps {
     parentId: string;
     attachments?: Attachment[];
     userId?: string;
+    autoReply?: number;
   }) => void;
 }
 
@@ -161,7 +162,7 @@ const Comment: React.FC<CommentProps> = ({
         setIsEditing(true);
       } else if (e.key === "r" && onReply) {
         e.preventDefault();
-        onReply(comment.id, false);
+        onReply(comment.id, 0);
       } else if (e.key === "R" && onReply) {
         e.preventDefault();
         handleAutoReply();
@@ -187,7 +188,7 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleAutoReply = () => {
-    onGenerate?.({ parentId: comment.id });
+    onGenerate?.({ parentId: comment.id, autoReply: 1 });
   };
 
   const handleClone = () => {
@@ -403,7 +404,7 @@ const Comment: React.FC<CommentProps> = ({
                     </button>
                   )}
                   <button
-                    onClick={() => onReply?.(comment.id)}
+                    onClick={() => onReply?.(comment.id, 0)}
                     title="Reply"
                     className="text-gray-400 hover:text-blue-400 transition-colors"
                   >

@@ -49,7 +49,7 @@ export interface CommentTreeProps {
   rootUpdateComments?: (comments: Comment[]) => void;
   isPreview?: boolean;
   renderAttachment: (attachment: Attachment) => ReactNode | null;
-  onReply?: (id: string) => void;
+  onReply?: (id: string, autoReply?: number) => void;
   replyToId?: string;
 }
 
