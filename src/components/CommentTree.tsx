@@ -167,7 +167,9 @@ const CommentTree: React.FC<CommentTreeProps> = ({
         isDescendant(targetComment, droppedComment.id)
       ) {
         // Create a deep copy of the remaining comments to work with
-        const updatedComments = remainingComments.map((comment) => ({ ...comment }));
+        const updatedComments = remainingComments.map((comment) => ({
+          ...comment,
+        }));
 
         // Helper function to swap two nodes in the tree
         const swapNodes = (
@@ -178,8 +180,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
           return items.map((item) => {
             // If this is one of our target items, swap its content but keep its position
             if (item.id === id1 || item.id === id2) {
-              const newContent =
-                item.id === id1 ? targetComment : foundComment;
+              const newContent = item.id === id1 ? targetComment : foundComment;
               return {
                 ...item,
                 content: newContent.content,
@@ -521,17 +522,21 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     return new Set();
   };
 
-  const getLineage = (comment: CommentType, last:boolean = false): Set<string> => {
-      const lineage = new Set<string>();
-      const addLineage = (current: CommentType) => {
-        if (current.children.length > 0) {
-          const lastChild = current.children[last ? (current.children.length - 1) : 0];
-          lineage.add(lastChild.id);
-          addLineage(lastChild);
-        }
-      };
-      addLineage(comment);
-      return lineage;
+  const getLineage = (
+    comment: CommentType,
+    last: boolean = false
+  ): Set<string> => {
+    const lineage = new Set<string>();
+    const addLineage = (current: CommentType) => {
+      if (current.children.length > 0) {
+        const lastChild =
+          current.children[last ? current.children.length - 1 : 0];
+        lineage.add(lastChild.id);
+        addLineage(lastChild);
+      }
+    };
+    addLineage(comment);
+    return lineage;
   };
 
   const filterComments = (comments: CommentType[]): CommentType[] => {
@@ -558,11 +563,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     }
 
     const lineageIds = getLineage(focusedComment, true);
-    const visibleIds = new Set([
-      ...ancestorIds,
-      chatFocustId,
-      ...lineageIds,
-    ]);
+    const visibleIds = new Set([...ancestorIds, chatFocustId, ...lineageIds]);
 
     const filterTree = (items: CommentType[]): CommentType[] => {
       return items

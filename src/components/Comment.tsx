@@ -164,7 +164,7 @@ const Comment: React.FC<CommentProps> = ({
         onReply(comment.id, false);
       } else if (e.key === "R" && onReply) {
         e.preventDefault();
-        onReply(comment.id, true);
+        handleAutoReply();
       } else if (e.key === "c" && onClone) {
         e.preventDefault();
         onClone(comment.id, comment, false);
