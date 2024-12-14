@@ -21,7 +21,7 @@ import { importComments } from "./utils/import";
 import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "./config";
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
-import { useAIConfig } from "./hooks/useAIConfig";
+import { useAppConfig } from "./hooks/useAppConfig";
 import AI from "ai.matey/openai";
 
 // Convert Comment to CommentData by removing UI-specific properties
@@ -92,7 +92,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [chatFocustId, setChatFocustId] = useState<string>("");
-  const { aiConfig, setAIConfig } = useAIConfig();
+  const { appConfig, setAppConfig } = useAppConfig();
   const [autoReplySettings, setAutoReplySettings] = useState<{
     userId?: string;
     autoGenerate?: boolean;
@@ -287,10 +287,10 @@ function App() {
             content: parent.content,
           });
         }
-        if (aiConfig.systemPrompt?.trim()) {
+        if (appConfig.ai.base.systemPrompt?.trim()) {
           initialPrompts.unshift({
             role: "system",
-            content: aiConfig.systemPrompt,
+            content: appConfig.ai.base.systemPrompt,
           });
         }
         const { content: prompt } = initialPrompts.pop() as {
@@ -298,20 +298,20 @@ function App() {
           content: string;
         };
         const ai =
-          aiConfig.type === "window.ai"
+          appConfig.ai.base.type === "window.ai"
             ? window.ai
             : new AI({
-                endpoint: aiConfig.endpoint,
+                endpoint: appConfig.ai.base.endpoint,
                 credentials: {
-                  apiKey: aiConfig.apiKey,
+                  apiKey: appConfig.ai.base.apiKey,
                 },
-                model: aiConfig.model,
+                model: appConfig.ai.base.model,
               });
 
         model = await ai.languageModel.create({
-          temperature: aiConfig.temperature,
-          topK: aiConfig.topK,
-          systemPrompt: aiConfig.systemPrompt,
+          temperature: appConfig.ai.base.temperature,
+          topK: appConfig.ai.base.topK,
+          systemPrompt: appConfig.ai.base.systemPrompt,
         });
 
         if (!abortController) {
@@ -617,7 +617,7 @@ function App() {
           selectedCommentId={selectedCommentId}
           onCommentSelect={setSelectedCommentId}
           disableEditing={showEditor}
-          aiConfig={aiConfig}
+          appConfig={appConfig}
           chatFocustId={chatFocustId}
           setChatFocustId={setChatFocustId}
           onGenerate={(props) =>
@@ -638,7 +638,7 @@ function App() {
     handleCommentAttachmentRemove,
     selectedCommentId,
     showEditor,
-    aiConfig,
+    appConfig,
     chatFocustId,
     setChatFocustId,
     generateComment,
@@ -677,7 +677,7 @@ function App() {
 
   // Load state from localStorage on mount
   useEffect(() => {
-    if (aiConfig.storeLocally) {
+    if (appConfig.general.storeLocally) {
       const storedComments = localStorage.getItem("comments");
       const storedUserId = localStorage.getItem("userId");
       if (storedComments) {
@@ -693,14 +693,14 @@ function App() {
       if (storedUserId) setUserId(storedUserId);
     }
     setIsInitialized(true);
-  }, [aiConfig.storeLocally, addRenderAttachmentToComments]);
+  }, [appConfig.general.storeLocally, addRenderAttachmentToComments]);
 
   // Save state to localStorage when it changes
   useEffect(() => {
     // Don't save until initial load is complete
     if (!isInitialized) return;
 
-    if (aiConfig.storeLocally) {
+    if (appConfig.general.storeLocally) {
       // Strip UI-specific properties before storing
       const commentsToStore = comments.map((comment) =>
         stripUIProperties(comment)
@@ -710,7 +710,7 @@ function App() {
     } else {
       localStorage.clear();
     }
-  }, [aiConfig.storeLocally, comments, userId, isInitialized]);
+  }, [appConfig.general.storeLocally, comments, userId, isInitialized]);
 
   // Add global keyboard shortcuts
   useEffect(() => {
@@ -755,8 +755,10 @@ function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        storeLocally={aiConfig.storeLocally}
-        setStoreLocally={(value) => setAIConfig({ storeLocally: value })}
+        appConfig={appConfig}
+        onStoreLocallyChange={(value) =>
+          setAppConfig({ ...appConfig, general: { ...appConfig.general, storeLocally: value } })
+        }
         onImport={handleImport}
         onNewComment={handleNewComment}
         onOpenSettings={handleOpenSettings}
@@ -796,7 +798,7 @@ function App() {
           rootComments={comments}
           autoSetUserId={autoReplySettings.userId}
           autoGenerate={autoReplySettings.autoGenerate}
-          aiConfig={aiConfig}
+          appConfig={appConfig}
         />
       )}
 
@@ -804,8 +806,8 @@ function App() {
         <SettingsModal
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
-          aiConfig={aiConfig}
-          onAIConfigChange={setAIConfig}
+          appConfig={appConfig}
+          onAppConfigChange={setAppConfig}
           exportSettings={exportSettings}
           onExportSettingsChange={setExportSettings}
         />

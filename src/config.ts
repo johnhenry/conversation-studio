@@ -3,8 +3,14 @@ export const DEFAULT_COMMENT_TYPE = "user";
 export const CYCLE_USER_IDS = ["alice", "bob", "charlie", "donna"];
 export const CYCLE_TYPES = ["user", "assistant", "system"];
 
-export interface AIConfig {
-  type: "" | "openai" | "window.ai";
+export interface GeneralConfig {
+  storeLocally: boolean;
+  logLevel: "error" | "warn" | "info" | "debug";
+  debug: boolean;
+}
+
+export interface AIBaseConfig {
+  type: "openai" | "window.ai" | "";
   endpoint: string;
   apiKey: string;
   model: string;
@@ -14,14 +20,31 @@ export interface AIConfig {
   seed: number;
   maxRetries: number;
   retryDelay: number;
-  debug: boolean;
-  logLevel: "error" | "warn" | "info" | "debug";
   systemPrompt: string;
-  storeLocally: boolean;
 }
 
-export const DEFAULT_AI_CONFIG: AIConfig = {
-  type: "window.ai",
+export interface AIConfig {
+  base: AIBaseConfig;
+}
+
+export interface ExportConfig {
+  includeAttachment: boolean;
+}
+
+export interface AppConfig {
+  general: GeneralConfig;
+  ai: AIConfig;
+  export: ExportConfig;
+}
+
+export const DEFAULT_GENERAL_CONFIG: GeneralConfig = {
+  storeLocally: true,
+  logLevel: "info",
+  debug: false,
+};
+
+export const DEFAULT_AI_BASE_CONFIG: AIBaseConfig = {
+  type: "",
   endpoint: "http://localhost:11434/v1/chat/completions",
   apiKey: "",
   model: "llama3.2:latest",
@@ -31,11 +54,22 @@ export const DEFAULT_AI_CONFIG: AIConfig = {
   seed: 42,
   maxRetries: 3,
   retryDelay: 1000,
-  debug: false,
-  logLevel: "info",
   systemPrompt:
     "You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user's questions or comments. Be professional but friendly in your communication style.",
-  storeLocally: false,
+};
+
+export const DEFAULT_AI_CONFIG: AIConfig = {
+  base: DEFAULT_AI_BASE_CONFIG,
+};
+
+export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
+  includeAttachment: true,
+};
+
+export const DEFAULT_APP_CONFIG: AppConfig = {
+  general: DEFAULT_GENERAL_CONFIG,
+  ai: DEFAULT_AI_CONFIG,
+  export: DEFAULT_EXPORT_CONFIG,
 };
 
 export const DEPTH_COLORS = [

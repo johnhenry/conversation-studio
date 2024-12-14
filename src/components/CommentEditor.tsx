@@ -1,4 +1,5 @@
-import type { AIConfig, ADD_COMMENT_PROPS } from "../types";
+import type { ADD_COMMENT_PROPS } from "../types";
+import { AppConfig } from "../config";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -40,7 +41,7 @@ interface CommentEditorProps {
   rootComments?: CommentType[];
   autoSetUserId?: string;
   autoGenerate?: boolean;
-  aiConfig: AIConfig;
+  appConfig: AppConfig;
 }
 
 type PreviewTab = "edit" | "preview" | "text" | "json" | "xml";
@@ -60,7 +61,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   onCancel,
   rootComments = [],
   autoSetUserId,
-  aiConfig,
+  appConfig,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>("edit");
   const [previewData, setPreviewData] = useState("");
@@ -484,15 +485,27 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
-              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
-                <span>Auto-reply</span>
-                <input
-                  onChange={(e) => setAutoReply(e.target.checked)}
-                  defaultChecked={autoReply}
-                  type="checkbox"
-                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
-                />
-              </label>
+              {appConfig.ai.base.type && (
+                <>
+                  <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                    <span>Auto-reply</span>
+                    <input
+                      onChange={(e) => setAutoReply(e.target.checked)}
+                      defaultChecked={autoReply}
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleSubmitGenerate}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Sparkles size={20} />
+                    Generate
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 onClick={handleClose}
@@ -500,17 +513,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               >
                 Cancel
               </button>
-              {aiConfig.type && parentId && (
-                <button
-                  type="button"
-                  onClick={handleSubmitGenerate}
-                  disabled={!!content.trim() || attachments.length > 0}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Sparkles size={20} />
-                  Generate
-                </button>
-              )}
               <button
                 type="button"
                 onClick={handleSubmit}

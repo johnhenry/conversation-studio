@@ -1,4 +1,4 @@
-import type { AIConfig } from "../types";
+import type { AppConfig } from "../config";
 import React, { useEffect } from "react";
 import { Comment as CommentType, Attachment } from "../types";
 import Comment from "./Comment";
@@ -23,7 +23,7 @@ interface CommentTreeProps {
   disableEditing?: boolean;
   selectedCommentId?: string;
   onCommentSelect?: (id: string | undefined) => void;
-  aiConfig: AIConfig;
+  appConfig: AppConfig;
   chatFocustId: string;
   setChatFocustId: (mode: string) => void;
   onGenerate: (props: {
@@ -50,7 +50,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   disableEditing,
   selectedCommentId,
   onCommentSelect,
-  aiConfig,
+  appConfig,
   chatFocustId,
   setChatFocustId,
   onGenerate,
@@ -635,7 +635,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               onSelect={() => onCommentSelect?.(comment.id)}
               disableEditing={disableEditing || isPreview}
               data-comment-id={comment.id}
-              aiConfig={aiConfig}
+              appConfig={appConfig}
               chatFocustId={chatFocustId}
               setChatFocustId={setChatFocustId}
               siblingInfo={siblingInfo}
@@ -664,7 +664,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 disableEditing={disableEditing}
                 selectedCommentId={selectedCommentId}
                 onCommentSelect={onCommentSelect}
-                aiConfig={aiConfig}
+                appConfig={appConfig}
                 chatFocustId={chatFocustId}
                 setChatFocustId={setChatFocustId}
                 onGenerate={onGenerate}

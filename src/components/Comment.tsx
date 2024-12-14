@@ -18,6 +18,7 @@ import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
 import { CYCLE_USER_IDS, CYCLE_TYPES } from "src:/config";
 import { DEPTH_COLORS, DEPTH_TEXT } from "src:/config";
+import { AppConfig } from "../config";
 
 interface CommentProps {
   comment: CommentType;
@@ -47,7 +48,7 @@ interface CommentProps {
   isSelected?: boolean;
   onSelect?: () => void;
   disableEditing?: boolean;
-  aiConfig?: AIConfig;
+  appConfig: AppConfig;
   chatFocustId: string;
   setChatFocustId: (mode: string) => void;
   siblingInfo?: {
@@ -83,7 +84,7 @@ const Comment: React.FC<CommentProps> = ({
   isSelected,
   onSelect,
   disableEditing,
-  aiConfig,
+  appConfig,
   chatFocustId,
   setChatFocustId,
   siblingInfo,
@@ -396,7 +397,7 @@ const Comment: React.FC<CommentProps> = ({
             <div className="flex justify-end gap-2 ml-auto">
               {showDelete && !isEditing && !disableEditing && (
                 <>
-                  {aiConfig?.type && (
+                  {!isEditing && appConfig.ai.base.type && (
                     <button
                       onClick={handleAutoReply}
                       title="Auto Reply"

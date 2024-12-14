@@ -1,12 +1,13 @@
 import React from 'react';
 import { ExportFormat } from '../types';
 import { Plus, Settings, Import } from 'lucide-react';
+import { AppConfig } from '../config';
 
 interface HeaderProps {
   activeTab: ExportFormat | "forum";
   setActiveTab: (tab: ExportFormat | "forum") => void;
-  storeLocally: boolean;
-  setStoreLocally: (store: boolean) => void;
+  appConfig: AppConfig;
+  onStoreLocallyChange: (store: boolean) => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNewComment: () => void;
   onOpenSettings: () => void;
@@ -17,8 +18,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  storeLocally,
-  setStoreLocally,
+  appConfig,
+  onStoreLocallyChange,
   onImport,
   onNewComment,
   onOpenSettings,
@@ -111,8 +112,8 @@ const Header: React.FC<HeaderProps> = ({
                 <span>Save</span>
                 <input
                   type="checkbox"
-                  checked={storeLocally}
-                  onChange={(e) => setStoreLocally(e.target.checked)}
+                  checked={appConfig.storeLocally}
+                  onChange={(e) => onStoreLocallyChange(e.target.checked)}
                   className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-700 bg-gray-800 focus:ring-blue-500"
                 />
               </label>

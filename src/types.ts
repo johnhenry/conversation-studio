@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { AppConfig } from './config';
 
 // Base attachment type
 export interface Attachment {
@@ -77,22 +78,6 @@ export interface CommentEditorProps {
   autoGenerate?: boolean;
 }
 
-export interface AIConfig {
-  type: "" | "openai" | "window.ai";
-  endpoint: string;
-  apiKey: string;
-  model: string;
-  temperature: number;
-  topK: number;
-  maxTokens: number;
-  seed: number;
-  maxRetries: number;
-  retryDelay: number;
-  debug: boolean;
-  logLevel: "error" | "warn" | "info" | "debug";
-  systemPrompt?: string;
-}
-
 // Export settings type
 export interface ExportSettings {
   includeAttachmentUrls: boolean;
@@ -104,20 +89,17 @@ export interface ExportSettings {
 export interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  aiConfig: AIConfig;
-  onAIConfigChange: (config: AIConfig) => void;
+  appConfig: AppConfig;
+  onAppConfigChange: (config: Partial<AppConfig>) => void;
   exportSettings: ExportSettings;
   onExportSettingsChange: (settings: ExportSettings) => void;
 }
 
-export type ADD_COMMENT_PROPS = {
+// Props type for adding a comment
+export interface ADD_COMMENT_PROPS {
   content: string;
   attachments?: Attachment[];
   parentId?: string;
   commentType: string;
   userId?: string;
-  // autoReply?: boolean,
-  // autoGenerate?: boolean,
-  // generateContent?:boolean
-  // abortController?: AbortController
-};
+}
