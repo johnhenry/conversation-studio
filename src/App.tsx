@@ -677,9 +677,11 @@ function App() {
 
   // Load state from localStorage on mount
   useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) setUserId(storedUserId);
+    
     if (appConfig.general.storeLocally) {
       const storedComments = localStorage.getItem("comments");
-      const storedUserId = localStorage.getItem("userId");
       if (storedComments) {
         try {
           const parsedComments = JSON.parse(storedComments);
@@ -690,7 +692,6 @@ function App() {
           console.error("Error parsing stored comments:", error);
         }
       }
-      if (storedUserId) setUserId(storedUserId);
     }
     setIsInitialized(true);
   }, [appConfig.general.storeLocally, addRenderAttachmentToComments]);
@@ -700,15 +701,18 @@ function App() {
     // Don't save until initial load is complete
     if (!isInitialized) return;
 
+    // Always save userId
+    localStorage.setItem("userId", userId);
+
+    // Only save comments if storeLocally is true
     if (appConfig.general.storeLocally) {
       // Strip UI-specific properties before storing
       const commentsToStore = comments.map((comment) =>
         stripUIProperties(comment)
       );
       localStorage.setItem("comments", JSON.stringify(commentsToStore));
-      localStorage.setItem("userId", userId);
     } else {
-      localStorage.clear();
+      localStorage.removeItem("comments");
     }
   }, [appConfig.general.storeLocally, comments, userId, isInitialized]);
 

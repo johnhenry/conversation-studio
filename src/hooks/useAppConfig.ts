@@ -30,20 +30,16 @@ export function useAppConfig() {
     return DEFAULT_APP_CONFIG;
   });
 
-  // Sync to localStorage whenever config changes
+  // Always sync config to localStorage
   useEffect(() => {
-    if (appConfig.general.storeLocally) {
-      try {
-        localStorage.setItem(APP_CONFIG_STORAGE_KEY, JSON.stringify(appConfig));
-        // Dispatch custom event for cross-component sync
-        window.dispatchEvent(
-          new CustomEvent("appconfig-changed", { detail: appConfig })
-        );
-      } catch (e) {
-        console.error("Failed to save app config to localStorage:", e);
-      }
-    } else {
-      localStorage.removeItem(APP_CONFIG_STORAGE_KEY);
+    try {
+      localStorage.setItem(APP_CONFIG_STORAGE_KEY, JSON.stringify(appConfig));
+      // Dispatch custom event for cross-component sync
+      window.dispatchEvent(
+        new CustomEvent("appconfig-changed", { detail: appConfig })
+      );
+    } catch (e) {
+      console.error("Failed to save app config to localStorage:", e);
     }
   }, [appConfig]);
 
