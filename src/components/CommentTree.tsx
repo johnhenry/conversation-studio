@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { Comment as CommentType, Attachment } from "../types";
 import Comment from "./Comment";
 
+// [Previous interfaces and props remain the same...]
 interface CommentTreeProps {
   comments: CommentType[];
   updateComments: (comments: CommentType[]) => void;
@@ -59,6 +60,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
 
+  // [Previous utility functions remain the same...]
   const findComment = (
     comments: CommentType[],
     id: string
@@ -138,6 +140,85 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     e.dataTransfer.setData("comment", JSON.stringify(comment));
   };
 
+  const swapNodes = (
+    comments: CommentType[],
+    node1Id: string,
+    node2Id: string
+  ): CommentType[] => {
+    // Deep clone the comments to avoid mutations
+    const cloneComments = (items: CommentType[]): CommentType[] => {
+      return items.map((item) => ({
+        ...item,
+        children: cloneComments(item.children),
+      }));
+    };
+
+    const result = cloneComments(comments);
+
+    // Find both nodes and store their complete state
+    const node1 = findComment(result, node1Id);
+    const node2 = findComment(result, node2Id);
+
+    if (!node1 || !node2) return result;
+
+    // Store complete state of both nodes
+    const tempNode1State = {
+      content: node1.content,
+      userId: node1.userId,
+      type: node1.type,
+      timestamp: node1.timestamp,
+      attachments: [...node1.attachments],
+    };
+
+    const tempNode2State = {
+      content: node2.content,
+      userId: node2.userId,
+      type: node2.type,
+      timestamp: node2.timestamp,
+      attachments: [...node2.attachments],
+    };
+
+    // Helper function to update a node in the tree
+    const updateNodeInTree = (
+      items: CommentType[],
+      nodeId: string,
+      newState: typeof tempNode1State
+    ): CommentType[] => {
+      return items.map((item) => {
+        if (item.id === nodeId) {
+          return {
+            ...item,
+            content: newState.content,
+            userId: newState.userId,
+            type: newState.type,
+            timestamp: newState.timestamp,
+            attachments: [...newState.attachments],
+            // Preserve children
+            children: item.children,
+          };
+        }
+        if (item.children.length > 0) {
+          return {
+            ...item,
+            children: updateNodeInTree(item.children, nodeId, newState),
+          };
+        }
+        return item;
+      });
+    };
+
+    // First update node1 with node2's state
+    let updatedComments = updateNodeInTree(result, node1Id, tempNode2State);
+    // Then update node2 with node1's state
+    updatedComments = updateNodeInTree(
+      updatedComments,
+      node2Id,
+      tempNode1State
+    );
+
+    return updatedComments;
+  };
+
   const handleDrop = (e: React.DragEvent, targetId: string | null = null) => {
     e.preventDefault();
     e.stopPropagation();
@@ -155,6 +236,32 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       const targetComment = findComment(allComments, targetId);
       if (!targetComment) return;
 
+      // Check if target is the immediate parent
+      const parentId = findParentId(allComments, droppedComment.id);
+      if (parentId === targetId) {
+        // Swap with immediate parent
+        const swappedComments = swapNodes(
+          allComments,
+          droppedComment.id,
+          targetId
+        );
+        topLevelUpdate(swappedComments);
+        return;
+      }
+
+      // Check if target is a descendant
+      if (isDescendant(droppedComment, targetId)) {
+        // Swap with descendant
+        const swappedComments = swapNodes(
+          allComments,
+          droppedComment.id,
+          targetId
+        );
+        topLevelUpdate(swappedComments);
+        return;
+      }
+
+      // Normal case - not ancestor/descendant
       // First remove the dropped comment from its current position
       const [foundComment, remainingComments] = findAndRemoveComment(
         allComments,
@@ -162,54 +269,6 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       );
       if (!foundComment) return;
 
-      // Check if target is a descendant of dropped comment or vice versa
-      if (
-        isDescendant(droppedComment, targetId) ||
-        isDescendant(targetComment, droppedComment.id)
-      ) {
-        // Create a deep copy of the remaining comments to work with
-        const updatedComments = remainingComments.map((comment) => ({
-          ...comment,
-        }));
-
-        // Helper function to swap two nodes in the tree
-        const swapNodes = (
-          items: CommentType[],
-          id1: string,
-          id2: string
-        ): CommentType[] => {
-          return items.map((item) => {
-            // If this is one of our target items, swap its content but keep its position
-            if (item.id === id1 || item.id === id2) {
-              const newContent = item.id === id1 ? targetComment : foundComment;
-              return {
-                ...item,
-                content: newContent.content,
-                userId: newContent.userId,
-                type: newContent.type,
-                timestamp: newContent.timestamp,
-                attachments: [...newContent.attachments],
-                children: swapNodes(item.children, id1, id2),
-              };
-            }
-            // For all other items, just process their children
-            if (item.children.length > 0) {
-              return {
-                ...item,
-                children: swapNodes(item.children, id1, id2),
-              };
-            }
-            return item;
-          });
-        };
-
-        // Perform the swap
-        const result = swapNodes(updatedComments, foundComment.id, targetId);
-        topLevelUpdate(result);
-        return;
-      }
-
-      // Normal case - not ancestor/descendant
       // Add the comment to its new position
       const addToTarget = (items: CommentType[]): CommentType[] => {
         return items.map((item) => {
@@ -242,6 +301,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     topLevelUpdate([...remainingComments, foundComment]);
   };
 
+  // [Rest of the component remains the same...]
   const handlePopUp = (commentId: string) => {
     if (!parentId) return;
 

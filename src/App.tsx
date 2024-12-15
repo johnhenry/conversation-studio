@@ -199,7 +199,7 @@ function App() {
       }
       setFutureComments([]);
     }
-  }, [comments, futureComments]);
+  }, [comments]);
 
   const addComment = useCallback(
     ({
@@ -222,7 +222,6 @@ function App() {
         attachments,
         renderAttachment,
       };
-
       setComments((prevComments) => {
         if (autoReply && autoReply > 0) {
           const fc: ADD_COMMENT_PROPS[] = [];

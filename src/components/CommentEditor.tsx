@@ -91,6 +91,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   const handleClose = () => {
     setUserId(appConfig.general.userId);
+    setAutoReply(0);
+    setAutoReplyCount(1);
     setIsVisible(false);
     // Wait for fade animation to complete before calling onCancel
     setTimeout(() => {

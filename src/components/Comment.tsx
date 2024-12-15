@@ -188,15 +188,27 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleAutoReply = () => {
-    onGenerate?.({ parentId: comment.id, autoReply: 1 });
+    onGenerate?.({ parentId: comment.id });
   };
 
   const handleClone = () => {
     onClone?.(comment.id, comment, false);
   };
 
-  const depth_bg = DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
-  const depth_text = DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];
+  const depth_bg = chatFocustId
+    ? DEPTH_COLORS[0]
+    : DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
+  const depth_text = chatFocustId
+    ? DEPTH_TEXT[0]
+    : DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];
+
+  const prev_depth_bg = chatFocustId
+    ? DEPTH_COLORS[0]
+    : DEPTH_COLORS[level % DEPTH_COLORS.length];
+
+  const prev_depth_text = chatFocustId
+    ? DEPTH_TEXT[0]
+    : DEPTH_TEXT[level % DEPTH_TEXT.length];
 
   return (
     <div
@@ -229,7 +241,7 @@ const Comment: React.FC<CommentProps> = ({
       aria-label={`Comment by ${comment.userId}`}
     >
       {/* Indentation lines for nested comments */}
-      {comment.children.length > 0 && (
+      {comment.children.length > 0 && !chatFocustId && (
         <>
           <div
             className={`absolute w-[2px] ${depth_bg}`}
@@ -241,21 +253,17 @@ const Comment: React.FC<CommentProps> = ({
           />
         </>
       )}
-      {level > 0 && (
+      {level > 0 && !chatFocustId && (
         <>
           {/* Current level connector */}
           <div className="absolute left-0 top-0 bottom-0 flex">
             <div
-              className={`w-[2px] relative ${
-                DEPTH_COLORS[level % DEPTH_COLORS.length]
-              }`}
+              className={`w-[2px] relative ${prev_depth_bg}`}
               style={{ left: (-1 * indent) / 2 + "px" }}
             >
               {/* Horizontal line */}
               <div
-                className={`absolute top-[20px] w-[12px] h-[2px] ${
-                  DEPTH_COLORS[level % DEPTH_COLORS.length]
-                }`}
+                className={`absolute top-[20px] w-[12px] h-[2px] ${prev_depth_bg}`}
                 style={{ left: "0px" }}
               />
             </div>
@@ -285,12 +293,10 @@ const Comment: React.FC<CommentProps> = ({
           ${isDragOver ? "bg-[#1d2535]" : ""}
           ${
             isSelected
-              ? `${DEPTH_COLORS[level % DEPTH_COLORS.length]} bg-opacity-30`
-              : `hover:${
-                  DEPTH_COLORS[level % DEPTH_COLORS.length]
-                } hover:bg-opacity-30`
+              ? `${prev_depth_bg} bg-opacity-30`
+              : `hover:${prev_depth_bg} hover:bg-opacity-30`
           }
-          focus-visible:ring-2 focus-visible:ring-blue-500
+          focus-visible:ring-2 focus-visible:ring-blue-500 level-${level}
         `}
         draggable
         onDragStart={(e) => onDragStart(e, comment)}
