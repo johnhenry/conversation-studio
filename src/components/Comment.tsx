@@ -331,151 +331,146 @@ const Comment: React.FC<CommentProps> = ({
           />
 
           {/* Header section with metadata */}
-          <div className="flex items-center gap-2 text-xs mb-2">
-            {/* Sibling Navigation Controls in Chat Mode */}
-            {chatFocustId && siblingInfo && siblingInfo.totalSiblings > 1 && (
-              <div className="flex items-center gap-1 ml-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 text-xs mb-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Sibling Navigation Controls in Chat Mode */}
+              {chatFocustId && siblingInfo && siblingInfo.totalSiblings > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => siblingInfo.onNavigate("prev")}
+                    className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-700"
+                    title="Previous sibling"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-gray-400 min-w-[3ch] text-center">
+                    {siblingInfo.currentIndex + 1}/{siblingInfo.totalSiblings}
+                  </span>
+                  <button
+                    onClick={() => siblingInfo.onNavigate("next")}
+                    className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-700"
+                    title="Next sibling"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                {canPopUp && !isEditing && !disableEditing && (
+                  <button
+                    onClick={() => onPopUp?.(comment.id)}
+                    title="Move up one level"
+                    className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-700"
+                  >
+                    <ArrowBigUpDash size={16} />
+                  </button>
+                )}
                 <button
-                  onClick={() => siblingInfo.onNavigate("prev")}
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
-                  title="Previous sibling"
+                  onClick={handleTypeClick}
+                  className={`${depth_text} hover:text-blue-300 cursor-pointer px-2 py-1 rounded-lg hover:bg-gray-700`}
+                  title={commentTitle}
                 >
-                  <ChevronLeft size={16} />
+                  {comment.type}
                 </button>
-                <span className="text-gray-400">
-                  {siblingInfo.currentIndex + 1}/{siblingInfo.totalSiblings}
-                </span>
                 <button
-                  onClick={() => siblingInfo.onNavigate("next")}
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
-                  title="Next sibling"
+                  onClick={handleUserIdClick}
+                  className={`${depth_text} hover:text-blue-300 cursor-pointer px-2 py-1 rounded-lg hover:bg-gray-700`}
+                  title="User Id"
                 >
-                  <ChevronRight size={16} />
+                  {comment.userId}
+                </button>
+                <span className="text-gray-500 hidden md:inline">·</span>
+                <span className="text-gray-500 text-[11px]">
+                  {new Date(comment.timestamp).toLocaleString()}
+                </span>
+                <span className="text-gray-600 text-[11px] hidden md:inline">
+                  [{comment.contentHash}]
+                </span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            {showDelete && !isEditing && !disableEditing && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-2 md:mt-0 md:ml-auto">
+                <button
+                  title={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+                  onClick={() => {
+                    if (chatFocustId) {
+                      setChatFocustId("");
+                    } else {
+                      setChatFocustId(comment.id);
+                    }
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  {!chatFocustId ? (
+                    <ChartNoAxesGantt size={16} />
+                  ) : (
+                    <Menu size={16} />
+                  )}
+                </button>
+                <button
+                  onClick={() => onReply?.(comment.id, 0)}
+                  title={`Reply\nkey: r`}
+                  className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  <MessageSquare size={16} />
+                </button>
+                {appConfig.ai.base.type && (
+                  <button
+                    onClick={handleAutoReply}
+                    title={`Auto Reply\nkey: shift + r`}
+                    className="p-1.5 text-gray-400 hover:text-green-400 transition-colors rounded-lg hover:bg-gray-700"
+                  >
+                    <Sparkles size={16} />
+                  </button>
+                )}
+                <button
+                  onClick={handleCopy}
+                  title={`Copy Text`}
+                  className="p-1.5 text-gray-400 hover:text-yellow-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  <Copy size={16} />
+                </button>
+                <button
+                  onClick={handleClone}
+                  title={`Clone\nkey: c\n---\nw/ replies\nkey: shift + c`}
+                  className="p-1.5 text-gray-400 hover:text-orange-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  <CopyPlus size={16} />
+                </button>
+                <button
+                  onClick={() => onDelete?.(comment.id)}
+                  title="Delete"
+                  className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  <Trash2 size={16} />
                 </button>
               </div>
             )}
-            {canPopUp && !isEditing && !disableEditing && (
-              <button
-                onClick={() => onPopUp?.(comment.id)}
-                title="Move up one level"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <ArrowBigUpDash size={16} />
-              </button>
+
+            {isEditing && (
+              <div className="flex items-center gap-1.5 mt-2 md:mt-0 md:ml-auto">
+                <button
+                  onClick={handleEditSubmit}
+                  title={`Save changes\nkey: cmd + enter`}
+                  className="p-1.5 text-gray-400 hover:text-green-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditContent(comment.content);
+                  }}
+                  title={`Cancel editing\nkey: esc`}
+                  className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-700"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             )}
-            <button
-              onClick={handleTypeClick}
-              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
-              title={commentTitle}
-            >
-              {comment.type}
-            </button>
-            <span className="text-gray-500">·</span>
-            <button
-              onClick={handleUserIdClick}
-              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
-              title="User Id"
-            >
-              {comment.userId}
-            </button>
-            <span className="text-gray-500">·</span>
-            <span className="text-gray-500">
-              {new Date(comment.timestamp).toLocaleString()}
-            </span>
-            <span className="text-gray-600 text-xs">
-              [{comment.contentHash}]
-            </span>
-            {isBeingRepliedTo && (
-              <>
-                <span className="text-gray-500">·</span>
-                <span className="text-blue-400">Replying to this comment</span>
-              </>
-            )}
-
-            {/* Footer with action buttons */}
-            <div className="flex justify-end gap-2 ml-auto">
-              {showDelete && !isEditing && !disableEditing && (
-                <>
-                  <button
-                    title={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
-                    onClick={() => {
-                      if (chatFocustId) {
-                        setChatFocustId("");
-                      } else {
-                        setChatFocustId(comment.id);
-                      }
-                    }}
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
-                  >
-                    {!chatFocustId ? (
-                      <ChartNoAxesGantt size={16} />
-                    ) : (
-                      <Menu size={16} />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => onReply?.(comment.id, 0)}
-                    title={`Reply\nkey: r`}
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
-                  >
-                    <MessageSquare size={16} />
-                  </button>
-                  {appConfig.ai.base.type && (
-                    <button
-                      onClick={handleAutoReply}
-                      title={`Auto Reply\nkey: shift + r`}
-                      className="text-gray-400 hover:text-green-400 transition-colors"
-                    >
-                      <Sparkles size={16} />
-                    </button>
-                  )}
-                  <button
-                    onClick={handleCopy}
-                    title={`Copy Text`}
-                    className="text-gray-400 hover:text-yellow-400 transition-colors"
-                  >
-                    <Copy size={16} />
-                  </button>
-                  <button
-                    onClick={handleClone}
-                    title={`Clone\nkey: c\n---\nw/ replies\nkey: shift + c`}
-                    className="text-gray-400 hover:text-orange-400 transition-colors"
-                  >
-                    <CopyPlus size={16} />
-                  </button>
-
-                  <button
-                    onClick={() => onDelete?.(comment.id)}
-                    title="Delete"
-                    className="text-gray-400 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </>
-              )}
-
-              {isEditing && (
-                <>
-                  <button
-                    onClick={handleEditSubmit}
-                    title={`Save changes\nkey: cmd + enter`}
-                    className="text-gray-400 hover:text-green-400 transition-colors"
-                  >
-                    <Check size={16} />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditContent(comment.content);
-                    }}
-                    title={`Cancel editing\nkey: esc`}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                </>
-              )}
-            </div>
           </div>
 
           {/* Content section */}
@@ -490,14 +485,14 @@ const Comment: React.FC<CommentProps> = ({
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full min-h-[100px] p-2 bg-[#2A2A2B] text-gray-200 rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full min-h-[120px] p-3 bg-[#2A2A2B] text-gray-200 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-base"
                 placeholder="Write your comment..."
               />
             ) : (
               <>
                 <MarkdownPreview content={comment.content} />
                 {/* Attachments display in view mode */}
-                <div className="mt-2 space-y-2">
+                <div className="mt-3 space-y-3">
                   {comment.attachments?.map((attachment, index) => (
                     <div key={index} className="relative">
                       {renderAttachment(attachment)}
@@ -505,16 +500,12 @@ const Comment: React.FC<CommentProps> = ({
                   ))}
                 </div>
                 {/* Reply count */}
-                <div className="mt-2">
-                  <div className="text-xs text-gray-500">
-                    {comment.children.length > 0 && (
-                      <span>
-                        {comment.children.length}{" "}
-                        {comment.children.length === 1 ? "reply" : "replies"}
-                      </span>
-                    )}
+                {comment.children.length > 0 && (
+                  <div className="mt-3 text-xs text-gray-500">
+                    {comment.children.length}{" "}
+                    {comment.children.length === 1 ? "reply" : "replies"}
                   </div>
-                </div>
+                )}
               </>
             )}
           </div>
@@ -522,9 +513,9 @@ const Comment: React.FC<CommentProps> = ({
 
         {/* Attachment section in edit mode */}
         {isEditing && (
-          <div className="space-y-2 p-2 border-t border-gray-700">
-            <div className="flex items-center space-x-2">
-              <label className="cursor-pointer inline-flex items-center space-x-2 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200">
+          <div className="space-y-3 p-4 border-t border-gray-700">
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm text-gray-200 transition-colors">
                 <File size={16} />
                 <span>Add Attachment</span>
                 <input
@@ -537,16 +528,16 @@ const Comment: React.FC<CommentProps> = ({
 
             {/* Display existing attachments */}
             {comment.attachments.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {comment.attachments.map((attachment, index) => (
                   <div
                     key={index}
-                    className="flex items-center space-x-2 text-sm"
+                    className="flex items-center gap-3 text-sm bg-gray-800 p-2 rounded-lg"
                   >
                     <div className="flex-1">{renderAttachment(attachment)}</div>
                     <button
                       onClick={() => handleAttachmentRemove(index)}
-                      className="text-gray-400 hover:text-red-400"
+                      className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-700"
                       title="Remove attachment"
                     >
                       <X size={16} />
