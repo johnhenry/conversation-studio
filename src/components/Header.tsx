@@ -9,8 +9,8 @@ interface HeaderProps {
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNewComment: () => void;
   onOpenSettings: () => void;
-  chatFocustId: string;
-  setChatFocustId: (mode: string | null) => void;
+  chatFocusId: string;
+  setChatFocusId: (mode: string | null) => void;
   appConfig: AppConfig;
   onStoreLocallyChange: (value: boolean) => void;
 }
@@ -21,17 +21,17 @@ const Header: React.FC<HeaderProps> = ({
   onImport,
   onNewComment,
   onOpenSettings,
-  chatFocustId,
-  setChatFocustId,
+  chatFocusId,
+  setChatFocusId,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const chatFocustIdColor = chatFocustId ? "gray" : "blue";
+  const chatFocusIdColor = chatFocusId ? "gray" : "blue";
   const KEY_NAVIGATION_STRING = `
 ---
 Keyboard Navigation:
 up: ↑
 Down: ↓${
-    !chatFocustId
+    !chatFocusId
       ? `Next: →
 Previous: ←`
       : ""
@@ -88,22 +88,22 @@ Previous: ←`
           <nav className="hidden md:flex items-center gap-4">
             <button
               title={`${
-                chatFocustId === "" ? "Forum Mode" : "Chat Mode"
+                chatFocusId === "" ? "Forum Mode" : "Chat Mode"
               }${KEY_NAVIGATION_STRING}`}
               onClick={() => {
                 setActiveTab("forum");
                 if (!["text", "xml", "json"].includes(activeTab)) {
-                  setChatFocustId(chatFocustId === "" ? null : "");
+                  setChatFocusId(chatFocusId === "" ? null : "");
                 }
               }}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "forum"
-                  ? `bg-${chatFocustIdColor}-700 text-gray-100`
-                  :`hover:bg-${chatFocustIdColor}-700 text-gray-300 `
+                  ? `bg-${chatFocusIdColor}-700 text-gray-100`
+                  :`hover:bg-${chatFocusIdColor}-700 text-gray-300 `
               }`}
-              aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+              aria-label={chatFocusId === "" ? "Forum Mode" : "Chat Mode"}
             >
-              {chatFocustId === "" ? (
+              {chatFocusId === "" ? (
                 <ChartNoAxesGantt size={16} />
               ) : (
                 <Menu size={16} />
@@ -185,12 +185,12 @@ Previous: ←`
         >
           <button
             title={`${
-              chatFocustId === "" ? "Forum Mode" : "Chat Mode"
+              chatFocusId === "" ? "Forum Mode" : "Chat Mode"
             }${KEY_NAVIGATION_STRING}`}
             onClick={() => {
               setActiveTab("forum");
               if (!["text", "xml", "json"].includes(activeTab)) {
-                setChatFocustId(chatFocustId === "" ? null : "");
+                setChatFocusId(chatFocusId === "" ? null : "");
               }
               setIsMobileMenuOpen(false);
             }}
@@ -199,15 +199,15 @@ Previous: ←`
                 ? `bg-[#2A2A2B] text-gray-100`
                 : "text-gray-300 hover:bg-[#2A2A2B]"
             }`}
-            aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+            aria-label={chatFocusId === "" ? "Forum Mode" : "Chat Mode"}
           >
             <div className="flex items-center">
-              {chatFocustId === "" ? (
+              {chatFocusId === "" ? (
                 <ChartNoAxesGantt size={16} className="mr-2" />
               ) : (
                 <Menu size={16} className="mr-2" />
               )}
-              {chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+              {chatFocusId === "" ? "Forum Mode" : "Chat Mode"}
             </div>
           </button>
           <button

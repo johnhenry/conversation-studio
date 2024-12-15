@@ -49,8 +49,8 @@ interface CommentProps {
   onSelect?: () => void;
   disableEditing?: boolean;
   appConfig: AppConfig;
-  chatFocustId: string;
-  setChatFocustId: (mode: string) => void;
+  chatFocusId: string;
+  setChatFocusId: (mode: string) => void;
   siblingInfo?: {
     currentIndex: number;
     totalSiblings: number;
@@ -88,8 +88,8 @@ const Comment: React.FC<CommentProps> = ({
   onSelect,
   disableEditing,
   appConfig,
-  chatFocustId,
-  setChatFocustId,
+  chatFocusId,
+  setChatFocusId,
   siblingInfo,
   onGenerate,
   onSpeak,
@@ -100,7 +100,7 @@ const Comment: React.FC<CommentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
-  const indent = !chatFocustId ? 24 : 0;
+  const indent = !chatFocusId ? 24 : 0;
 
   useEffect(() => {
     setEditContent(comment.content);
@@ -194,14 +194,14 @@ const Comment: React.FC<CommentProps> = ({
     onClone?.(comment.id, comment, false);
   };
 
-  const depth_bg = chatFocustId
+  const depth_bg = chatFocusId
     ? DEPTH_COLORS[0]
     : DEPTH_COLORS[(level + 1) % DEPTH_COLORS.length];
-  const depth_text = chatFocustId
+  const depth_text = chatFocusId
     ? DEPTH_TEXT[0]
     : DEPTH_TEXT[(level + 1) % DEPTH_TEXT.length];
 
-  const prev_depth_bg = chatFocustId
+  const prev_depth_bg = chatFocusId
     ? DEPTH_COLORS[0]
     : DEPTH_COLORS[level % DEPTH_COLORS.length];
 
@@ -249,7 +249,7 @@ const Comment: React.FC<CommentProps> = ({
       aria-label={`Comment by ${comment.userId}`}
     >
       {/* Indentation lines for nested comments */}
-      {comment.children.length > 0 && !chatFocustId && (
+      {comment.children.length > 0 && !chatFocusId && (
         <>
           <div
             className={`absolute w-[2px] ${depth_bg}`}
@@ -261,7 +261,7 @@ const Comment: React.FC<CommentProps> = ({
           />
         </>
       )}
-      {level > 0 && !chatFocustId && (
+      {level > 0 && !chatFocusId && (
         <>
           {/* Current level connector */}
           <div className="absolute left-0 top-0 bottom-0 flex">
@@ -344,7 +344,7 @@ const Comment: React.FC<CommentProps> = ({
           <div className="flex flex-col md:flex-row md:items-center gap-2 text-xs mb-3">
             <div className="flex flex-wrap items-center gap-2">
               {/* Sibling Navigation Controls in Chat Mode */}
-              {chatFocustId && siblingInfo && siblingInfo.totalSiblings > 1 && (
+              {chatFocusId && siblingInfo && siblingInfo.totalSiblings > 1 && (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => siblingInfo.onNavigate("prev")}
@@ -404,17 +404,17 @@ const Comment: React.FC<CommentProps> = ({
             {showDelete && !isEditing && !disableEditing && (
               <div className="flex flex-wrap items-center gap-1.5 mt-2 md:mt-0 md:ml-auto">
                 <button
-                  title={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+                  title={chatFocusId === "" ? "Forum Mode" : "Chat Mode"}
                   onClick={() => {
-                    if (chatFocustId) {
-                      setChatFocustId("");
+                    if (chatFocusId) {
+                      setChatFocusId("");
                     } else {
-                      setChatFocustId(comment.id);
+                      setChatFocusId(comment.id);
                     }
                   }}
                   className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-gray-700"
                 >
-                  {!chatFocustId ? (
+                  {!chatFocusId ? (
                     <ChartNoAxesGantt size={16} />
                   ) : (
                     <Menu size={16} />

@@ -25,8 +25,8 @@ interface CommentTreeProps {
   selectedCommentId?: string;
   onCommentSelect?: (id: string | undefined) => void;
   appConfig: AppConfig;
-  chatFocustId: string;
-  setChatFocustId: (mode: string) => void;
+  chatFocusId: string;
+  setChatFocusId: (mode: string) => void;
   onGenerate: (props: {
     parentId: string;
     attachments?: Attachment[];
@@ -55,8 +55,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   selectedCommentId,
   onCommentSelect,
   appConfig,
-  chatFocustId,
-  setChatFocustId,
+  chatFocusId,
+  setChatFocusId,
   onGenerate,
   onSpeak,
   isSpeaking,
@@ -423,8 +423,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
 
     const nextSibling = siblings[nextIndex];
     if (nextSibling) {
-      // Update the chatFocustId to switch focus to the new sibling
-      setChatFocustId(nextSibling.id);
+      // Update the chatFocusId to switch focus to the new sibling
+      setChatFocusId(nextSibling.id);
       // Also update selection if needed
       if (onCommentSelect) {
         onCommentSelect(nextSibling.id);
@@ -462,8 +462,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 `[data-comment-id="${nextId}"]`
               );
               if (nextElement && onCommentSelect) {
-                if (chatFocustId) {
-                  setChatFocustId(nextId);
+                if (chatFocusId) {
+                  setChatFocusId(nextId);
                 }
                 onCommentSelect(nextId);
               }
@@ -480,8 +480,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 `[data-comment-id="${nextId}"]`
               );
               if (nextElement && onCommentSelect) {
-                if (chatFocustId) {
-                  setChatFocustId(nextId);
+                if (chatFocusId) {
+                  setChatFocusId(nextId);
                 }
                 onCommentSelect(nextId);
               }
@@ -496,8 +496,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 `[data-comment-id="${parentId}"]`
               );
               if (nextElement && onCommentSelect) {
-                if (chatFocustId) {
-                  setChatFocustId(parentId);
+                if (chatFocusId) {
+                  setChatFocusId(parentId);
                 }
                 onCommentSelect(parentId);
               }
@@ -512,8 +512,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 `[data-comment-id="${childId}"]`
               );
               if (nextElement && onCommentSelect) {
-                if (chatFocustId) {
-                  setChatFocustId(childId);
+                if (chatFocusId) {
+                  setChatFocusId(childId);
                 }
                 onCommentSelect(childId);
               }
@@ -556,8 +556,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     allComments,
     onCommentSelect,
     level,
-    chatFocustId,
-    setChatFocustId,
+    chatFocusId,
+    setChatFocusId,
   ]);
 
   const findAncestorIds = (
@@ -605,14 +605,14 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   };
 
   const filterComments = (comments: CommentType[]): CommentType[] => {
-    if (!chatFocustId) return comments;
+    if (!chatFocusId) return comments;
 
-    const ancestorIds = findAncestorIds(comments, chatFocustId);
+    const ancestorIds = findAncestorIds(comments, chatFocusId);
     let focusedComment: CommentType | null = null;
 
     const findFocusedComment = (items: CommentType[]): void => {
       for (const item of items) {
-        if (item.id === chatFocustId) {
+        if (item.id === chatFocusId) {
           focusedComment = item;
           return;
         }
@@ -628,7 +628,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
     }
 
     const lineageIds = getLineage(focusedComment, true);
-    const visibleIds = new Set([...ancestorIds, chatFocustId, ...lineageIds]);
+    const visibleIds = new Set([...ancestorIds, chatFocusId, ...lineageIds]);
 
     const filterTree = (items: CommentType[]): CommentType[] => {
       return items
@@ -685,8 +685,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             onSelect={() => onCommentSelect?.(comment.id)}
             disableEditing={disableEditing || isPreview}
             appConfig={appConfig}
-            chatFocustId={chatFocustId}
-            setChatFocustId={setChatFocustId}
+            chatFocusId={chatFocusId}
+            setChatFocusId={setChatFocusId}
             siblingInfo={
               comment.children.length > 0
                 ? {
@@ -725,8 +725,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               selectedCommentId={selectedCommentId}
               onCommentSelect={onCommentSelect}
               appConfig={appConfig}
-              chatFocustId={chatFocustId}
-              setChatFocustId={setChatFocustId}
+              chatFocusId={chatFocusId}
+              setChatFocusId={setChatFocusId}
               onGenerate={onGenerate}
               onSpeak={onSpeak}
               isSpeaking={isSpeaking}

@@ -93,19 +93,19 @@ function App() {
   const [showEditor, setShowEditor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [replyToId, setReplyToId] = useState<string | undefined>();
-  const [chatFocustId, _setChatFocustId] = useState<string>("");
+  const [chatFocusId, _setChatFocusId] = useState<string>("");
   const [isLoadingComments, setIsLoadingComments] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  const setChatFocustId = (id: string | null) => {
+  const setChatFocusId = (id: string | null) => {
     if (id === null) {
       if (comments.length > 0) {
-        _setChatFocustId(comments[comments.length - 1].id);
+        _setChatFocusId(comments[comments.length - 1].id);
         return;
       }
     }
-    _setChatFocustId(id || "");
+    _setChatFocusId(id || "");
   };
 
   const { appConfig, setAppConfig } = useAppConfig();
@@ -256,8 +256,8 @@ function App() {
       setSelectedCommentId(newId);
 
       // If in chat mode, update the focus to the new comment
-      if (chatFocustId) {
-        setChatFocustId(newId);
+      if (chatFocusId) {
+        setChatFocusId(newId);
       }
       // Focus after a short delay to ensure the component is mounted
       requestAnimationFrame(() => {
@@ -276,7 +276,7 @@ function App() {
       findAndAddReply,
       renderAttachment,
       commentType,
-      chatFocustId,
+      chatFocusId,
       isLoadingComments,
     ]
   );
@@ -417,7 +417,7 @@ function App() {
       findAndAddReply,
       renderAttachment,
       commentType,
-      chatFocustId,
+      chatFocusId,
       comments,
       isLoadingComments,
     ]
@@ -739,8 +739,8 @@ function App() {
           onCommentSelect={setSelectedCommentId}
           disableEditing={showEditor}
           appConfig={appConfig}
-          chatFocustId={chatFocustId}
-          setChatFocustId={setChatFocustId}
+          chatFocusId={chatFocusId}
+          setChatFocusId={setChatFocusId}
           onGenerate={(props) =>
             generateComment({
               ...props,
@@ -767,8 +767,8 @@ function App() {
     selectedCommentId,
     showEditor,
     appConfig,
-    chatFocustId,
-    setChatFocustId,
+    chatFocusId,
+    setChatFocusId,
     generateComment,
     handleSpeakMessages,
     isSpeaking,
@@ -848,13 +848,13 @@ function App() {
       }
       if (e.key === "m") {
         e.preventDefault();
-        setChatFocustId(chatFocustId === "" ? null : "");
+        setChatFocusId(chatFocusId === "" ? null : "");
       }
     };
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [chatFocustId]);
+  }, [chatFocusId]);
 
   const generateContentHash = (content: string): string => {
     const hash = crypto.SHA256(content);
@@ -911,8 +911,8 @@ function App() {
         onImport={handleImport}
         onNewComment={handleNewComment}
         onOpenSettings={handleOpenSettings}
-        chatFocustId={chatFocustId}
-        setChatFocustId={setChatFocustId}
+        chatFocusId={chatFocusId}
+        setChatFocusId={setChatFocusId}
       />
 
       <main className="flex-1 container mx-auto px-4 pt-20 pb-4 overflow-y-auto">

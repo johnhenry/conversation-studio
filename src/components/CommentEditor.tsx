@@ -380,8 +380,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               isPreview={true}
               renderAttachment={renderAttachment}
               appConfig={appConfig}
-              chatFocustId={previewChatFocusId}
-              setChatFocustId={setPreviewChatFocusId}
+              chatFocusId={previewChatFocusId}
+              setChatFocusId={setPreviewChatFocusId}
               onGenerate={onGenerate}
             />
           </div>
