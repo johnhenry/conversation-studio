@@ -103,4 +103,5 @@ export interface ADD_COMMENT_PROPS {
   commentType: string;
   userId?: string;
   autoReply?: number;
+  autoReplyCount?: number;
 }

@@ -190,6 +190,17 @@ function App() {
     return `${timestamp}-${uuid}`;
   }, []);
 
+  const [futureComments, setFutureComments] = useState<ADD_COMMENT_PROPS[]>([]);
+
+  useEffect(() => {
+    if (comments.length && futureComments.length) {
+      for (const comment of futureComments) {
+        generateComment(comment);
+      }
+      setFutureComments([]);
+    }
+  }, [comments, futureComments]);
+
   const addComment = useCallback(
     ({
       content,
@@ -197,6 +208,7 @@ function App() {
       parentId,
       commentType,
       autoReply,
+      autoReplyCount = 1,
     }: ADD_COMMENT_PROPS) => {
       const newId = generateUniqueId();
       const comment: Comment = {
@@ -212,6 +224,19 @@ function App() {
       };
 
       setComments((prevComments) => {
+        if (autoReply && autoReply > 0) {
+          const fc: ADD_COMMENT_PROPS[] = [];
+          for (let i = 0; i < autoReplyCount; i++) {
+            fc.push({
+              content: "",
+              parentId: newId,
+              commentType: "assistant",
+              userId,
+              autoReply: autoReply - 1,
+            });
+          }
+          setFutureComments((prev) => [...prev, ...fc]);
+        }
         if (parentId) {
           return findAndAddReply(prevComments, parentId, comment);
         }
@@ -231,15 +256,6 @@ function App() {
       // If in chat mode, update the focus to the new comment
       if (chatFocustId) {
         setChatFocustId(newId);
-      }
-      if (autoReply && autoReply > 0) {
-        generateComment({
-          content: "",
-          parentId: newId,
-          commentType: "assistant",
-          userId,
-          autoReply: autoReply - 1,
-        });
       }
       // Focus after a short delay to ensure the component is mounted
       requestAnimationFrame(() => {
@@ -279,9 +295,6 @@ function App() {
       userId,
       autoReply,
     }: ADD_COMMENT_PROPS) => {
-      if (!comments.length) {
-        return; // Early return if no comments found
-      }
       if (!parentId) {
         throw new Error("Generated comment must have a parent");
       }
@@ -741,9 +754,6 @@ function App() {
   );
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem("userId");
-    if (storedUserId) setUserId(storedUserId);
-
     if (appConfig.general.storeLocally) {
       const storedComments = localStorage.getItem("comments");
       if (storedComments) {
@@ -762,9 +772,6 @@ function App() {
 
   useEffect(() => {
     if (!isInitialized) return;
-
-    localStorage.setItem("userId", userId);
-
     if (appConfig.general.storeLocally) {
       const commentsToStore = comments.map((comment) =>
         stripUIProperties(comment)
