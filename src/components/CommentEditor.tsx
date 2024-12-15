@@ -301,7 +301,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="typeInput"
                   value={commentType}
                   onChange={(e) => setCommentType(e.target.value)}
-                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[100px]"
+                  className="ml-2 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[100px]"
                 />
               </label>
               {CYCLE_TYPES.map((type) => (
@@ -334,7 +334,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="userIdInput"
                   value={userId || appConfig.general.userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1 min-w-[150px]"
+                  className="ml-2 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1 min-w-[150px]"
                   placeholder={appConfig.general.userId}
                 />
               </label>
@@ -345,15 +345,15 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment using Markdown..."
-              className="w-full min-h-[120px] md:min-h-[150px] p-4 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-base"
+              className="w-full min-h-[120px] md:min-h-[150px] p-4 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-base"
             />
             <div className="text-gray-300 mt-4">
               <label 
                 htmlFor="attachments" 
                 title="Choose files to attach"
-                className="block mb-2 p-3 border border-dashed border-gray-600 rounded-lg hover:border-gray-500 cursor-pointer text-center"
+                className="block mb-2 p-3 border border-dashed border-gray-700 rounded-lg hover:border-gray-500 cursor-pointer text-center"
               >
-                <span className="block mb-1">📎 Tap to attach files</span>
+                <span className="block mb-1 text-gray-300">📎 Tap to attach files</span>
                 <input
                   type="file"
                   id="attachments"
@@ -416,7 +416,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={previewData}
               readOnly
               aria-label={`${activeTab.toUpperCase()} Preview Output`}
-              className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+              className="w-full min-h-[100px] p-3 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
             />
           </div>
         );
@@ -434,7 +434,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       aria-label="Comment Editor"
     >
       <div
-        className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
+        className="bg-[#1A1A1B] p-4 md:p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
         onKeyDown={handleKeyDown}
       >
         <div className="flex justify-between items-center mb-4">
@@ -457,8 +457,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab as PreviewTab)}
-                className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap text-gray-300 ${
-                  activeTab === tab ? "bg-gray-700" : "bg-gray-800"
+                className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap ${
+                  activeTab === tab ? "text-gray-100 bg-gray-800" : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -469,14 +469,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center text-sm text-gray-400 p-4 border-t border-gray-700 gap-4">
             <span className="text-center md:text-left">Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2 justify-center md:justify-end">
-              <button
-                type="button"
-                title={`Cancel\nkey: esc`}
-                onClick={handleClose}
-                className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
               {appConfig.ai.base.type && parentId ? (
                 <>
                   {!(!content.trim() && attachments.length === 0) ? (
@@ -485,7 +477,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                       title={`${parentId ? "Reply" : "Add"}\nkey: cmd + enter`}
                       onClick={handleSubmit}
                       disabled={!content.trim() && attachments.length === 0}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-gray-800 text-gray-300 hover:text-blue-400 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <MessageSquarePlus size={20} />
                       {parentId ? "Reply" : "Add"}
@@ -495,7 +487,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                       type="button"
                       title={"Generate AI Reply"}
                       onClick={handleSubmitGenerate}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-gray-800 text-gray-300 hover:text-green-400 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Sparkles size={20} />
                       Gen
@@ -508,13 +500,21 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                     type="button"
                     onClick={handleSubmit}
                     disabled={!content.trim() && attachments.length === 0}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-gray-800 text-gray-300 hover:text-blue-400 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <MessageSquarePlus size={20} />
                     {parentId ? "Reply" : "Add"}
                   </button>
                 </>
               )}
+              <button
+                type="button"
+                title={`Cancel\nkey: esc`}
+                onClick={handleClose}
+                className="px-4 py-2 bg-gray-800 text-gray-300 hover:text-red-400 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
           {appConfig.ai.base.type && (
