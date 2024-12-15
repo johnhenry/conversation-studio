@@ -2,7 +2,7 @@ import type { ADD_COMMENT_PROPS } from "../types";
 import { AppConfig } from "../config";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { MessageSquarePlus, X, File, Sparkles } from "lucide-react";
+import { MessageSquarePlus, X, File, Sparkles, ChevronDown } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import CommentTree from "./CommentTree";
 import { exportComments } from "../utils/export";
@@ -63,6 +63,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [autoReply, setAutoReply] = useState(autoGenerate ? 1 : 0);
   const [autoReplyCount, setAutoReplyCount] = useState(1);
   const [previewChatFocusId, setPreviewChatFocusId] = useState("");
+  const [isNavExpanded, setIsNavExpanded] = useState(false);
 
   // Focus the editor when it becomes visible
   useEffect(() => {
@@ -452,18 +453,51 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex overflow-x-auto gap-2 mb-4 p-4 border-b border-gray-700 -mx-4 md:mx-0">
-            {["edit", "preview", "text", "json", "xml"].map((tab) => (
+            <div className="md:hidden w-full">
               <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab as PreviewTab)}
-                className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap ${
-                  activeTab === tab ? "text-gray-100 bg-gray-800" : "text-gray-400 hover:text-gray-200"
-                }`}
+                onClick={() => setIsNavExpanded(!isNavExpanded)}
+                className="flex items-center justify-between w-full px-4 py-2 text-gray-300 bg-gray-800 rounded-lg"
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                <span>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</span>
+                <ChevronDown 
+                  className={`transform transition-transform ${isNavExpanded ? 'rotate-180' : ''}`} 
+                  size={16} 
+                />
               </button>
-            ))}
+              {isNavExpanded && (
+                <div className="absolute z-10 mt-1 w-full bg-[#1A1A1B] border border-gray-700 rounded-lg shadow-lg">
+                  {["edit", "preview", "text", "json", "xml"].map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(tab as PreviewTab);
+                        setIsNavExpanded(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors ${
+                        activeTab === tab ? "text-gray-100 bg-gray-800" : "text-gray-400 hover:text-gray-200"
+                      }`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="hidden md:flex gap-2">
+              {["edit", "preview", "text", "json", "xml"].map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab as PreviewTab)}
+                  className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap ${
+                    activeTab === tab ? "text-gray-100 bg-gray-800" : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="p-4">{renderContent()}</div>
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center text-sm text-gray-400 p-4 border-t border-gray-700 gap-4">
