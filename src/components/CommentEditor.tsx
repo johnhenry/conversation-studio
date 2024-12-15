@@ -428,14 +428,14 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0"
       } p-4 md:p-6 overflow-y-auto`}
       role="dialog"
       aria-label="Comment Editor"
     >
       <div
-        className="bg-[#1A1A1B] p-4 md:p-6 rounded-lg w-full max-w-3xl my-4 md:my-8 relative flex flex-col max-h-[90vh]"
+        className="bg-[#1A1A1B] p-4 md:p-6 rounded-lg w-full max-w-3xl relative flex flex-col max-h-[90vh]"
         onKeyDown={handleKeyDown}
       >
         <div className="flex justify-between items-center mb-4 shrink-0">
