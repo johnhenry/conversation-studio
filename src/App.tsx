@@ -431,58 +431,81 @@ function App() {
     }
 
     const parentComments = findParentComments(comments, commentId);
-    const messagesToSpeak = parentComments.map((c) => c.content).join(". Next message. ");
-    
-    const utterance = new SpeechSynthesisUtterance(messagesToSpeak);
-    speechRef.current = utterance;
-    
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      speechRef.current = null;
-    };
+    const voices = window.speechSynthesis.getVoices();
+    // Match voice.name to comment.userId, else use default voice:
+    const matchedVoices: {[userId: string]: SpeechSynthesisVoice} = {};
+    for(const {userId} of parentComments) {
+      const voice = voices.find(voice => voice.name === userId);
+      if (voice) {
+        matchedVoices[userId] = voice;
+      }
+      else {
+        matchedVoices[userId] = voices[0];
+      }
+    }
 
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      speechRef.current = null;
-    };
+
+
+    // Create and queue utterances for each message
+    parentComments.forEach((comment, index) => {
+      const utterance = new SpeechSynthesisUtterance(comment.content);
+
+      // Pick a random voice, excluding voices that might be inappropriate (e.g., some screen readers)
+      const availableVoices = voices.filter((voice) =>
+        !voice.name.toLowerCase().includes("screen reader") &&
+        !voice.name.toLowerCase().includes("screenreader")
+      );
+
+      if (availableVoices.length > 0) {
+        utterance.voice = matchedVoices[comment.userId];
+      }
+
+      // Add a pause between messages
+      if (index < parentComments.length - 1) {
+        utterance.text += ". Next message. ";
+      }
+
+      // Set event handlers for the last utterance only
+      if (index === parentComments.length - 1) {
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          speechRef.current = null;
+        };
+
+        utterance.onerror = () => {
+          setIsSpeaking(false);
+          speechRef.current = null;
+        };
+      }
+
+      // Store the last utterance in the ref for cleanup
+      if (index === parentComments.length - 1) {
+        speechRef.current = utterance;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    });
 
     setIsSpeaking(true);
-    window.speechSynthesis.speak(utterance);
   }, [comments, isSpeaking]);
 
+  // Initialize voices as soon as they're available
   useEffect(() => {
+    const handleVoicesChanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+
+    window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
     return () => {
+      window.speechSynthesis.removeEventListener(
+        "voiceschanged",
+        handleVoicesChanged
+      );
       if (speechRef.current) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
-
-  const QuedGenerations = () => (
-    <div className="qg fixed bottom-0 left-0 bg-gray-800 text-white p-2 opacity-50">
-      {generationQueue.map((generation, index) => {
-        return (
-          <div key={index} className="flex items-center gap-2">
-            <span>
-              {generation.userId
-                ? `${generation.userId} is responding...`
-                : `A response is being generated`}
-              .
-            </span>
-            <button
-              title="Cancel"
-              onClick={() => {
-                generation.abort();
-              }}
-              className="text-red-400"
-            >
-              <CircleX size={16} />
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
 
   const handleAttachmentUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -864,6 +887,32 @@ function App() {
     setShowSettings(true);
   }, []);
 
+  const QuedGenerations = () => (
+    <div className="qg fixed bottom-0 left-0 bg-gray-800 text-white p-2 opacity-50">
+      {generationQueue.map((generation, index) => {
+        return (
+          <div key={index} className="flex items-center gap-2">
+            <span>
+              {generation.userId
+                ? `${generation.userId} is responding...`
+                : `A response is being generated`}
+              .
+            </span>
+            <button
+              title="Cancel"
+              onClick={() => {
+                generation.abort();
+              }}
+              className="text-red-400"
+            >
+              <CircleX size={16} />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="h-screen flex flex-col bg-[#030303] text-gray-300">
       <Header
@@ -886,7 +935,7 @@ function App() {
       <main className="flex-1 container mx-auto px-4 pt-20 pb-4 overflow-y-auto">
         {activeTab === "forum" ? (
           <>
-            <div >{commentTree}</div>
+            <div>{commentTree}</div>
           </>
         ) : (
           <ExportPreview

@@ -142,25 +142,25 @@ const Comment: React.FC<CommentProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
 
-    if (e.key === "Enter" && !e.shiftKey && !disableEditing) {
+    if (e.key === "Enter" && !e.shiftKey && !isEditing) {
       e.preventDefault();
       setIsEditing(true);
-    } else if (e.key === "r" && onReply) {
+    } else if (e.key === "r" && onReply && !isEditing) {
       e.preventDefault();
       onReply(comment.id, 0);
-    } else if (e.key === "R" && onReply) {
+    } else if (e.key === "R" && onReply && !isEditing) {
       e.preventDefault();
       onGenerate?.({ parentId: comment.id });
-    } else if (e.key === "s") {
+    } else if (e.key === "s" && !isEditing) {
       e.preventDefault();
       onSpeak(comment.id);
-    } else if (e.key === "c" && onClone) {
+    } else if (e.key === "c" && onClone && !isEditing) {
       e.preventDefault();
       onClone(comment.id, comment, false);
-    } else if (e.key === "C" && onClone) {
+    } else if (e.key === "C" && onClone && !isEditing) {
       e.preventDefault();
       onClone(comment.id, comment, true);
-    } else if (e.key === "t" && !disableEditing) {
+    } else if (e.key === "t" && !disableEditing && !isEditing) {
       e.preventDefault();
       handleTypeClick();
     }
