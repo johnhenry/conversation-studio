@@ -195,6 +195,19 @@ const Comment: React.FC<CommentProps> = ({
     ? DEPTH_COLORS[0]
     : DEPTH_COLORS[level % DEPTH_COLORS.length];
 
+  let commentTitle = "User Type";
+  switch (comment.type) {
+    case "user":
+      commentTitle += "\nClick -> assistant";
+      break;
+    case "assistant":
+      commentTitle += "\nClick -> system";
+      break;
+    case "system":
+      commentTitle += "\nClick -> user";
+      break;
+  }
+
   return (
     <div
       ref={commentRef}
@@ -319,44 +332,6 @@ const Comment: React.FC<CommentProps> = ({
 
           {/* Header section with metadata */}
           <div className="flex items-center gap-2 text-xs mb-2">
-            {canPopUp && !isEditing && !disableEditing && (
-              <button
-                onClick={() => onPopUp?.(comment.id)}
-                title="Move up one level"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <ArrowBigUpDash size={16} />
-              </button>
-            )}
-            <button
-              onClick={handleTypeClick}
-              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
-              title="Click to change type"
-            >
-              {comment.type}
-            </button>
-            <span className="text-gray-500">·</span>
-            <button
-              onClick={handleUserIdClick}
-              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
-              title="Click to change user ID"
-            >
-              {comment.userId}
-            </button>
-            <span className="text-gray-500">·</span>
-            <span className="text-gray-500">
-              {new Date(comment.timestamp).toLocaleString()}
-            </span>
-            <span className="text-gray-600 text-xs">
-              [{comment.contentHash}]
-            </span>
-            {isBeingRepliedTo && (
-              <>
-                <span className="text-gray-500">·</span>
-                <span className="text-blue-400">Replying to this comment</span>
-              </>
-            )}
-
             {/* Sibling Navigation Controls in Chat Mode */}
             {chatFocustId && siblingInfo && siblingInfo.totalSiblings > 1 && (
               <div className="flex items-center gap-1 ml-2">
@@ -378,6 +353,43 @@ const Comment: React.FC<CommentProps> = ({
                   <ChevronRight size={16} />
                 </button>
               </div>
+            )}
+            {canPopUp && !isEditing && !disableEditing && (
+              <button
+                onClick={() => onPopUp?.(comment.id)}
+                title="Move up one level"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <ArrowBigUpDash size={16} />
+              </button>
+            )}
+            <button
+              onClick={handleTypeClick}
+              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
+              title={commentTitle}
+            >
+              {comment.type}
+            </button>
+            <span className="text-gray-500">·</span>
+            <button
+              onClick={handleUserIdClick}
+              className={`${depth_text} hover:text-blue-300 cursor-pointer`}
+              title="User Id"
+            >
+              {comment.userId}
+            </button>
+            <span className="text-gray-500">·</span>
+            <span className="text-gray-500">
+              {new Date(comment.timestamp).toLocaleString()}
+            </span>
+            <span className="text-gray-600 text-xs">
+              [{comment.contentHash}]
+            </span>
+            {isBeingRepliedTo && (
+              <>
+                <span className="text-gray-500">·</span>
+                <span className="text-blue-400">Replying to this comment</span>
+              </>
             )}
 
             {/* Footer with action buttons */}
@@ -401,33 +413,32 @@ const Comment: React.FC<CommentProps> = ({
                       <Menu size={16} />
                     )}
                   </button>
-                  {!isEditing && appConfig.ai.base.type && (
+                  <button
+                    onClick={() => onReply?.(comment.id, 0)}
+                    title={`Reply\nkey: r`}
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <MessageSquare size={16} />
+                  </button>
+                  {appConfig.ai.base.type && (
                     <button
                       onClick={handleAutoReply}
-                      title="Auto Reply"
+                      title={`Auto Reply\nkey: shift + r`}
                       className="text-gray-400 hover:text-green-400 transition-colors"
                     >
                       <Sparkles size={16} />
                     </button>
                   )}
                   <button
-                    onClick={() => onReply?.(comment.id, 0)}
-                    title="Reply"
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
-                  >
-                    <MessageSquare size={16} />
-                  </button>
-
-                  <button
                     onClick={handleCopy}
-                    title="Copy"
+                    title={`Copy Text`}
                     className="text-gray-400 hover:text-yellow-400 transition-colors"
                   >
                     <Copy size={16} />
                   </button>
                   <button
                     onClick={handleClone}
-                    title="Duplicate"
+                    title={`Clone\nkey: c\n---\nw/ replies\nkey: shift + c`}
                     className="text-gray-400 hover:text-orange-400 transition-colors"
                   >
                     <CopyPlus size={16} />
@@ -447,7 +458,7 @@ const Comment: React.FC<CommentProps> = ({
                 <>
                   <button
                     onClick={handleEditSubmit}
-                    title="Save changes"
+                    title={`Save changes\nkey: cmd + enter`}
                     className="text-gray-400 hover:text-green-400 transition-colors"
                   >
                     <Check size={16} />
@@ -457,7 +468,7 @@ const Comment: React.FC<CommentProps> = ({
                       setIsEditing(false);
                       setEditContent(comment.content);
                     }}
-                    title="Cancel editing"
+                    title={`Cancel editing\nkey: esc`}
                     className="text-gray-400 hover:text-red-400 transition-colors"
                   >
                     <X size={16} />

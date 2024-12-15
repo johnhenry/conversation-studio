@@ -461,6 +461,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <div className="flex gap-2">
               <button
                 type="button"
+                title={`Cancel\nkey: esc`}
                 onClick={handleClose}
                 className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
@@ -471,6 +472,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   {!(!content.trim() && attachments.length === 0) ? (
                     <button
                       type="button"
+                      title={`${parentId ? "Reply" : "Add"}\nkey: cmd + enter`}
                       onClick={handleSubmit}
                       disabled={!content.trim() && attachments.length === 0}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -481,6 +483,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   ) : (
                     <button
                       type="button"
+                      title={"Generate AI Reply"}
                       onClick={handleSubmitGenerate}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

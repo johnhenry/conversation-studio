@@ -23,6 +23,7 @@ import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
 import { useAppConfig } from "./hooks/useAppConfig";
 import AI from "ai.matey/openai";
+import { CircleX } from "lucide-react";
 
 // Convert Comment to CommentData by removing UI-specific properties
 const stripUIProperties = (comment: Comment): CommentData => ({
@@ -316,7 +317,7 @@ function App() {
       };
 
       const generation = {
-        userId: userId || "[DEFAULT AGENT]",
+        userId: userId,
         parentId,
         abort: () => {
           console.log("aborting");
@@ -421,21 +422,24 @@ function App() {
   );
 
   const QuedGenerations = () => (
-    <div className="qg fixed bottom-0 right-0 bg-gray-800 text-white p-2">
+    <div className="qg fixed bottom-0 left-0 bg-gray-800 text-white p-2 opacity-50">
       {generationQueue.map((generation, index) => {
         return (
           <div key={index} className="flex items-center gap-2">
             <span>
-              {generation.userId || "[DEFAULT AGENT]"} is generating a response
-              to {generation.parentId}
+              {generation.userId
+                ? `${generation.userId} is responding...`
+                : `A response is being generated`}
+              .
             </span>
             <button
+              title="Cancel"
               onClick={() => {
                 generation.abort();
               }}
               className="text-red-400"
             >
-              Cancel
+              <CircleX size={16} />
             </button>
           </div>
         );
@@ -789,18 +793,21 @@ function App() {
       ) {
         return;
       }
-
       if (e.key === "n") {
         e.preventDefault();
         setShowEditor(true);
         setReplyToId(undefined);
         setAutoReplySettings({});
       }
+      if (e.key === "m") {
+        e.preventDefault();
+        setChatFocustId(chatFocustId === "" ? null : "");
+      }
     };
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, []);
+  }, [chatFocustId]);
 
   const generateContentHash = (content: string): string => {
     const hash = crypto.SHA256(content);

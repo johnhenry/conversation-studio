@@ -25,7 +25,16 @@ const Header: React.FC<HeaderProps> = ({
   setChatFocustId,
 }) => {
   const chatFocustIdColor = chatFocustId ? "gray" : "blue";
-
+  const KEY_NAVIGATION_STRING = `
+---
+Keyboard Navigation:
+up: ↑
+Down: ↓${
+    !chatFocustId
+      ? `Next: →
+Previous: ←`
+      : ""
+  }`;
   return (
     <header className="fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50">
       <div className="container mx-auto px-4">
@@ -39,7 +48,9 @@ const Header: React.FC<HeaderProps> = ({
           {/* Navigation */}
           <nav className="flex items-center space-x-4">
             <button
-              title={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+              title={`${
+                chatFocustId === "" ? "Forum Mode" : "Chat Mode"
+              }${KEY_NAVIGATION_STRING}`}
               onClick={() => {
                 setActiveTab("forum");
                 if (!["text", "xml", "json"].includes(activeTab)) {
@@ -99,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onNewComment}
                 className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                title="New Comment"
+                title={`New Comment\nkey: n`}
               >
                 <Plus size={20} />
               </button>
