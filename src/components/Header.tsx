@@ -98,8 +98,8 @@ Previous: ←`
               }}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "forum"
-                  ? `bg-[#2A2A2B] text-gray-100`
-                  : "text-gray-300 hover:bg-[#2A2A2B]"
+                  ? `bg-${chatFocustIdColor}-700 text-gray-100`
+                  :`hover:bg-${chatFocustIdColor}-700 text-gray-300 `
               }`}
               aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
             >

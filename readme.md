@@ -1,18 +1,12 @@
 # Conversation Studio: Your Tool for Dynamic Conversation Remixing and Analysis
 
+Most AI Chat applications are sructured like
+[instant messaging applications](https://en.wikipedia.org/wiki/Instant_messaging) where a *user* has a linear conversation with a single *assistant*.
 
-Conversation Studio is a *different* kind of AP chat application.
+Conversation Studio allows you to step back and manage multiple conversations at once. It's structured like a [forum](https://en.wikipedia.org/wiki/Internet_forum) with multiple threads and nested replies.
 
-While most AI Chat applications are structured like direct one-on-one
-[messaging application](https://en.wikipedia.org/wiki/Instant_messaging),
-Conversation Studio structured more like a [forum](https://en.wikipedia.org/wiki/Internet_forum) that can have multiple branching threads.
+Use conversation studio to earrange, remix, and re-edit your conversations as to elicit different insights and responses form your models.
 
-## Introduction & Purpose
-
-Imagine you’re a researcher who has spent weeks collecting conversation transcripts—interviews with study participants, online discussion forums, user feedback threads—only to realize that making sense of it all feels like sorting puzzle pieces without a picture. **Conversation Studio** is designed to help you take those jumbled conversations and effortlessly rearrange, combine, and refine them, allowing you to test hypotheses, identify themes, and highlight critical points.
-
-**Scenario:**  
-Suppose you’ve collected transcripts of online Q&A sessions with medical professionals to study how patients engage with healthcare topics. You want to focus on the threads where patients ask about treatment options, pulling them out of longer, meandering conversations. With **Conversation Studio**, you can quickly isolate these threads, move them together into a cohesive new sequence, and highlight the most relevant exchanges. The result: a cleaner, more contextually coherent dataset ready for further analysis or feeding into a language model—especially one with a limited context window.
 
 ## Key Features
 
@@ -28,9 +22,8 @@ Suppose you’ve collected transcripts of online Q&A sessions with medical profe
 - **Local Storage:**  
   Your data stays accessible, even offline. **Conversation Studio** stores your edited conversations locally, ensuring quick access without the need for constant server calls.
 
-- **Built atop Chrome’s Experimental AI Features:**  
-  By leveraging Chrome’s `window.ai` API, **Conversation Studio** can integrate intelligent responses and suggestions.  
-  *[Add instructions on how to install and configure `window.ai` here once ready]*
+- **Connect to AI:**  
+  Feed conversations directly into AI models, either through an Open-AI compatible API, or through the Chrome's built-in experimental `window.ai` API.
 
 ## Requirements
 
@@ -40,39 +33,43 @@ Suppose you’ve collected transcripts of online Q&A sessions with medical profe
 
 ## Getting Started
 
-1. **Install & Launch:**  
-   *[Add steps on how to install or open Conversation Studio]*  
-   For now, simply open the application in Chrome.
+1. **Clone this Repository**  
+  `git clone github.com/johnhenry/conversation-studio.git`
+1. **Move into the Project Directory**
+  `cd conversation-studio`
+1. **Install Dependencies**  
+  `npm install`
+1. **Start the App**  
+  `npm run dev`
+1. **Open the App in a Browser**  
+  `http://localhost:5173`
 
-2. **Load Your Conversations:**  
-   Import conversation data by selecting **File > Import**, then choosing a supported format (text, JSON, or XML).
 
-3. **Reorganize Threads:**  
-   Drag threads to rearrange their order, nest related responses, and delete irrelevant content. Use keyboard shortcuts (see the Quick Reference below) to speed up editing.
+## Using AI
 
-4. **Refine & Remix:**  
-   Combine segments from different parts of a conversation to create a more coherent narrative. Trim redundancies, highlight key points, and prepare your refined set for analysis.
+By default, AI feaures are disable.
+To enable AI Generation features,
+open the settings panel and in the AI section
+select your chosen `AI Type`.
 
-5. **Export Your Results:**  
-   Once satisfied, export your edited conversation by selecting **File > Export**. Choose your preferred format and share or archive the output as needed.
+### OpenAI
 
-## Usage Examples & Scenarios
+You can use any OpenAI-compatible API.
+By default, we point to the local URL used by [ollama](https://ollama.com).
 
-- **Academic Research:**  
-  A linguistics researcher wants to study how language evolves in online forums. Using **Conversation Studio**, they import multiple forum threads, rearrange messages to follow the evolution of a particular slang term, and export a focused dataset to analyze patterns.
+### Windows.ai
 
-- **Product Feedback Analysis:**  
-  A product manager imports transcripts of user interviews and reorders them by topic—feature requests, bug reports, and usability issues—making it easier to summarize findings and prepare a comprehensive report.
+The window.ai API is very much a work in progress. Use at your own risk.
+It's tricky to install, and even if you get it installed, it's prone to breakage.
 
-- **LLM Prompt Optimization:**  
-  For language models with limited context windows, **Conversation Studio** lets you manually recontextualize conversations. For example, you can remove off-topic digressions, merge key insights, and produce a concise input that fits the model’s constraints—improving response quality in the process.
+The developer of [page assist](https://github.com/n4ze3m/page-assist) posted [this video](https://www.youtube.com/watch?v=NxKXcMgiz5k&ab_channel=HappyComputingwithDennis), whic should help you get it installed.
 
-## AI Configuration & Customization
 
-*AI integration details will be provided here.*  
-*For example:*  
-- **Model Selection:** *[Add instructions for choosing models or parameters]*  
-- **Response Settings:** *[Add guidance on customizing temperature, response length, etc.]*
+## Keyboard Shortcuts
+
+- New Message: n
+- Reply to message: m
+
 
 ## Visual Aids
 
@@ -87,38 +84,30 @@ Suppose you’ve collected transcripts of online Q&A sessions with medical profe
 - **Export Configuration Panel:**  
   `![Screenshot of the export settings panel, allowing format selection and preview](*AddImageLinkHere*)`
 
-## Quick Reference
 
-- **Keyboard Shortcuts:**  
-  - `Ctrl + Up/Down`: Move a selected thread up or down  
-  - `Ctrl + Shift + N`: Create a new thread  
-  - `Ctrl + D`: Duplicate a selected thread  
-  - `Delete` or `Backspace`: Remove a selected thread  
-  *[Add or modify shortcuts as desired]*
+## Known Issues
 
-## Future Enhancements
+### Importing
 
-- **Advanced AI Features:**  
-  Improved model integration, including automated summarization and topic detection.
+- Importing JSON -- works once, but not subsequently until a page is reloaded.
+- Importing XML -- doese not work
+- Importing Text -- does not work
 
-- **Additional Formats & Integrations:**  
-  Support for more data formats, and potential links to external APIs or other research tools.
+### Mobile Support (local network hosting)
 
-## FAQ
+- Control is a bit clunky on mobile
+- Cannot seem to get AI features to work on mobile via local OpenAI API
 
-- **How do I export conversations?**  
-  Use **File > Export** and select a desired format. A preview is available before finalizing the export.
+## Roadmap
 
-- **Can I use this offline?**  
-  Yes. **Conversation Studio** stores data locally, allowing you to work without an internet connection.
+### Importing
 
-- **What’s the best way to handle large datasets?**  
-  Start by filtering out irrelevant threads, then reorganize and refine incrementally. This approach ensures smoother navigation and easier analysis.
+When it works, importing currently replaces existing data, we should have some sort of merging algorithm.
 
-## Contact & Contributions
+### Anti-Social Network Integratioins
 
-For questions, suggestions, or to share feedback, please reach out to:  
-*Your contact information here*
+This was originally imagined as an interface for the [AntiSocial Network](https://github.com/johnhenry/antisocial-network) project. We will bring this full circle.
 
-Contributions are welcome! If you’d like to add new features, fix issues, or improve documentation, stay tuned for detailed contribution guidelines.
+### Store as PGLite
 
+### Connect to external FS/DB
