@@ -209,17 +209,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       }
     }, 500);
 
-    // Update content hash
-    const encoder = new TextEncoder();
-    const data = encoder.encode(content);
-    crypto.subtle.digest("SHA-256", data).then((hashBuffer) => {
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      setContentHash(hashHex.substring(0, 7));
-    });
-
     return () => {
       clearTimeout(timeoutId);
     };
@@ -231,6 +220,56 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     contentHash,
     renderAttachment,
   ]);
+
+  // Separate useEffect for hash generation to avoid unnecessary re-renders
+  useEffect(() => {
+    if (!content) {
+      setContentHash("");
+      return;
+    }
+
+    let isMounted = true;
+    console.log("Generating hash for content:", content.substring(0, 20) + "...");
+
+    const generateHash = async () => {
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(content);
+        console.log("Attempting to use crypto.subtle:", !!crypto.subtle); // Check if crypto.subtle exists
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        
+        if (!isMounted) return;
+        
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        console.log("Hash generated successfully:", hashHex.substring(0, 7));
+        setContentHash(hashHex.substring(0, 7));
+      } catch (error) {
+        // More detailed error logging
+        console.error("Crypto error details:", {
+          message: error.message,
+          name: error.name,
+          toString: error.toString(),
+          stack: error.stack,
+          subtle: !!crypto.subtle,
+          cryptoAvailable: !!crypto
+        });
+        
+        // Don't throw the error, just set a simple hash
+        const simpleHash = Date.now().toString(16).substring(0, 7);
+        if (isMounted) {
+          setContentHash(simpleHash);
+        }
+      }
+    };
+
+    generateHash();
+    return () => {
+      isMounted = false;
+    };
+  }, [content]);
 
   const previewComment: CommentType = {
     id: `preview-${Date.now()}`,
