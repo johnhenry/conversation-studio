@@ -101,7 +101,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     : "text-gray-400 hover:text-gray-200"
                 }`}
               >
-                AI Settings
+                AI
               </button>
               <button
                 onClick={() => setActiveTab("export")}
@@ -111,7 +111,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     : "text-gray-400 hover:text-gray-200"
                 }`}
               >
-                Export Settings
+                Export
               </button>
             </div>
           </div>
