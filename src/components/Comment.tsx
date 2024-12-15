@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   Trash2,
   ChartNoAxesGantt,
@@ -27,7 +27,6 @@ interface CommentProps {
   onDrop: (e: React.DragEvent, id: string) => void;
   onPopUp?: (id: string) => void;
   onReply?: (id: string, autoReply?: number) => void;
-  onUserIdChange?: (id: string, newUserId: string) => void;
   onTypeChange?: (id: string, newType: string) => void;
   onUpdate?: (
     id: string,
@@ -71,7 +70,6 @@ const Comment: React.FC<CommentProps> = ({
   onDrop,
   onPopUp,
   onReply,
-  onUserIdChange,
   onTypeChange,
   onUpdate,
   onClone,
@@ -96,19 +94,6 @@ const Comment: React.FC<CommentProps> = ({
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
   const indent = !chatFocustId ? 24 : 0;
-
-  useEffect(() => {
-    if (isEditing && commentRef.current) {
-      const textarea = commentRef.current.querySelector("textarea");
-      textarea?.focus();
-    }
-  }, [isEditing]);
-
-  useEffect(() => {
-    if (isSelected && commentRef.current) {
-      commentRef.current.focus();
-    }
-  }, [isSelected]);
 
   const handleUserIdClick = () => {
     // No longer cycles through user IDs
@@ -205,10 +190,6 @@ const Comment: React.FC<CommentProps> = ({
   const prev_depth_bg = chatFocustId
     ? DEPTH_COLORS[0]
     : DEPTH_COLORS[level % DEPTH_COLORS.length];
-
-  const prev_depth_text = chatFocustId
-    ? DEPTH_TEXT[0]
-    : DEPTH_TEXT[level % DEPTH_TEXT.length];
 
   return (
     <div
@@ -317,12 +298,11 @@ const Comment: React.FC<CommentProps> = ({
         }}
         onClick={(e) => {
           e.stopPropagation();
-          e.currentTarget.focus();
           onSelect?.();
         }}
         tabIndex={0}
         role="article"
-        aria-selected={isSelected ? "true" : "false"}
+        aria-selected={isSelected ? true : false}
         data-comment-id={comment.id}
       >
         {/* Comment content section with proper padding to avoid grip overlap */}
