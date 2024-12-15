@@ -17,11 +17,6 @@ body {
 }
 
 /* Header styles */
-.sticky-header {
-  @apply fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50;
-  backdrop-filter: blur(8px);
-  background-color: rgba(26, 26, 27, 0.95);
-}
 
 /* Markdown content styling */
 .markdown-content p {
@@ -145,31 +140,3 @@ input[type="file"] {
   @apply bg-gray-700 rounded-full hover:bg-gray-600;
 }
 
-/* Modal styles */
-.modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.modal-overlay.show {
-  opacity: 1;
-}
-
-.modal-content {
-  @apply bg-[#1a1a1a] rounded-lg shadow-xl w-full max-w-2xl mx-4 transform -translate-y-4;
-  transition: transform 0.2s ease-in-out;
-}
-
-.modal-overlay.show .modal-content {
-  transform: translateY(0);
-}
-
-/* Floating action button */
-.floating-action-button {
-  @apply fixed bottom-6 right-6 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 cursor-pointer z-50;
-}
-
-.floating-action-button:hover {
-  transform: scale(1.05);
-}
