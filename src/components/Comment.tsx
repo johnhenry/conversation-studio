@@ -4,6 +4,7 @@ import {
   ChartNoAxesGantt,
   ArrowBigUpDash,
   MessageSquare,
+  Speech,
   Menu,
   X,
   Check,
@@ -61,6 +62,9 @@ interface CommentProps {
     userId?: string;
     autoReply?: number;
   }) => void;
+  onSpeak: (commentId: string) => void;
+  isSpeaking: boolean;
+  comments: CommentType[];
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -88,6 +92,9 @@ const Comment: React.FC<CommentProps> = ({
   setChatFocustId,
   siblingInfo,
   onGenerate,
+  onSpeak,
+  isSpeaking,
+  comments,
 }) => {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -133,38 +140,29 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (isEditing) {
-      // Prevent arrow key events from propagating in edit mode
-      if (e.key.startsWith("Arrow")) {
-        e.stopPropagation();
-        return;
-      }
-      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-        handleEditSubmit();
-      } else if (e.key === "Escape") {
-        setIsEditing(false);
-        setEditContent(comment.content);
-      }
-    } else {
-      if (e.key === "e" && !disableEditing) {
-        e.preventDefault();
-        setIsEditing(true);
-      } else if (e.key === "r" && onReply) {
-        e.preventDefault();
-        onReply(comment.id, 0);
-      } else if (e.key === "R" && onReply) {
-        e.preventDefault();
-        handleAutoReply();
-      } else if (e.key === "c" && onClone) {
-        e.preventDefault();
-        onClone(comment.id, comment, false);
-      } else if (e.key === "C" && onClone) {
-        e.preventDefault();
-        onClone(comment.id, comment, true);
-      } else if (e.key === "t" && !disableEditing) {
-        e.preventDefault();
-        handleTypeClick();
-      }
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+    if (e.key === "Enter" && !e.shiftKey && !disableEditing) {
+      e.preventDefault();
+      setIsEditing(true);
+    } else if (e.key === "r" && onReply) {
+      e.preventDefault();
+      onReply(comment.id, 0);
+    } else if (e.key === "R" && onReply) {
+      e.preventDefault();
+      onGenerate?.({ parentId: comment.id });
+    } else if (e.key === "s") {
+      e.preventDefault();
+      onSpeak(comment.id);
+    } else if (e.key === "c" && onClone) {
+      e.preventDefault();
+      onClone(comment.id, comment, false);
+    } else if (e.key === "C" && onClone) {
+      e.preventDefault();
+      onClone(comment.id, comment, true);
+    } else if (e.key === "t" && !disableEditing) {
+      e.preventDefault();
+      handleTypeClick();
     }
   };
 
@@ -439,6 +437,13 @@ const Comment: React.FC<CommentProps> = ({
                   className="p-1.5 text-gray-400 hover:text-orange-400 transition-colors rounded-lg hover:bg-gray-700"
                 >
                   <CopyPlus size={16} />
+                </button>
+                <button
+                  onClick={() => onSpeak(comment.id)}
+                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  title={isSpeaking ? "Stop Speaking" : "Speak Messages"}
+                >
+                  {isSpeaking ? <X size={16} /> : <Speech size={16} />}
                 </button>
                 <button
                   onClick={() => onDelete?.(comment.id)}

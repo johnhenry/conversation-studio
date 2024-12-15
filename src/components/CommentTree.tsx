@@ -33,6 +33,8 @@ interface CommentTreeProps {
     userId?: string;
     autoReply?: number;
   }) => void;
+  onSpeak: (commentId: string) => void;
+  isSpeaking: boolean;
 }
 
 const CommentTree: React.FC<CommentTreeProps> = ({
@@ -56,6 +58,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
   chatFocustId,
   setChatFocustId,
   onGenerate,
+  onSpeak,
+  isSpeaking,
 }) => {
   const allComments = rootComments || comments;
   const topLevelUpdate = rootUpdateComments || updateComments;
@@ -694,6 +698,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
                 : undefined
             }
             onGenerate={onGenerate}
+            onSpeak={onSpeak}
+            isSpeaking={isSpeaking}
           />
           {comment.children.length > 0 && (
             <CommentTree
@@ -722,6 +728,8 @@ const CommentTree: React.FC<CommentTreeProps> = ({
               chatFocustId={chatFocustId}
               setChatFocustId={setChatFocustId}
               onGenerate={onGenerate}
+              onSpeak={onSpeak}
+              isSpeaking={isSpeaking}
             />
           )}
         </div>

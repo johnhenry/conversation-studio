@@ -95,6 +95,8 @@ function App() {
   const [replyToId, setReplyToId] = useState<string | undefined>();
   const [chatFocustId, _setChatFocustId] = useState<string>("");
   const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const setChatFocustId = (id: string | null) => {
     if (id === null) {
@@ -421,6 +423,41 @@ function App() {
     ]
   );
 
+  const handleSpeakMessages = useCallback((commentId: string) => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const parentComments = findParentComments(comments, commentId);
+    const messagesToSpeak = parentComments.map((c) => c.content).join(". Next message. ");
+    
+    const utterance = new SpeechSynthesisUtterance(messagesToSpeak);
+    speechRef.current = utterance;
+    
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      speechRef.current = null;
+    };
+
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      speechRef.current = null;
+    };
+
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  }, [comments, isSpeaking]);
+
+  useEffect(() => {
+    return () => {
+      if (speechRef.current) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
   const QuedGenerations = () => (
     <div className="qg fixed bottom-0 left-0 bg-gray-800 text-white p-2 opacity-50">
       {generationQueue.map((generation, index) => {
@@ -706,6 +743,8 @@ function App() {
               autoReply: props.autoReply,
             })
           }
+          onSpeak={handleSpeakMessages}
+          isSpeaking={isSpeaking}
         />
       );
     }
@@ -725,6 +764,8 @@ function App() {
     chatFocustId,
     setChatFocustId,
     generateComment,
+    handleSpeakMessages,
+    isSpeaking,
   ]);
 
   const exportPreview = useMemo(() => {
