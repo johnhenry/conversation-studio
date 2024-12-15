@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ExportFormat } from "../types";
 import { Plus, Settings, Import, Menu, ChartNoAxesGantt } from "lucide-react";
 import { AppConfig } from "../config";
@@ -24,6 +24,7 @@ const Header: React.FC<HeaderProps> = ({
   chatFocustId,
   setChatFocustId,
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const chatFocustIdColor = chatFocustId ? "gray" : "blue";
   const KEY_NAVIGATION_STRING = `
 ---
@@ -36,17 +37,55 @@ Previous: ←`
       : ""
   }`;
   return (
-    <header className="fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50">
+    <header className="fixed top-0 left-0 right-0 bg-[#1A1B1B] border-b border-gray-700 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Title */}
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-100">
-              Conversation Studio
+            <h1 className="font-semibold text-gray-100">
+              <span className="md:hidden">CS</span>
+              <span className="hidden md:inline">Conversation Studio</span>
             </h1>
           </div>
-          {/* Navigation */}
-          <nav className="flex items-center space-x-4">
+
+          {/* Mobile Action Buttons */}
+          <div className="flex items-center space-x-2 md:hidden">
+            <button
+              onClick={onNewComment}
+              className="p-2 rounded-lg text-gray-300 hover:bg-gray-700"
+              aria-label="New Post"
+              title="New Post"
+            >
+              <Plus size={20} />
+            </button>
+            <label className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 cursor-pointer">
+              <input
+                type="file"
+                onChange={onImport}
+                className="hidden"
+                accept=".json"
+              />
+              <Import size={20} />
+            </label>
+            <button
+              onClick={onOpenSettings}
+              className="p-2 rounded-lg text-gray-300 hover:bg-gray-700"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <Settings size={20} />
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg text-gray-300 hover:bg-gray-700"
+              aria-label="Toggle menu"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-4">
             <button
               title={`${
                 chatFocustId === "" ? "Forum Mode" : "Chat Mode"
@@ -136,6 +175,83 @@ Previous: ←`
               </button>
             </div>
           </nav>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        <div
+          className={`${
+            isMobileMenuOpen ? "block" : "hidden"
+          } md:hidden py-2 space-y-2`}
+        >
+          <button
+            title={`${
+              chatFocustId === "" ? "Forum Mode" : "Chat Mode"
+            }${KEY_NAVIGATION_STRING}`}
+            onClick={() => {
+              setActiveTab("forum");
+              if (!["text", "xml", "json"].includes(activeTab)) {
+                setChatFocustId(chatFocustId === "" ? null : "");
+              }
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+              activeTab === "forum"
+                ? `bg-${chatFocustIdColor}-700 text-white`
+                : `text-${chatFocustIdColor}-300 hover:bg-${chatFocustIdColor}-700`
+            }`}
+            aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+          >
+            <div className="flex items-center">
+              {chatFocustId === "" ? (
+                <ChartNoAxesGantt size={16} className="mr-2" />
+              ) : (
+                <Menu size={16} className="mr-2" />
+              )}
+              {chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+            </div>
+          </button>
+          <button
+            title={`View Text`}
+            onClick={() => {
+              setActiveTab("text");
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+              activeTab === "text"
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            Text
+          </button>
+          <button
+            title={`View JSON`}
+            onClick={() => {
+              setActiveTab("json");
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+              activeTab === "json"
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            JSON
+          </button>
+          <button
+            title={`View XML`}
+            onClick={() => {
+              setActiveTab("xml");
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+              activeTab === "xml"
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            XML
+          </button>
         </div>
       </div>
     </header>
