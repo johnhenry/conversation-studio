@@ -103,7 +103,11 @@ This was originally imagined as an interface for the [AntiSocial Network](https:
 
 ### Store as PGLite
 
-### Connect to external FS/DB
+### Connect to external services
+ - Minio/AWS
+ - Ipfs
+ - Postgre SQL
+ - MCP
 
 ### License
 

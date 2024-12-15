@@ -499,7 +499,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   onChange={(e) => setAutoReply(e.target.valueAsNumber)}
                   defaultValue={autoReply}
                   min="0"
-                  className="w-12 p-4 bg-[#1A1B1B] rounded-lg border border-gray-700 text-gray-300"
+                  max="3"
+                  className="w-12 p-2 bg-[#1A1B1B] rounded-lg border border-gray-700 text-gray-300"
                 />
               </label>
               <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
@@ -510,7 +511,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   defaultValue={autoReplyCount}
                   disabled={autoReply < 1}
                   min="1"
-                  className="w-12 p-4 bg-[#1A1B1B] rounded-lg border border-gray-700 text-gray-300"
+                  max="8"
+                  className="w-12 p-2 bg-[#1A1B1B] rounded-lg border border-gray-700 text-gray-300"
                 />
               </label>
             </div>
