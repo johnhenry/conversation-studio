@@ -380,11 +380,28 @@ const Comment: React.FC<CommentProps> = ({
             <div className="flex justify-end gap-2 ml-auto">
               {showDelete && !isEditing && !disableEditing && (
                 <>
+                  <button
+                    title={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
+                    onClick={() => {
+                      if (chatFocustId) {
+                        setChatFocustId("");
+                      } else {
+                        setChatFocustId(comment.id);
+                      }
+                    }}
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    {!chatFocustId ? (
+                      <ChartNoAxesGantt size={16} />
+                    ) : (
+                      <Menu size={16} />
+                    )}
+                  </button>
                   {!isEditing && appConfig.ai.base.type && (
                     <button
                       onClick={handleAutoReply}
                       title="Auto Reply"
-                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                      className="text-gray-400 hover:text-green-400 transition-colors"
                     >
                       <Sparkles size={16} />
                     </button>
@@ -396,41 +413,25 @@ const Comment: React.FC<CommentProps> = ({
                   >
                     <MessageSquare size={16} />
                   </button>
-                  <button
-                    title="Toggle Chat Mode"
-                    onClick={() => {
-                      if (chatFocustId) {
-                        setChatFocustId("");
-                      } else {
-                        setChatFocustId(comment.id);
-                      }
-                    }}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
-                  >
-                    {!chatFocustId ? (
-                      <ChartNoAxesGantt size={16} />
-                    ) : (
-                      <Menu size={16} />
-                    )}
-                  </button>
+
                   <button
                     onClick={handleCopy}
-                    title="Copy content"
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                    title="Copy"
+                    className="text-gray-400 hover:text-yellow-400 transition-colors"
                   >
                     <Copy size={16} />
                   </button>
                   <button
                     onClick={handleClone}
-                    title="Clone comment (creates copy at same level)"
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                    title="Duplicate"
+                    className="text-gray-400 hover:text-orange-400 transition-colors"
                   >
                     <CopyPlus size={16} />
                   </button>
 
                   <button
                     onClick={() => onDelete?.(comment.id)}
-                    title="Delete comment"
+                    title="Delete"
                     className="text-gray-400 hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={16} />

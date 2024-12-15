@@ -24,6 +24,8 @@ const Header: React.FC<HeaderProps> = ({
   chatFocustId,
   setChatFocustId,
 }) => {
+  const chatFocustIdColor = chatFocustId ? "gray" : "blue";
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-[#1A1A1B] border-b border-gray-700 z-50">
       <div className="container mx-auto px-4">
@@ -37,6 +39,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Navigation */}
           <nav className="flex items-center space-x-4">
             <button
+              title={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
               onClick={() => {
                 setActiveTab("forum");
                 if (!["text", "xml", "json"].includes(activeTab)) {
@@ -45,10 +48,10 @@ const Header: React.FC<HeaderProps> = ({
               }}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "forum"
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
+                  ? `bg-${chatFocustIdColor}-700 text-white`
+                  : `text-${chatFocustIdColor}-300 hover:bg-${chatFocustIdColor}-700`
               }`}
-              aria-label={chatFocustId === "" ? "Tree View" : "Chat View"}
+              aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
             >
               {chatFocustId === "" ? (
                 <ChartNoAxesGantt size={16} />
@@ -57,6 +60,7 @@ const Header: React.FC<HeaderProps> = ({
               )}
             </button>
             <button
+              title={`View Text`}
               onClick={() => setActiveTab("text")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "text"
@@ -67,6 +71,7 @@ const Header: React.FC<HeaderProps> = ({
               Text
             </button>
             <button
+              title={`View JSON`}
               onClick={() => setActiveTab("json")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "json"
@@ -77,6 +82,7 @@ const Header: React.FC<HeaderProps> = ({
               JSON
             </button>
             <button
+              title={`View XML`}
               onClick={() => setActiveTab("xml")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "xml"

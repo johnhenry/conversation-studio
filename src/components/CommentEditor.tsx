@@ -395,7 +395,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         onKeyDown={handleKeyDown}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">New Comment</h2>
+          <h2 className="text-xl font-semibold text-gray-100">
+            {parentId ? "Reply" : "New Post"}
+          </h2>
 
           <button
             onClick={handleClose}
@@ -453,9 +455,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               Preview XML
             </button>
           </div>
-
           <div className="p-4">{renderContent()}</div>
-
           <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
             <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2">
@@ -504,30 +504,32 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               )}
             </div>
           </div>
-          <div className="flex items-center">
-            Auto Reply:
-            <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
-              Depth{" "}
-              <input
-                type="number"
-                onChange={(e) => setAutoReply(e.target.valueAsNumber)}
-                defaultValue={autoReply}
-                min="0"
-                className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </label>
-            <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
-              Count{" "}
-              <input
-                type="number"
-                onChange={(e) => setAutoReplyCount(e.target.valueAsNumber)}
-                defaultValue={autoReplyCount}
-                disabled={autoReply < 1}
-                min="1"
-                className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </label>
-          </div>
+          {appConfig.ai.base.type && (
+            <div className="flex items-center">
+              Auto Reply:
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
+                Depth{" "}
+                <input
+                  type="number"
+                  onChange={(e) => setAutoReply(e.target.valueAsNumber)}
+                  defaultValue={autoReply}
+                  min="0"
+                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </label>
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
+                Count{" "}
+                <input
+                  type="number"
+                  onChange={(e) => setAutoReplyCount(e.target.valueAsNumber)}
+                  defaultValue={autoReplyCount}
+                  disabled={autoReply < 1}
+                  min="1"
+                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </label>
+            </div>
+          )}
         </form>
       </div>
     </div>
