@@ -3,7 +3,11 @@ import { Download, Copy } from "lucide-react";
 import { ExportPreviewProps } from "../types";
 import { exportComments } from "../utils/export";
 
-const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format, exportSettings }) => {
+const ExportPreview: React.FC<ExportPreviewProps> = ({
+  comments,
+  format,
+  exportSettings,
+}) => {
   const [state, setState] = useState({
     data: "",
     isLoading: false,
@@ -127,6 +131,25 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format, exportS
 
   return (
     <div className="flex flex-col h-full min-h-0 flex-1">
+      <div className="flex justify-start p-2 gap-2">
+        <div>{format.toLocaleUpperCase()}</div>
+        <button
+          onClick={handleCopy}
+          disabled={state.isLoading || !state.data}
+          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+          title="Copy text"
+        >
+          <Copy size={20} />
+        </button>
+        <button
+          onClick={handleDownload}
+          disabled={state.isLoading || !state.data}
+          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Download file"
+        >
+          <Download size={20} />
+        </button>
+      </div>
       {state.isLoading && (
         <div className="flex items-center gap-2 text-blue-500 mb-1">
           <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
@@ -152,22 +175,6 @@ const ExportPreview: React.FC<ExportPreviewProps> = ({ comments, format, exportS
           readOnly
         />
       )}
-      <div className="flex justify-end mt-1 gap-2">
-        <button
-          onClick={handleCopy}
-          disabled={state.isLoading || !state.data}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Copy size={20} /> Copy
-        </button>
-        <button
-          onClick={handleDownload}
-          disabled={state.isLoading || !state.data}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Download size={20} /> Download
-        </button>
-      </div>
     </div>
   );
 };
