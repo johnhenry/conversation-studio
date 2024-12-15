@@ -289,10 +289,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       case "edit":
         return (
           <>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               <label
                 htmlFor="typeInput"
-                className="text-gray-300 flex items-center gap-2"
+                className="text-gray-300 flex items-center gap-2 min-w-[120px]"
                 title="Enter comment type"
               >
                 Type
@@ -301,7 +301,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="typeInput"
                   value={commentType}
                   onChange={(e) => setCommentType(e.target.value)}
-                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[100px]"
                 />
               </label>
               {CYCLE_TYPES.map((type) => (
@@ -322,10 +322,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 _
               </button>
             </div>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               <label
                 htmlFor="userIdInput"
-                className="text-gray-300 flex items-center gap-2"
+                className="text-gray-300 flex items-center gap-2 min-w-[120px]"
                 title="Enter your user ID"
               >
                 User
@@ -334,7 +334,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="userIdInput"
                   value={userId || appConfig.general.userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="ml-2 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1 min-w-[150px]"
                   placeholder={appConfig.general.userId}
                 />
               </label>
@@ -345,17 +345,21 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment using Markdown..."
-              className="w-full min-h-[100px] p-3 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+              className="w-full min-h-[120px] md:min-h-[150px] p-4 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-base"
             />
-            <div className="text-gray-300">
-              <label htmlFor="attachments" title="Choose files to attach">
-                Attachments:
+            <div className="text-gray-300 mt-4">
+              <label 
+                htmlFor="attachments" 
+                title="Choose files to attach"
+                className="block mb-2 p-3 border border-dashed border-gray-600 rounded-lg hover:border-gray-500 cursor-pointer text-center"
+              >
+                <span className="block mb-1">📎 Tap to attach files</span>
                 <input
                   type="file"
                   id="attachments"
                   multiple
                   onChange={onAttachmentUpload}
-                  className="mb-2 block text-gray-400"
+                  className="hidden"
                   aria-label="Choose files to attach"
                 />
               </label>
@@ -425,12 +429,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0"
-      }`}
+      } p-4 md:p-6`}
       role="dialog"
       aria-label="Comment Editor"
     >
       <div
-        className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
+        className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
         onKeyDown={handleKeyDown}
       >
         <div className="flex justify-between items-center mb-4">
@@ -447,57 +451,24 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex gap-2 mb-4 p-4 border-b border-gray-700">
-            <button
-              type="button"
-              onClick={() => setActiveTab("edit")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "edit" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("preview")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "preview" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("text")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "text" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Preview Text
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("json")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors mr-2 text-gray-300 ${
-                activeTab === "json" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Preview JSON
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("xml")}
-              className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 ${
-                activeTab === "xml" ? "bg-gray-700" : "bg-gray-800"
-              }`}
-            >
-              Preview XML
-            </button>
+          <div className="flex overflow-x-auto gap-2 mb-4 p-4 border-b border-gray-700 -mx-4 md:mx-0">
+            {["edit", "preview", "text", "json", "xml"].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab as PreviewTab)}
+                className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap text-gray-300 ${
+                  activeTab === tab ? "bg-gray-700" : "bg-gray-800"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </div>
           <div className="p-4">{renderContent()}</div>
-          <div className="flex justify-between items-center text-sm text-gray-400 p-4 border-t border-gray-700">
-            <span>Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
-            <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center text-sm text-gray-400 p-4 border-t border-gray-700 gap-4">
+            <span className="text-center md:text-left">Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
+            <div className="flex gap-2 justify-center md:justify-end">
               <button
                 type="button"
                 title={`Cancel\nkey: esc`}
