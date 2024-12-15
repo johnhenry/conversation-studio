@@ -230,7 +230,7 @@ const Comment: React.FC<CommentProps> = ({
         }
       }}
       className={`relative transition-all duration-200 group ${
-        isDragOver ? "ring-2 ring-blue-500 ring-opacity-50" : ""
+        isDragOver ? "ring-2 ring-gray-700" : ""
       }`}
       style={{ marginLeft: `${Math.max(0, level * indent)}px` }}
       tabIndex={0}
@@ -282,19 +282,19 @@ const Comment: React.FC<CommentProps> = ({
 
       <div
         ref={commentRef}
-        className={`relative transition-colors cursor-all-scroll outline-none
+        className={`relative transition-colors cursor-all-scroll outline-none rounded-lg
           ${
             isBeingRepliedTo
-              ? "ring-2 ring-blue-500 ring-opacity-30 ring-inset"
+              ? "ring-2 ring-gray-700"
               : ""
           }
-          ${isDragOver ? "bg-[#1d2535]" : ""}
+          ${isDragOver ? "bg-[#2A2A2B]" : ""}
           ${
             isSelected
-              ? `${prev_depth_bg} bg-opacity-30`
-              : `hover:${prev_depth_bg} hover:bg-opacity-30`
+              ? "bg-[#2A2A2B]"
+              : "hover:bg-[#2A2A2B]"
           }
-          focus-visible:ring-2 focus-visible:ring-blue-500 level-${level}
+          focus-visible:ring-2 focus-visible:ring-gray-700 level-${level}
         `}
         draggable
         onDragStart={(e) => onDragStart(e, comment)}
@@ -368,14 +368,14 @@ const Comment: React.FC<CommentProps> = ({
                 )}
                 <button
                   onClick={handleTypeClick}
-                  className={`${depth_text} hover:text-blue-300 cursor-pointer px-2 py-1 rounded-lg hover:bg-gray-700`}
+                  className={`text-gray-300 hover:text-gray-100 transition-colors`}
                   title={commentTitle}
                 >
                   {comment.type}
                 </button>
                 <button
                   onClick={handleUserIdClick}
-                  className={`${depth_text} hover:text-blue-300 cursor-pointer px-2 py-1 rounded-lg hover:bg-gray-700`}
+                  className={`text-gray-300 hover:text-gray-100 transition-colors`}
                   title="User Id"
                 >
                   {comment.userId}

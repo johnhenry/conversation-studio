@@ -290,10 +290,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       case "edit":
         return (
           <>
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="flex flex-wrap gap-4 mb-4">
               <label
                 htmlFor="typeInput"
-                className="text-gray-300 flex items-center gap-2 min-w-[120px]"
+                className="text-gray-300 flex items-center gap-4 min-w-[120px]"
                 title="Enter comment type"
               >
                 Type
@@ -302,7 +302,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="typeInput"
                   value={commentType}
                   onChange={(e) => setCommentType(e.target.value)}
-                  className="ml-2 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[100px]"
+                  className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 />
               </label>
               {CYCLE_TYPES.map((type) => (
@@ -323,10 +323,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 _
               </button>
             </div>
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="flex flex-wrap gap-4 mb-4">
               <label
                 htmlFor="userIdInput"
-                className="text-gray-300 flex items-center gap-2 min-w-[120px]"
+                className="text-gray-300 flex items-center gap-4 min-w-[120px]"
                 title="Enter your user ID"
               >
                 User
@@ -335,7 +335,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   id="userIdInput"
                   value={userId || appConfig.general.userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  className="ml-2 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1 min-w-[150px]"
+                  className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                   placeholder={appConfig.general.userId}
                 />
               </label>
@@ -346,13 +346,13 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment using Markdown..."
-              className="w-full min-h-[120px] md:min-h-[150px] p-4 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-base"
+              className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
             />
             <div className="text-gray-300 mt-4">
               <label 
                 htmlFor="attachments" 
                 title="Choose files to attach"
-                className="block mb-2 p-3 border border-dashed border-gray-700 rounded-lg hover:border-gray-500 cursor-pointer text-center"
+                className="block mb-2 p-4 border border-dashed border-gray-700 rounded-lg hover:border-gray-500 cursor-pointer text-center"
               >
                 <span className="block mb-1 text-gray-300">📎 Tap to attach files</span>
                 <input
@@ -383,7 +383,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         );
       case "preview":
         return (
-          <div className="border border-gray-700 rounded-lg p-3 bg-[#1A1A1B]">
+          <div className="border border-gray-700 rounded-lg p-3 bg-[#1A1B1B]">
             <CommentTree
               comments={[previewComment]}
               updateComments={() => {}}
@@ -417,7 +417,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               value={previewData}
               readOnly
               aria-label={`${activeTab.toUpperCase()} Preview Output`}
-              className="w-full min-h-[100px] p-3 bg-[#2A2A2B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+              className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
             />
           </div>
         );
@@ -430,12 +430,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     <div
       className={`fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0"
-      } p-4 md:p-6 overflow-y-auto`}
+      } p-4 overflow-y-auto`}
       role="dialog"
       aria-label="Comment Editor"
     >
       <div
-        className="bg-[#1A1A1B] p-4 md:p-6 rounded-lg w-full max-w-3xl relative flex flex-col max-h-[90vh]"
+        className="bg-[#1A1B1B] p-4 rounded-lg w-full max-w-3xl relative flex flex-col max-h-[90vh]"
         onKeyDown={handleKeyDown}
       >
         <div className="flex justify-between items-center mb-4 shrink-0">
@@ -462,7 +462,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 />
               </button>
               {isNavExpanded && (
-                <div className="absolute mt-1 w-full bg-[#1A1A1B] border border-gray-700 rounded-lg shadow-lg">
+                <div className="absolute mt-1 w-full bg-[#1A1B1B] border border-gray-700 rounded-lg shadow-lg">
                   {["edit", "preview", "text", "json", "xml"].map((tab) => (
                     <button
                       key={tab}
@@ -487,8 +487,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab as PreviewTab)}
-                  className={`px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap ${
-                    activeTab === tab ? "text-gray-100 bg-gray-800" : "text-gray-400 hover:text-gray-200"
+                  className={`px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                    activeTab === tab ? "bg-[#2A2A2B] text-gray-100" : "text-gray-300 hover:bg-[#2A2A2B]"
                   }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -497,7 +497,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             </div>
           </div>
           <div className="overflow-y-auto flex-1 px-4 -mx-4">
-            <div className="space-y-4">
+            <div>
               {renderContent()}
             </div>
             {appConfig.ai.base.type && (
@@ -510,7 +510,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   onChange={(e) => setAutoReply(e.target.valueAsNumber)}
                   defaultValue={autoReply}
                   min="0"
-                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-12 p-4 bg-[#1A1B1B] rounded-lg border border-gray-700 text-gray-300"
                 />
               </label>
               <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
@@ -521,7 +521,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   defaultValue={autoReplyCount}
                   disabled={autoReply < 1}
                   min="1"
-                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-12 p-4 bg-[#1A1B1B] rounded-lg border border-gray-700 text-gray-300"
                 />
               </label>
             </div>

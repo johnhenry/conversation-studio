@@ -657,83 +657,75 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       }}
       className={`${parentId ? "pl-0" : ""}`}
     >
-      {visibleComments.map((comment) => {
-        const siblings = findSiblings(allComments, comment.id);
-        const currentIndex = siblings.findIndex((c) => c.id === comment.id);
-
-        const siblingInfo =
-          siblings.length > 1
-            ? {
-                currentIndex,
-                totalSiblings: siblings.length,
-                onNavigate: (direction: "prev" | "next") =>
-                  handleSiblingNavigation(comment.id, direction),
-              }
-            : undefined;
-
-        return (
-          <div key={`container-${comment.id}`}>
-            <Comment
-              key={comment.id}
-              comment={comment}
-              onDelete={() => deleteComment(comment.id)}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-              onPopUp={parentId ? () => handlePopUp(comment.id) : undefined}
+      {visibleComments.map((comment) => (
+        <div key={comment.id} className="relative">
+          <Comment
+            comment={comment}
+            onDelete={() => deleteComment(comment.id)}
+            onDragStart={handleDragStart}
+            onDrop={handleDrop}
+            onPopUp={parentId ? () => handlePopUp(comment.id) : undefined}
+            onReply={onReply}
+            onUserIdChange={handleUserIdChange}
+            onTypeChange={handleTypeChange}
+            onUpdate={handleUpdateComment}
+            onClone={onClone}
+            onAttachmentUpload={onAttachmentUpload}
+            onAttachmentRemove={onAttachmentRemove}
+            canPopUp={!!parentId}
+            renderAttachment={renderAttachment}
+            showDelete={!isPreview}
+            level={level}
+            isBeingRepliedTo={comment.id === replyToId}
+            isSelected={comment.id === selectedCommentId}
+            onSelect={() => onCommentSelect?.(comment.id)}
+            disableEditing={disableEditing || isPreview}
+            appConfig={appConfig}
+            chatFocustId={chatFocustId}
+            setChatFocustId={setChatFocustId}
+            siblingInfo={
+              comment.children.length > 0
+                ? {
+                    currentIndex: 0,
+                    totalSiblings: comment.children.length,
+                    onNavigate: (direction: "prev" | "next") =>
+                      handleSiblingNavigation(comment.id, direction),
+                  }
+                : undefined
+            }
+            onGenerate={onGenerate}
+          />
+          {comment.children.length > 0 && (
+            <CommentTree
+              comments={comment.children}
+              updateComments={(newChildren) => {
+                const newComments = comments.map((c) =>
+                  c.id === comment.id ? { ...c, children: newChildren } : c
+                );
+                updateComments(newComments);
+              }}
+              level={level + 1}
+              parentId={comment.id}
+              rootComments={rootComments || comments}
+              rootUpdateComments={rootUpdateComments || updateComments}
+              isPreview={isPreview}
+              renderAttachment={renderAttachment}
               onReply={onReply}
-              onUserIdChange={handleUserIdChange}
-              onTypeChange={handleTypeChange}
-              onUpdate={handleUpdateComment}
               onClone={onClone}
+              replyToId={replyToId}
               onAttachmentUpload={onAttachmentUpload}
               onAttachmentRemove={onAttachmentRemove}
-              canPopUp={!!parentId}
-              renderAttachment={renderAttachment}
-              showDelete={!isPreview}
-              level={level}
-              isBeingRepliedTo={comment.id === replyToId}
-              isSelected={comment.id === selectedCommentId}
-              onSelect={() => onCommentSelect?.(comment.id)}
-              disableEditing={disableEditing || isPreview}
-              data-comment-id={comment.id}
+              disableEditing={disableEditing}
+              selectedCommentId={selectedCommentId}
+              onCommentSelect={onCommentSelect}
               appConfig={appConfig}
               chatFocustId={chatFocustId}
               setChatFocustId={setChatFocustId}
-              siblingInfo={siblingInfo}
               onGenerate={onGenerate}
             />
-            {comment.children.length > 0 && (
-              <CommentTree
-                comments={comment.children}
-                updateComments={(newChildren) => {
-                  const newComments = comments.map((c) =>
-                    c.id === comment.id ? { ...c, children: newChildren } : c
-                  );
-                  updateComments(newComments);
-                }}
-                level={level + 1}
-                parentId={comment.id}
-                rootComments={rootComments || comments}
-                rootUpdateComments={rootUpdateComments || updateComments}
-                isPreview={isPreview}
-                renderAttachment={renderAttachment}
-                onReply={onReply}
-                onClone={onClone}
-                replyToId={replyToId}
-                onAttachmentUpload={onAttachmentUpload}
-                onAttachmentRemove={onAttachmentRemove}
-                disableEditing={disableEditing}
-                selectedCommentId={selectedCommentId}
-                onCommentSelect={onCommentSelect}
-                appConfig={appConfig}
-                chatFocustId={chatFocustId}
-                setChatFocustId={setChatFocustId}
-                onGenerate={onGenerate}
-              />
-            )}
-          </div>
-        );
-      })}
+          )}
+        </div>
+      ))}
     </div>
   );
 };

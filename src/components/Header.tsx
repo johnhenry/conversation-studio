@@ -41,7 +41,7 @@ Previous: ←`
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Title */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <h1 className="font-semibold text-gray-100">
               <span className="md:hidden">CS</span>
               <span className="hidden md:inline">Conversation Studio</span>
@@ -49,16 +49,16 @@ Previous: ←`
           </div>
 
           {/* Mobile Action Buttons */}
-          <div className="flex items-center space-x-2 md:hidden">
+          <div className="flex items-center gap-4 md:hidden">
             <button
               onClick={onNewComment}
-              className="p-2 rounded-lg text-gray-300 hover:bg-gray-700"
+              className="p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors"
               aria-label="New Post"
               title="New Post"
             >
               <Plus size={20} />
             </button>
-            <label className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 cursor-pointer">
+            <label className="p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors cursor-pointer">
               <input
                 type="file"
                 onChange={onImport}
@@ -69,7 +69,7 @@ Previous: ←`
             </label>
             <button
               onClick={onOpenSettings}
-              className="p-2 rounded-lg text-gray-300 hover:bg-gray-700"
+              className="p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors"
               aria-label="Settings"
               title="Settings"
             >
@@ -77,7 +77,7 @@ Previous: ←`
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-300 hover:bg-gray-700"
+              className="p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors"
               aria-label="Toggle menu"
             >
               <Menu size={20} />
@@ -85,7 +85,7 @@ Previous: ←`
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-4">
+          <nav className="hidden md:flex items-center gap-4">
             <button
               title={`${
                 chatFocustId === "" ? "Forum Mode" : "Chat Mode"
@@ -98,8 +98,8 @@ Previous: ←`
               }}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "forum"
-                  ? `bg-${chatFocustIdColor}-700 text-white`
-                  : `text-${chatFocustIdColor}-300 hover:bg-${chatFocustIdColor}-700`
+                  ? `bg-[#2A2A2B] text-gray-100`
+                  : "text-gray-300 hover:bg-[#2A2A2B]"
               }`}
               aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
             >
@@ -114,8 +114,8 @@ Previous: ←`
               onClick={() => setActiveTab("text")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "text"
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
+                  ? "bg-[#2A2A2B] text-gray-100"
+                  : "text-gray-300 hover:bg-[#2A2A2B]"
               }`}
             >
               Text
@@ -125,8 +125,8 @@ Previous: ←`
               onClick={() => setActiveTab("json")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "json"
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
+                  ? "bg-[#2A2A2B] text-gray-100"
+                  : "text-gray-300 hover:bg-[#2A2A2B]"
               }`}
             >
               JSON
@@ -136,25 +136,25 @@ Previous: ←`
               onClick={() => setActiveTab("xml")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "xml"
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
+                  ? "bg-[#2A2A2B] text-gray-100"
+                  : "text-gray-300 hover:bg-[#2A2A2B]"
               }`}
             >
               XML
             </button>
 
             {/* Settings and Import */}
-            <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-700">
+            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-700">
               {/* Action Buttons */}
               <button
                 onClick={onNewComment}
-                className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                className="p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors"
                 title={`New Comment\nkey: n`}
               >
                 <Plus size={20} />
               </button>
               <label
-                className="inline-flex items-center p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer"
+                className="inline-flex items-center p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors cursor-pointer"
                 title="Import File"
               >
                 <Import size={20} />
@@ -168,7 +168,7 @@ Previous: ←`
               </label>
               <button
                 onClick={onOpenSettings}
-                className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                className="p-4 rounded-lg text-gray-300 hover:bg-[#2A2A2B] transition-colors"
                 title="Settings"
               >
                 <Settings size={20} />
@@ -196,8 +196,8 @@ Previous: ←`
             }}
             className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
               activeTab === "forum"
-                ? `bg-${chatFocustIdColor}-700 text-white`
-                : `text-${chatFocustIdColor}-300 hover:bg-${chatFocustIdColor}-700`
+                ? `bg-[#2A2A2B] text-gray-100`
+                : "text-gray-300 hover:bg-[#2A2A2B]"
             }`}
             aria-label={chatFocustId === "" ? "Forum Mode" : "Chat Mode"}
           >
@@ -218,8 +218,8 @@ Previous: ←`
             }}
             className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
               activeTab === "text"
-                ? "bg-gray-700 text-white"
-                : "text-gray-300 hover:bg-gray-700"
+                ? "bg-[#2A2A2B] text-gray-100"
+                : "text-gray-300 hover:bg-[#2A2A2B]"
             }`}
           >
             Text
@@ -232,8 +232,8 @@ Previous: ←`
             }}
             className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
               activeTab === "json"
-                ? "bg-gray-700 text-white"
-                : "text-gray-300 hover:bg-gray-700"
+                ? "bg-[#2A2A2B] text-gray-100"
+                : "text-gray-300 hover:bg-[#2A2A2B]"
             }`}
           >
             JSON
@@ -246,8 +246,8 @@ Previous: ←`
             }}
             className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
               activeTab === "xml"
-                ? "bg-gray-700 text-white"
-                : "text-gray-300 hover:bg-gray-700"
+                ? "bg-[#2A2A2B] text-gray-100"
+                : "text-gray-300 hover:bg-[#2A2A2B]"
             }`}
           >
             XML

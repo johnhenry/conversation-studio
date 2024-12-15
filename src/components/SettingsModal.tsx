@@ -79,13 +79,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center p-4">
-      <div className="bg-[#1A1A1B] rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#1A1B1B] rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
 
         <div className="flex items-center gap-2 w-full md:w-auto justify">
                 Settings
         <button
           onClick={onClose}
-          className="p-2 text-gray-400 hover:text-gray-200 bg-gray-800 rounded-lg transition-colors ml-auto"
+          className="p-2 text-gray-300 hover:text-gray-100 bg-[#2A2A2B] rounded-lg transition-colors ml-auto"
         >
           <X size={20} />
         </button>
@@ -149,7 +149,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               <select
                 value={appConfig.general.logLevel}
                 onChange={(e) => handleGeneralChange("logLevel", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 appearance-none"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 appearance-none"
               >
                 <option value="error">Error</option>
                 <option value="warn">Warning</option>
@@ -176,7 +176,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="text"
                 value={appConfig.general.userId || ""}
                 onChange={(e) => handleGeneralChange("userId", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
               />
             </div>
           </div>
@@ -191,7 +191,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               <select
                 value={appConfig.ai.base.type}
                 onChange={(e) => handleAIChange("type", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 appearance-none"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 appearance-none"
               >
                 <option value="">[inactive]</option>
                 <option value="openai">OpenAI</option>
@@ -206,7 +206,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="text"
                 value={appConfig.ai.base.endpoint}
                 onChange={(e) => handleAIChange("endpoint", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 placeholder="API Endpoint"
               />
             </div>
@@ -218,7 +218,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="password"
                 value={appConfig.ai.base.apiKey}
                 onChange={(e) => handleAIChange("apiKey", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 placeholder="API Key"
               />
             </div>
@@ -230,7 +230,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="text"
                 value={appConfig.ai.base.model}
                 onChange={(e) => handleAIChange("model", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 placeholder="Model Name"
               />
             </div>
@@ -241,7 +241,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               <textarea
                 value={appConfig.ai.base.systemPrompt}
                 onChange={(e) => handleAIChange("systemPrompt", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 min-h-[120px]"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 min-h-[120px]"
                 placeholder="System Prompt"
               />
             </div>
@@ -255,7 +255,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="number"
                 value={appConfig.ai.base.temperature}
                 onChange={(e) => handleAIChange("temperature", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 min="0"
                 max="1"
                 step="0.1"
@@ -269,7 +269,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="number"
                 value={appConfig.ai.base.topK}
                 onChange={(e) => handleAIChange("topK", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 min="1"
               />
             </div>
@@ -281,7 +281,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="number"
                 value={appConfig.ai.base.maxTokens}
                 onChange={(e) => handleAIChange("maxTokens", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 min="1"
               />
             </div>
@@ -293,7 +293,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="number"
                 value={appConfig.ai.base.seed}
                 onChange={(e) => handleAIChange("seed", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 min="0"
               />
             </div>
@@ -305,7 +305,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="number"
                 value={appConfig.ai.base.maxRetries}
                 onChange={(e) => handleAIChange("maxRetries", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 min="0"
               />
             </div>
@@ -317,7 +317,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 type="number"
                 value={appConfig.ai.base.retryDelay}
                 onChange={(e) => handleAIChange("retryDelay", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                 min="0"
               />
             </div>
@@ -367,7 +367,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       Number(e.target.value)
                     )
                   }
-                  className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
+                  className="w-full p-4 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300"
                   min="1"
                 />
               </div>

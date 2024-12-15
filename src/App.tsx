@@ -845,7 +845,7 @@ function App() {
       <main className="flex-1 container mx-auto px-4 pt-20 pb-4 overflow-y-auto">
         {activeTab === "forum" ? (
           <>
-            <div className="space-y-4">{commentTree}</div>
+            <div >{commentTree}</div>
           </>
         ) : (
           <ExportPreview
