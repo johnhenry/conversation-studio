@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Trash2,
   ChartNoAxesGantt,
@@ -94,6 +94,10 @@ const Comment: React.FC<CommentProps> = ({
   const [editContent, setEditContent] = useState(comment.content);
   const commentRef = useRef<HTMLDivElement>(null);
   const indent = !chatFocustId ? 24 : 0;
+
+  useEffect(() => {
+    setEditContent(comment.content);
+  }, [comment.content]);
 
   const handleUserIdClick = () => {
     // No longer cycles through user IDs
