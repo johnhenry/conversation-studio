@@ -140,29 +140,41 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.altKey || e.ctrlKey || e.metaKey) return;
-
-    if (e.key === "Enter" && !e.shiftKey && !isEditing) {
-      e.preventDefault();
-      setIsEditing(true);
-    } else if (e.key === "r" && onReply && !isEditing) {
-      e.preventDefault();
-      onReply(comment.id, 0);
-    } else if (e.key === "R" && onReply && !isEditing) {
-      e.preventDefault();
-      onGenerate?.({ parentId: comment.id });
-    } else if (e.key === "s" && !isEditing) {
-      e.preventDefault();
-      onSpeak(comment.id);
-    } else if (e.key === "c" && onClone && !isEditing) {
-      e.preventDefault();
-      onClone(comment.id, comment, false);
-    } else if (e.key === "C" && onClone && !isEditing) {
-      e.preventDefault();
-      onClone(comment.id, comment, true);
-    } else if (e.key === "t" && !disableEditing && !isEditing) {
-      e.preventDefault();
-      handleTypeClick();
+    if (isEditing) {
+      // Prevent arrow key events from propagating in edit mode
+      if (e.key.startsWith("Arrow")) {
+        e.stopPropagation();
+        return;
+      }
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        handleEditSubmit();
+      } else if (e.key === "Escape") {
+        setIsEditing(false);
+        setEditContent(comment.content);
+      }
+    } else {
+      if (e.key === "e" && !disableEditing) {
+        e.preventDefault();
+        setIsEditing(true);
+      } else if (e.key === "r" && onReply) {
+        e.preventDefault();
+        onReply(comment.id, 0);
+      } else if (e.key === "R" && onReply) {
+        e.preventDefault();
+        handleAutoReply();
+      }else if (e.key === "s" && onSpeak) {
+        e.preventDefault();
+        onSpeak(comment.id);
+      } else if (e.key === "c" && onClone) {
+        e.preventDefault();
+        onClone(comment.id, comment, false);
+      } else if (e.key === "C" && onClone) {
+        e.preventDefault();
+        onClone(comment.id, comment, true);
+      } else if (e.key === "t" && !disableEditing) {
+        e.preventDefault();
+        handleTypeClick();
+      }
     }
   };
 

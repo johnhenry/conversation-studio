@@ -431,40 +431,23 @@ function App() {
     }
 
     const parentComments = findParentComments(comments, commentId);
-    const voices = window.speechSynthesis.getVoices();
     // Match voice.name to comment.userId, else use default voice:
     const matchedVoices: {[userId: string]: SpeechSynthesisVoice} = {};
     for(const {userId} of parentComments) {
-      const voice = voices.find(voice => voice.name === userId);
+      const voice = window.speechSynthesis.getVoices().find(voice => voice.name === userId);
       if (voice) {
         matchedVoices[userId] = voice;
       }
-      else {
-        matchedVoices[userId] = voices[0];
-      }
     }
-
-
 
     // Create and queue utterances for each message
     parentComments.forEach((comment, index) => {
       const utterance = new SpeechSynthesisUtterance(comment.content);
-
       // Pick a random voice, excluding voices that might be inappropriate (e.g., some screen readers)
-      const availableVoices = voices.filter((voice) =>
-        !voice.name.toLowerCase().includes("screen reader") &&
-        !voice.name.toLowerCase().includes("screenreader")
-      );
-
-      if (availableVoices.length > 0) {
+      utterance.voice = matchedVoices[comment.userId];
+      if(matchedVoices[comment.userId]){
         utterance.voice = matchedVoices[comment.userId];
       }
-
-      // Add a pause between messages
-      if (index < parentComments.length - 1) {
-        utterance.text += ". Next message. ";
-      }
-
       // Set event handlers for the last utterance only
       if (index === parentComments.length - 1) {
         utterance.onend = () => {
