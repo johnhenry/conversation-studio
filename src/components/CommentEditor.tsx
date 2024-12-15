@@ -428,31 +428,28 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0"
-      } p-4 md:p-6`}
+      } p-4 md:p-6 overflow-y-auto`}
       role="dialog"
       aria-label="Comment Editor"
     >
       <div
-        className="bg-[#1A1A1B] p-4 md:p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative"
+        className="bg-[#1A1A1B] p-4 md:p-6 rounded-lg w-full max-w-3xl my-4 md:my-8 relative flex flex-col max-h-[90vh]"
         onKeyDown={handleKeyDown}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">
-            {parentId ? "Reply" : "New Post"}
-          </h2>
-
+        <div className="flex justify-between items-center mb-4 shrink-0">
+          <h2 className="text-xl font-semibold text-gray-200">Add Comment</h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-300"
-            aria-label="Close editor"
+            className="text-gray-400 hover:text-gray-200"
+            title="Close"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex overflow-x-auto gap-2 mb-4 p-4 border-b border-gray-700 -mx-4 md:mx-0">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex overflow-x-auto gap-2 mb-4 p-4 border-b border-gray-700 -mx-4 md:mx-0 shrink-0">
             <div className="md:hidden w-full">
               <button
                 onClick={() => setIsNavExpanded(!isNavExpanded)}
@@ -499,8 +496,39 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               ))}
             </div>
           </div>
-          <div className="p-4">{renderContent()}</div>
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center text-sm text-gray-400 p-4 border-t border-gray-700 gap-4">
+          <div className="overflow-y-auto flex-1 px-4 -mx-4">
+            <div className="space-y-4">
+              {renderContent()}
+            </div>
+            {appConfig.ai.base.type && (
+            <div className="flex items-center">
+              Auto Reply:
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
+                Depth{" "}
+                <input
+                  type="number"
+                  onChange={(e) => setAutoReply(e.target.valueAsNumber)}
+                  defaultValue={autoReply}
+                  min="0"
+                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </label>
+              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
+                Count{" "}
+                <input
+                  type="number"
+                  onChange={(e) => setAutoReplyCount(e.target.valueAsNumber)}
+                  defaultValue={autoReplyCount}
+                  disabled={autoReply < 1}
+                  min="1"
+                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </label>
+            </div>
+          )}
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center text-sm text-gray-400 p-4 border-t border-gray-700 gap-4 mt-4 shrink-0">
             <span className="text-center md:text-left">Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2 justify-center md:justify-end">
               {appConfig.ai.base.type && parentId ? (
@@ -551,32 +579,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               </button>
             </div>
           </div>
-          {appConfig.ai.base.type && (
-            <div className="flex items-center">
-              Auto Reply:
-              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
-                Depth{" "}
-                <input
-                  type="number"
-                  onChange={(e) => setAutoReply(e.target.valueAsNumber)}
-                  defaultValue={autoReply}
-                  min="0"
-                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </label>
-              <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
-                Count{" "}
-                <input
-                  type="number"
-                  onChange={(e) => setAutoReplyCount(e.target.valueAsNumber)}
-                  defaultValue={autoReplyCount}
-                  disabled={autoReply < 1}
-                  min="1"
-                  className="w-12 px-2 py-1 bg-[#1A1A1B] border border-gray-700 text-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </label>
-            </div>
-          )}
+
         </form>
       </div>
     </div>
