@@ -428,7 +428,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-200 ${
         isVisible ? "opacity-100" : "opacity-0"
       } p-4 md:p-6 overflow-y-auto`}
       role="dialog"
@@ -462,7 +462,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 />
               </button>
               {isNavExpanded && (
-                <div className="absolute z-10 mt-1 w-full bg-[#1A1A1B] border border-gray-700 rounded-lg shadow-lg">
+                <div className="absolute mt-1 w-full bg-[#1A1A1B] border border-gray-700 rounded-lg shadow-lg">
                   {["edit", "preview", "text", "json", "xml"].map((tab) => (
                     <button
                       key={tab}
@@ -531,6 +531,14 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center text-sm text-gray-400 p-4 border-t border-gray-700 gap-4 mt-4 shrink-0">
             <span className="text-center md:text-left">Supports Markdown. Press Ctrl/Cmd+Enter to submit.</span>
             <div className="flex gap-2 justify-center md:justify-end">
+            <button
+                type="button"
+                title={`Cancel\nkey: esc`}
+                onClick={handleClose}
+                className="px-4 py-2 bg-gray-800 text-gray-300 hover:text-red-400 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
               {appConfig.ai.base.type && parentId ? (
                 <>
                   {!(!content.trim() && attachments.length === 0) ? (
@@ -569,14 +577,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                   </button>
                 </>
               )}
-              <button
-                type="button"
-                title={`Cancel\nkey: esc`}
-                onClick={handleClose}
-                className="px-4 py-2 bg-gray-800 text-gray-300 hover:text-red-400 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
+
             </div>
           </div>
 

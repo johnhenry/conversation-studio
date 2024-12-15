@@ -78,7 +78,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center p-4">
       <div className="bg-[#1A1A1B] rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
 
         <div className="flex items-center gap-2 w-full md:w-auto justify">
@@ -236,6 +236,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
+                System Prompt
+              </label>
+              <textarea
+                value={appConfig.ai.base.systemPrompt}
+                onChange={(e) => handleAIChange("systemPrompt", e.target.value)}
+                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 min-h-[120px]"
+                placeholder="System Prompt"
+              />
+            </div>
+            <details>
+              <summary>Parameters</summary>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Temperature
               </label>
               <input
@@ -308,17 +321,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 min="0"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                System Prompt
-              </label>
-              <textarea
-                value={appConfig.ai.base.systemPrompt}
-                onChange={(e) => handleAIChange("systemPrompt", e.target.value)}
-                className="w-full p-3 bg-[#2A2A2B] rounded-lg border border-gray-700 text-gray-300 min-h-[120px]"
-                placeholder="System Prompt"
-              />
-            </div>
+            </details>
           </div>
         )}
 
