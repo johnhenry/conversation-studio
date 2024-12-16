@@ -1,7 +1,10 @@
-export const DEFAULT_USER_ID = "";
+export const DEFAULT_USER_ID = "Samantha";
 export const DEFAULT_COMMENT_TYPE = "user";
-export const CYCLE_USER_IDS = ["alice", "bob", "charlie", "donna"];
 export const CYCLE_TYPES = ["user", "assistant", "system"];
+
+const ENGLISH_VOICES = globalThis.speechSynthesis.getVoices().filter(({lang}) => lang === "en-US").map(({name})=>name);
+console.log("ENGLISH_VOICES", ENGLISH_VOICES)
+export const CYCLE_USER_IDS = ENGLISH_VOICES;
 
 export interface GeneralConfig {
   storeLocally: boolean;

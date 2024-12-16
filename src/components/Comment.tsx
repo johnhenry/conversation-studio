@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Comment as CommentType, Attachment } from "../types";
 import MarkdownPreview from "./MarkdownPreview";
-import { CYCLE_TYPES } from "src:/config";
+import { CYCLE_TYPES, CYCLE_USER_IDS } from "src:/config";
 import { DEPTH_COLORS, DEPTH_TEXT } from "src:/config";
 import { AppConfig } from "../config";
 
@@ -29,6 +29,7 @@ interface CommentProps {
   onPopUp?: (id: string) => void;
   onReply?: (id: string, autoReply?: number) => void;
   onTypeChange?: (id: string, newType: string) => void;
+  onUserIdChange?: (id: string, newUserId:string) => void;
   onUpdate?: (
     id: string,
     newContent: string,
@@ -75,6 +76,7 @@ const Comment: React.FC<CommentProps> = ({
   onPopUp,
   onReply,
   onTypeChange,
+  onUserIdChange,
   onUpdate,
   onClone,
   onAttachmentUpload,
@@ -107,8 +109,12 @@ const Comment: React.FC<CommentProps> = ({
   }, [comment.content]);
 
   const handleUserIdClick = () => {
-    // No longer cycles through user IDs
-    return;
+    if (!disableEditing && CYCLE_USER_IDS.includes(comment.userId)) {
+      const currentIndex = CYCLE_USER_IDS.indexOf(comment.userId);
+      const nextIndex = (currentIndex + 1) % CYCLE_USER_IDS.length;
+      const newUserId = CYCLE_USER_IDS[nextIndex];
+      onUserIdChange?.(comment.id, newUserId);
+    }
   };
 
   const handleTypeClick = () => {
