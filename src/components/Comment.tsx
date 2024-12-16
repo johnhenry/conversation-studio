@@ -307,8 +307,8 @@ const Comment: React.FC<CommentProps> = ({
           ${isDragOver ? `${prev_depth_bg}` : ""}
           ${
             isSelected
-              ? `${prev_depth_bg}`
-              : `hover:${prev_depth_bg} hover:opacity-50`
+              ? `${prev_depth_bg} bg-opacity-50`
+              : `hover:${prev_depth_bg} hover:bg-opacity-50`
           }
           focus-visible:ring-2 focus-visible:ring-gray-700 level-${level}
         `}
