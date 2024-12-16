@@ -1,11 +1,14 @@
-# Conversation Studio: Your Tool for Dynamic Conversation Remixing and Analysis
+# Conversation Studio
 
 [Web](https://conversation-studio.succinct.link)
+
+> [!WARNING]
+> AI Features are disable by default. You must enable them manually (see documentation below)
 
 ![Conversation Studio](./docs/preview.png)
 
 Most AI Chat applications are structured like
-[instant messaging applications](https://en.wikipedia.org/wiki/Instant_messaging) where a *user* has a linear conversation with a single *assistant*.
+[instant messaging applications](https://en.wikipedia.org/wiki/Instant_messaging) where a _user_ has a linear conversation with a single _assistant_.
 
 Conversation Studio allows you to step back and manage multiple conversations at once. It's structured like a [forum](https://en.wikipedia.org/wiki/Internet_forum) with multiple threads and nested replies.
 
@@ -40,18 +43,17 @@ If you plan to use ollama, but sure to set the `OLLAMA_ORIGINS` environment vari
 ## Usage: Local
 
 1. **Clone this Repository**  
-  git clone github.com/johnhenry/conversation-studio.git
+   git clone github.com/johnhenry/conversation-studio.git
 1. **Move into the Project Directory**  
-  cd conversation-studio
+   cd conversation-studio
 1. **Install Dependencies**  
-  npm install
+   npm install
 1. **Start the App**  
-  npm run dev
+   npm run dev
 1. **Open the App in a Browser**  
-  https://localhost:5173
+   https://localhost:5173
 
 If you plan to use ollama, but sure to set the `OLLAMA_ORIGINS` environment variable to `https://localhost:5173` before starting ollama (see below).
-
 
 ## Using AI
 
@@ -66,10 +68,11 @@ You can use any OpenAI-compatible API.
 By default, we point to the local URL used by [ollama](https://ollama.com).
 
 #### Ollama
+
 If you plan to run this with ollama, you may have to set your `OLLAMA_ORIGINS` environment variable.
 
-  - Hosted site - `setenv OLLAMA_ORIGINS "https://conversation-studio.succinct.link"` (MacOS)
-  - Local - `setenv OLLAMA_ORIGINS "http://localhost:5173"` (MacOS)
+- Hosted site - `setenv OLLAMA_ORIGINS "https://conversation-studio.succinct.link"` (MacOS)
+- Local - `setenv OLLAMA_ORIGINS "http://localhost:5173"` (MacOS)
 
 ### Windows.ai
 
@@ -120,10 +123,11 @@ This was originally imagined as an interface for the [AntiSocial Network](https:
 ### Store as PGLite
 
 ### Connect to external services
- - Minio/AWS
- - Ipfs
- - Postgre SQL
- - MCP
+
+- Minio/AWS
+- Ipfs
+- Postgre SQL
+- MCP
 
 ### License
 
