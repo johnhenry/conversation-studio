@@ -298,17 +298,17 @@ const Comment: React.FC<CommentProps> = ({
 
       <div
         ref={commentRef}
-        className={`relative transition-colors cursor-all-scroll outline-none rounded-lg
+        className={`relative transition-colors cursor-all-scroll outline-none rounded-sm
           ${
             isBeingRepliedTo
               ? "ring-2 ring-gray-700"
               : ""
           }
-          ${isDragOver ? "bg-[#2A2A2B]" : ""}
+          ${isDragOver ? `${prev_depth_bg}` : ""}
           ${
             isSelected
-              ? "bg-[#2A2A2B]"
-              : "hover:bg-[#2A2A2B]"
+              ? `${prev_depth_bg}`
+              : `hover:${prev_depth_bg} hover:opacity-50`
           }
           focus-visible:ring-2 focus-visible:ring-gray-700 level-${level}
         `}
