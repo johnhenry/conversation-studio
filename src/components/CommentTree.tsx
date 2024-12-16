@@ -661,7 +661,20 @@ const CommentTree: React.FC<CommentTreeProps> = ({
       }}
       className={`${parentId ? "pl-0" : ""}`}
     >
-      {visibleComments.map((comment) => (
+      {visibleComments.map((comment) => {
+ const siblings = findSiblings(allComments, comment.id);
+ const currentIndex = siblings.findIndex((c) => c.id === comment.id);
+ const siblingInfo =
+   siblings.length > 1
+     ? {
+         currentIndex,
+         totalSiblings: siblings.length,
+         onNavigate: (direction: "prev" | "next") =>
+           handleSiblingNavigation(comment.id, direction),
+       }
+     : undefined;
+
+return(
         <div key={comment.id} className="relative">
           <Comment
             comment={comment}
@@ -687,16 +700,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             appConfig={appConfig}
             chatFocusId={chatFocusId}
             setChatFocusId={setChatFocusId}
-            siblingInfo={
-              comment.children.length > 0
-                ? {
-                    currentIndex: 0,
-                    totalSiblings: comment.children.length,
-                    onNavigate: (direction: "prev" | "next") =>
-                      handleSiblingNavigation(comment.id, direction),
-                  }
-                : undefined
-            }
+            siblingInfo={siblingInfo}
             onGenerate={onGenerate}
             onSpeak={onSpeak}
             isSpeaking={isSpeaking}
@@ -733,7 +737,7 @@ const CommentTree: React.FC<CommentTreeProps> = ({
             />
           )}
         </div>
-      ))}
+      )})}
     </div>
   );
 };
