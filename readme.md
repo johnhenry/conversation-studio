@@ -1,6 +1,8 @@
-Here's the fully corrected document:
-
 # Conversation Studio: Your Tool for Dynamic Conversation Remixing and Analysis
+
+[Web](https://conversation-studio.succinct.link)
+
+![Conversation Studio](./docs/preview.png)
 
 Most AI Chat applications are structured like
 [instant messaging applications](https://en.wikipedia.org/wiki/Instant_messaging) where a *user* has a linear conversation with a single *assistant*.
@@ -26,13 +28,16 @@ Use Conversation Studio to rearrange, remix, and edit your conversations to elic
 - **Connect to AI:**  
   Feed conversations directly into AI models, either through an OpenAI-compatible API, or through the Chrome's built-in experimental window.ai API.
 
-## Requirements
+- **Speech Synthesis:**  
+  Listen to conversations read aloud in multiple voices.
 
-- A modern browser, preferably **Google Chrome**, with experimental features enabled.
-- The Chrome window.ai API enabled and configured.  
-  *[Add detailed setup instructions here]*
+## Usage: Web
 
-## Getting Started
+Visit https://conversation-studio.succinct.link
+
+If you plan to use ollama, but sure to set the `OLLAMA_ORIGINS` environment variable to `https://conversation-studio.succinct.link` before starting ollama (see below).
+
+## Usage: Local
 
 1. **Clone this Repository**  
   git clone github.com/johnhenry/conversation-studio.git
@@ -43,7 +48,10 @@ Use Conversation Studio to rearrange, remix, and edit your conversations to elic
 1. **Start the App**  
   npm run dev
 1. **Open the App in a Browser**  
-  http://localhost:5173
+  https://localhost:5173
+
+If you plan to use ollama, but sure to set the `OLLAMA_ORIGINS` environment variable to `https://localhost:5173` before starting ollama (see below).
+
 
 ## Using AI
 
@@ -57,12 +65,20 @@ select your chosen AI Type.
 You can use any OpenAI-compatible API.
 By default, we point to the local URL used by [ollama](https://ollama.com).
 
+#### Ollama
+If you plan to run this with ollama, you may have to set your `OLLAMA_ORIGINS` environment variable.
+
+  - Hosted site - `setenv OLLAMA_ORIGINS "https://conversation-studio.succinct.link"` (MacOS)
+  - Local - `setenv OLLAMA_ORIGINS "http://localhost:5173"` (MacOS)
+
 ### Windows.ai
 
 The window.ai API is very much a work in progress. Use at your own risk.
 It's tricky to install, and even if you get it installed, it's prone to breakage.
 
 The developer of [page assist](https://github.com/n4ze3m/page-assist) posted [this video](https://www.youtube.com/watch?v=NxKXcMgiz5k&ab_channel=HappyComputingwithDennis), which should help you get it installed.
+
+And while you can get this working in the standard release version of Chrome, I find it to be more stable in Canary (ironically).
 
 ## Keyboard Shortcuts
 
