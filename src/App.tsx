@@ -22,7 +22,8 @@ import { DEFAULT_USER_ID, DEFAULT_COMMENT_TYPE } from "./config";
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
 import { useAppConfig } from "./hooks/useAppConfig";
-import AI from "ai.matey/openai";
+import { createBackendAdapter } from "./utils/backend-factory";
+import { commentsToIRMessages, extractMessageContent, createIRRequest } from "./utils/ir-helpers";
 import { CircleX } from "lucide-react";
 
 // Convert Comment to CommentData by removing UI-specific properties
@@ -337,52 +338,119 @@ function App() {
       setGenerationQueue((prevQueue) => [...prevQueue, generation]);
 
       try {
-        const initialPrompts: { role: string; content: string }[] = [];
+        // Build conversation history
+        const conversationMessages: { role: string; content: string }[] = [];
         const parents = findParentComments(comments, parentId);
 
-        const localParents = [...parents];
-        while (localParents.length > 0) {
-          const parent = localParents.shift()!;
-          initialPrompts.push({
+        // Add parent messages to conversation
+        for (const parent of parents) {
+          conversationMessages.push({
             role: parent.type,
             content: parent.content,
           });
         }
+
+        // Add system prompt if configured
         if (appConfig.ai.base.systemPrompt?.trim()) {
-          initialPrompts.unshift({
+          conversationMessages.unshift({
             role: "system",
             content: appConfig.ai.base.systemPrompt,
           });
         }
-        const { content: prompt } = initialPrompts.pop() as {
-          role: string;
-          content: string;
-        };
-        const ai =
-          appConfig.ai.base.type === "window.ai"
-            ? window.ai
-            : new AI({
-                endpoint: appConfig.ai.base.endpoint,
-                credentials: {
-                  apiKey: appConfig.ai.base.apiKey,
-                },
-                model: appConfig.ai.base.model,
-              });
 
-        model = await ai.languageModel.create({
-          temperature: appConfig.ai.base.temperature,
-          topK: appConfig.ai.base.topK,
-          systemPrompt: appConfig.ai.base.systemPrompt,
-        });
+        let content: string;
 
-        if (!abortController) {
-          // If already aborted, don't proceed
-          return;
+        // ============================================================
+        // PATH 1: Browser's Native Chrome AI (window.ai)
+        // ============================================================
+        if (appConfig.ai.base.type === "window.ai") {
+          const ai = (typeof globalThis !== 'undefined' && (globalThis as any).ai) || window.ai;
+
+          if (!ai?.languageModel) {
+            throw new Error(
+              'Chrome AI is not available.\n\n' +
+              'Requirements:\n' +
+              '• Chrome 129+ or Chrome Canary\n' +
+              '• AI features enabled in chrome://flags\n' +
+              '• Gemini Nano downloaded\n\n' +
+              'Learn more: chrome://on-device-ai-internals'
+            );
+          }
+
+          // Check availability
+          const checkAvailability = ai.languageModel.availability || ai.languageModel.capabilities;
+          if (checkAvailability) {
+            const caps = await checkAvailability.call(ai.languageModel);
+            if (caps.available === 'no') {
+              throw new Error(
+                'Chrome AI is not available on this device.\n\n' +
+                'Your device may not meet the requirements:\n' +
+                '• 22 GB free storage\n' +
+                '• GPU with 4GB+ VRAM or CPU with 16GB+ RAM\n' +
+                '• Supported OS (Windows 10+, macOS 13+, Linux, ChromeOS)'
+              );
+            }
+            if (caps.available === 'after-download') {
+              console.log('Chrome AI: Gemini Nano model needs to be downloaded');
+            }
+          }
+
+          // Create session (support both new and legacy APIs)
+          const createSession = ai.languageModel.create || ai.languageModel.createTextSession;
+          if (!createSession) {
+            throw new Error('Chrome AI session creation not available');
+          }
+
+          const sessionOptions: any = {
+            temperature: appConfig.ai.base.temperature,
+            topK: appConfig.ai.base.topK,
+          };
+
+          // System prompt only supported in new API
+          if (ai.languageModel.create && appConfig.ai.base.systemPrompt?.trim()) {
+            sessionOptions.systemPrompt = appConfig.ai.base.systemPrompt;
+          }
+
+          model = await createSession.call(ai.languageModel, sessionOptions);
+
+          if (!abortController) return;
+
+          // Pop the last message as the prompt
+          const lastMessage = conversationMessages.pop();
+          if (!lastMessage) {
+            throw new Error('No message to prompt with');
+          }
+
+          content = await model.prompt(lastMessage.content, {
+            signal: abortController.signal,
+          });
         }
+        // ============================================================
+        // PATH 2: API Providers via Backend Adapters
+        // ============================================================
+        else {
+          // Create backend adapter for the selected provider
+          const backend = createBackendAdapter(appConfig.ai.base);
 
-        const content = await model.prompt(prompt, {
-          signal: abortController.signal,
-        });
+          // Convert conversation to IR format
+          const irMessages = commentsToIRMessages(conversationMessages);
+
+          // Create IR request
+          const request = createIRRequest(irMessages, {
+            model: appConfig.ai.base.model,
+            temperature: appConfig.ai.base.temperature,
+            topK: appConfig.ai.base.topK,
+            maxTokens: appConfig.ai.base.maxTokens,
+          });
+
+          if (!abortController) return;
+
+          // Execute request
+          const response = await backend.execute(request, abortController.signal);
+
+          // Extract content from response
+          content = extractMessageContent(response.message);
+        }
 
         if (!abortController) {
           // If aborted during generation, don't add the comment

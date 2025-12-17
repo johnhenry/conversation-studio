@@ -14,7 +14,8 @@ export interface GeneralConfig {
 }
 
 export interface AIBaseConfig {
-  type: "openai" | "window.ai" | "";
+  type: "api" | "window.ai" | "";
+  provider: "openai" | "anthropic" | "gemini" | "ollama";
   endpoint: string;
   apiKey: string;
   model: string;
@@ -50,6 +51,7 @@ export const DEFAULT_GENERAL_CONFIG: GeneralConfig = {
 
 export const DEFAULT_AI_BASE_CONFIG: AIBaseConfig = {
   type: "",
+  provider: "ollama",
   endpoint: "http://localhost:11434/v1/chat/completions",
   apiKey: "",
   model: "llama3.2:latest",

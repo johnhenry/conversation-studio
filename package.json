@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "ai.matey": "^0.0.1",
+    "ai.matey": "file:../ai.matey/packages/ai.matey",
+    "ai.matey.backend": "file:../ai.matey/packages/backend",
+    "ai.matey.wrapper": "file:../ai.matey/packages/wrapper",
     "crypto-js": "^4.2.0",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",

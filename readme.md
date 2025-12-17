@@ -74,14 +74,32 @@ If you plan to run this with ollama, you may have to set your `OLLAMA_ORIGINS` e
 - Hosted site - `setenv OLLAMA_ORIGINS "https://conversation-studio.succinct.link"` (MacOS)
 - Local - `setenv OLLAMA_ORIGINS "http://localhost:5173"` (MacOS)
 
-### Windows.ai
+### Chrome AI (window.ai / ai)
 
-The window.ai API is very much a work in progress. Use at your own risk.
-It's tricky to install, and even if you get it installed, it's prone to breakage.
+The Chrome AI API has been updated and is now available in Chrome 138+ as the Prompt API.
 
-The developer of [page assist](https://github.com/n4ze3m/page-assist) posted [this video](https://www.youtube.com/watch?v=NxKXcMgiz5k&ab_channel=HappyComputingwithDennis), which should help you get it installed.
+**Requirements:**
+- Chrome 138+ (stable), or Chrome Canary for latest features
+- Operating system: Windows 10/11, macOS 13+ (Ventura), Linux, or ChromeOS (Chromebook Plus)
+- At least 22 GB of free storage space
+- GPU with 4 GB+ VRAM, or CPU with 16 GB+ RAM and 4+ cores
 
-And while you can get this working in the standard release version of Chrome, I find it to be more stable in Canary (ironically).
+**API Changes (2025):**
+- The API has transitioned from `window.ai` to the global `ai` object
+- Method renamed: `createTextSession()` → `create()`
+- New features: streaming support, multimodal capabilities (images, audio)
+- System prompts now supported in the new API
+
+**Setup:**
+1. Enable Chrome AI features in chrome://flags (if needed)
+2. Download Gemini Nano model (happens automatically on first use)
+3. Select "window.ai" as your AI Type in Settings
+
+For detailed setup instructions, see:
+- [Chrome Prompt API Documentation](https://developer.chrome.com/docs/ai/prompt-api)
+- [Built-in AI Guide](https://developer.chrome.com/docs/ai/built-in)
+
+**Note:** This project supports both the new API (Chrome 138+) and legacy API (Chrome 129-137) for backward compatibility.
 
 ## Keyboard Shortcuts
 
