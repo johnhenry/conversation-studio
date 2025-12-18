@@ -57,7 +57,29 @@ conversation-studio/
 
 ## Key Features
 
-### 1. Multi-Agent AI System
+### 1. View Modes
+
+**Forum Mode (Default):**
+- Hierarchical tree view of all conversations
+- Color-coded nesting levels (blue → green → yellow → purple → orange → red)
+- Navigate entire conversation structure
+- Arrow keys navigate between threads/replies
+
+**Chat Mode:**
+- Linear conversation view focused on single thread
+- Follow one conversation path
+- Press 'm' or click forum/chat icon to toggle
+
+### 2. Speech Synthesis
+
+**Text-to-Speech:**
+- Read conversations aloud
+- Multiple English voices (cycles through available system voices)
+- Voice per speaker/user ID
+- Press 's' on selected comment to speak
+- Automatic voice switching based on userId
+
+### 3. Multi-Agent AI System
 
 The application uses an **agent-based architecture** where each agent is a complete AI configuration:
 
@@ -94,7 +116,29 @@ interface Agent {
 - Per-agent API keys
 - Temperature, Top-K, Max Tokens controls
 
-### 3. Conversation Management
+### 4. Visual Design
+
+**Color-Coded Nesting:**
+- Each nesting level has unique color
+- Depth 0 (root): Gray
+- Depth 1: Blue
+- Depth 2: Green
+- Depth 3: Purple
+- Depth 4: Orange
+- Depth 5: Red
+- Visual indicator makes navigation easy
+
+**Fonts:**
+- Primary: Montserrat
+- Fallback: Inter
+
+**Theme:**
+- Dark mode design
+- Gray/black backgrounds
+- Color accents for hierarchy
+- Tailwind CSS utility classes
+
+### 5. Conversation Management
 
 **Comment Structure:**
 ```typescript
@@ -114,12 +158,15 @@ interface Comment {
 
 **Operations:**
 - Create, edit, delete comments
+- Double-click comment to edit
 - Nested replies (unlimited depth)
 - Drag-and-drop reorganization
 - Clone comments (with/without children)
-- Auto-reply with AI (configurable depth)
+- Auto-reply with AI (configurable depth and count)
 - Type cycling (user → assistant → system)
-- User ID customization
+- User ID customization (for multi-voice conversations)
+- Speak comment (text-to-speech)
+- Selection and focus management
 
 ### 4. Export Formats
 
@@ -331,13 +378,27 @@ Comment creation/editing interface:
 
 ### Keyboard Shortcuts
 
+**Comment Actions:**
 - **n**: New comment
 - **r**: Reply to selected comment
 - **Shift+R**: AI auto-reply
-- **Cmd+Enter**: Submit comment
+- **c**: Clone comment
+- **Shift+C**: Clone comment with children
+- **e**: Edit comment (or double-click)
+- **t**: Cycle comment type (user → assistant → system)
+- **Delete**: Delete selected comment
+
+**Navigation:**
+- **↑/↓**: Navigate up/down comments
+- **→/←**: Navigate next/previous thread (in chat mode)
+- **m**: Toggle forum/chat mode
+
+**Editor:**
+- **Cmd/Ctrl+Enter**: Submit comment
 - **Esc**: Cancel/close editor
-- **↑/↓**: Navigate comments
-- **→/←**: Next/previous in chat mode
+
+**Other:**
+- **s**: Speak selected conversation (text-to-speech)
 
 ### Exporting Conversations
 
@@ -450,6 +511,91 @@ const request = createIRRequest(irMessages, { model, temperature });
 - [ ] Clone comment
 - [ ] Delete comment
 
+## Ollama CORS Configuration
+
+When using Ollama (local LLM server), you must configure CORS origins:
+
+**For Web Deployment:**
+```bash
+# MacOS/Linux
+export OLLAMA_ORIGINS="https://conversation-studio.succinct.link"
+
+# Windows (PowerShell)
+$env:OLLAMA_ORIGINS="https://conversation-studio.succinct.link"
+
+# Then start Ollama
+ollama serve
+```
+
+**For Local Development:**
+```bash
+# MacOS/Linux
+export OLLAMA_ORIGINS="https://localhost:5173"
+
+# Windows (PowerShell)
+$env:OLLAMA_ORIGINS="https://localhost:5173"
+
+# Then start Ollama
+ollama serve
+```
+
+**Installing Models:**
+```bash
+ollama pull llama3.2
+ollama pull mistral
+ollama list  # Show installed models
+```
+
+## Known Issues
+
+### Import Functionality
+- **JSON Import**: Works once, but requires page reload for subsequent imports
+- **XML Import**: Currently not functional
+- **Text Import**: Currently not functional
+
+### Mobile Support
+- **UI**: Controls are functional but somewhat clunky on mobile
+- **Local AI**: Cannot connect to local OpenAI-compatible APIs from mobile devices on local network
+- **Recommended**: Use cloud-based providers (OpenAI, Anthropic) on mobile
+
+### Export
+- All export formats work correctly
+- Copy from preview or configure via Settings → Export
+
+## Roadmap
+
+### Planned Features
+
+**Import Improvements:**
+- Merge algorithm for importing (currently replaces all data)
+- Fix XML and Text import
+- Support for more formats
+
+**Storage Options:**
+- PGLite database integration
+- External service connections:
+  - Minio/AWS S3
+  - IPFS
+  - PostgreSQL
+  - MCP (Model Context Protocol) servers
+
+**AntiSocial Network Integration:**
+- Original vision: interface for [AntiSocial Network](https://github.com/johnhenry/antisocial-network)
+- Bring full circle integration
+
+**Agent System Enhancements:**
+- Agent tags/categories
+- Agent templates library
+- Usage statistics
+- Cloud sync
+
+**UI Improvements:**
+- Better mobile experience
+- Image attachments
+- Code syntax highlighting
+- Conversation templates
+- Real-time collaboration
+
 ## Troubleshooting
 
 ### Agent shows "[inactive]"
@@ -526,14 +672,64 @@ When adding new features:
 
 See LICENSE file in repository.
 
+## Deployment
+
+**Live Demo:**
+- Web: https://conversation-studio.succinct.link
+- Hosted on GitHub Pages (or similar)
+- Fully client-side, no server required
+
+**Local Development:**
+```bash
+git clone github.com/johnhenry/conversation-studio.git
+cd conversation-studio
+npm install
+npm run dev
+# Opens at https://localhost:5173
+```
+
+**Production Build:**
+```bash
+npm run build
+npm run preview
+```
+
 ## Support
 
 For issues and questions:
 - GitHub Issues: https://github.com/johnhenry/conversation-studio/issues
 - Documentation: See README.md
+- Live Demo: https://conversation-studio.succinct.link
+
+## Project History
+
+**Key Milestones:**
+- Initial release with forum-like interface
+- Multi-provider AI support (OpenAI compatible)
+- Speech synthesis with multiple voices
+- Chat mode vs Forum mode
+- Auto-reply with configurable depth
+- Color-coded nesting levels
+- Mobile responsiveness improvements
+- Agent system implementation (multi-agent management)
+- Model fetching from providers
+- Migration system for backward compatibility
+
+**Based on git log, notable features added:**
+- Lateral comments management
+- Type cycling (user/assistant/system)
+- Selection and focus system
+- Export settings configuration
+- Attachment support
+- Clone with children
+- Double-click to edit
+- Keyboard shortcut improvements
+- Mobile UI enhancements
+- Montserrat/Inter font integration
 
 ---
 
 **Last Updated**: 2025-01-17
 **Version**: Agent System v1.0
 **Build**: TypeScript + React + Vite + ai.matey
+**Repository**: https://github.com/johnhenry/conversation-studio
