@@ -1,4 +1,4 @@
-# Conversation Studio
+# Conversation Studio (Client)
 
 [Web](https://conversation-studio.succinct.link)
 
