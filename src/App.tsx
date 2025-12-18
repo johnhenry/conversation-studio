@@ -338,6 +338,19 @@ function App() {
       setGenerationQueue((prevQueue) => [...prevQueue, generation]);
 
       try {
+        // Get active agent configuration
+        const activeAgent = appConfig.ai.agents.find(
+          (a) => a.id === appConfig.ai.activeAgentId
+        );
+
+        if (!activeAgent) {
+          throw new Error(
+            'No active agent selected. Please select an agent in Settings.'
+          );
+        }
+
+        const agentConfig = activeAgent.config;
+
         // Build conversation history
         const conversationMessages: { role: string; content: string }[] = [];
         const parents = findParentComments(comments, parentId);
@@ -351,10 +364,10 @@ function App() {
         }
 
         // Add system prompt if configured
-        if (appConfig.ai.base.systemPrompt?.trim()) {
+        if (agentConfig.systemPrompt?.trim()) {
           conversationMessages.unshift({
             role: "system",
-            content: appConfig.ai.base.systemPrompt,
+            content: agentConfig.systemPrompt,
           });
         }
 
@@ -363,7 +376,7 @@ function App() {
         // ============================================================
         // PATH 1: Browser's Native Chrome AI (window.ai)
         // ============================================================
-        if (appConfig.ai.base.type === "window.ai") {
+        if (agentConfig.type === "window.ai") {
           const ai = (typeof globalThis !== 'undefined' && (globalThis as any).ai) || window.ai;
 
           if (!ai?.languageModel) {
@@ -402,13 +415,13 @@ function App() {
           }
 
           const sessionOptions: any = {
-            temperature: appConfig.ai.base.temperature,
-            topK: appConfig.ai.base.topK,
+            temperature: agentConfig.temperature,
+            topK: agentConfig.topK,
           };
 
           // System prompt only supported in new API
-          if (ai.languageModel.create && appConfig.ai.base.systemPrompt?.trim()) {
-            sessionOptions.systemPrompt = appConfig.ai.base.systemPrompt;
+          if (ai.languageModel.create && agentConfig.systemPrompt?.trim()) {
+            sessionOptions.systemPrompt = agentConfig.systemPrompt;
           }
 
           model = await createSession.call(ai.languageModel, sessionOptions);
@@ -430,17 +443,17 @@ function App() {
         // ============================================================
         else {
           // Create backend adapter for the selected provider
-          const backend = createBackendAdapter(appConfig.ai.base);
+          const backend = createBackendAdapter(agentConfig);
 
           // Convert conversation to IR format
           const irMessages = commentsToIRMessages(conversationMessages);
 
           // Create IR request
           const request = createIRRequest(irMessages, {
-            model: appConfig.ai.base.model,
-            temperature: appConfig.ai.base.temperature,
-            topK: appConfig.ai.base.topK,
-            maxTokens: appConfig.ai.base.maxTokens,
+            model: agentConfig.model,
+            temperature: agentConfig.temperature,
+            topK: agentConfig.topK,
+            maxTokens: agentConfig.maxTokens,
           });
 
           if (!abortController) return;
@@ -970,6 +983,7 @@ function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         appConfig={appConfig}
+        onAppConfigChange={setAppConfig}
         onStoreLocallyChange={(value) =>
           setAppConfig({
             ...appConfig,

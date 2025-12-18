@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { AppConfig, DEFAULT_APP_CONFIG } from "../config";
+import { migrateToAgentSystem, validateAgentConfig, repairAgentConfig } from "../utils/agent-migration";
 
 const APP_CONFIG_STORAGE_KEY = "conversation-studio-config";
 
@@ -10,18 +11,19 @@ export function useAppConfig() {
     if (stored) {
       try {
         const storedConfig = JSON.parse(stored);
-        return {
-          ...DEFAULT_APP_CONFIG,
-          ...storedConfig,
-          ai: {
-            ...DEFAULT_APP_CONFIG.ai,
-            ...storedConfig.ai,
-            base: {
-              ...DEFAULT_APP_CONFIG.ai.base,
-              ...storedConfig.ai?.base,
-            },
-          },
-        };
+
+        // Apply migration to agent system
+        let migratedConfig = migrateToAgentSystem(storedConfig);
+
+        // Validate and repair if needed
+        const validation = validateAgentConfig(migratedConfig);
+        if (!validation.valid) {
+          console.warn('Agent config validation failed:', validation.errors);
+          console.warn('Attempting to repair config...');
+          migratedConfig = repairAgentConfig(migratedConfig);
+        }
+
+        return migratedConfig;
       } catch (e) {
         console.error("Failed to parse stored app config:", e);
         return DEFAULT_APP_CONFIG;
@@ -70,21 +72,30 @@ export function useAppConfig() {
             ? newConfig(prev)
             : { ...prev, ...newConfig };
 
-        // Validate AI config numeric fields
-        if (nextConfig.ai?.base) {
-          const base = nextConfig.ai.base;
-          if (typeof base.temperature === "number") {
-            base.temperature = Math.max(0, Math.min(1, base.temperature));
-          }
-          if (typeof base.maxTokens === "number") {
-            base.maxTokens = Math.max(1, base.maxTokens);
-          }
-          if (typeof base.maxRetries === "number") {
-            base.maxRetries = Math.max(0, Math.floor(base.maxRetries));
-          }
-          if (typeof base.retryDelay === "number") {
-            base.retryDelay = Math.max(0, base.retryDelay);
-          }
+        // Validate AI config numeric fields in all agents
+        if (nextConfig.ai?.agents) {
+          nextConfig.ai.agents = nextConfig.ai.agents.map((agent) => ({
+            ...agent,
+            config: {
+              ...agent.config,
+              temperature:
+                typeof agent.config.temperature === "number"
+                  ? Math.max(0, Math.min(1, agent.config.temperature))
+                  : agent.config.temperature,
+              maxTokens:
+                typeof agent.config.maxTokens === "number"
+                  ? Math.max(1, agent.config.maxTokens)
+                  : agent.config.maxTokens,
+              maxRetries:
+                typeof agent.config.maxRetries === "number"
+                  ? Math.max(0, Math.floor(agent.config.maxRetries))
+                  : agent.config.maxRetries,
+              retryDelay:
+                typeof agent.config.retryDelay === "number"
+                  ? Math.max(0, agent.config.retryDelay)
+                  : agent.config.retryDelay,
+            },
+          }));
         }
 
         return nextConfig;

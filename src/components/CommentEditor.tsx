@@ -489,7 +489,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             <div>
               {renderContent()}
             </div>
-            {appConfig.ai.base.type && (
+            {(() => {
+              const activeAgent = appConfig.ai.agents.find(
+                (a) => a.id === appConfig.ai.activeAgentId
+              );
+              return activeAgent?.config.type;
+            })() && (
             <div className="flex items-center">
               Auto Reply:
               <label className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer gap-2">
@@ -530,7 +535,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               >
                 Cancel
               </button>
-              {appConfig.ai.base.type && parentId ? (
+              {(() => {
+                const activeAgent = appConfig.ai.agents.find(
+                  (a) => a.id === appConfig.ai.activeAgentId
+                );
+                return activeAgent?.config.type;
+              })() && parentId ? (
                 <>
                   {!(!content.trim() && attachments.length === 0) ? (
                     <button

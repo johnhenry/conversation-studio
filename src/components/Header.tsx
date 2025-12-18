@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ExportFormat } from "../types";
 import { Plus, Settings, Import, Menu, ChartNoAxesGantt } from "lucide-react";
 import { AppConfig } from "../config";
+import AgentSwitcher from "./AgentSwitcher";
 
 interface HeaderProps {
   activeTab: ExportFormat | "forum";
@@ -12,6 +13,7 @@ interface HeaderProps {
   chatFocusId: string;
   setChatFocusId: (mode: string | null) => void;
   appConfig: AppConfig;
+  onAppConfigChange: (config: Partial<AppConfig>) => void;
   onStoreLocallyChange: (value: boolean) => void;
 }
 
@@ -23,6 +25,8 @@ const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   chatFocusId,
   setChatFocusId,
+  appConfig,
+  onAppConfigChange,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const chatFocusIdColor = chatFocusId ? "gray" : "blue";
@@ -145,6 +149,12 @@ Previous: ←`
 
             {/* Settings and Import */}
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-700">
+              {/* Agent Switcher */}
+              <AgentSwitcher
+                appConfig={appConfig}
+                onAppConfigChange={onAppConfigChange}
+              />
+
               {/* Action Buttons */}
               <button
                 onClick={onNewComment}

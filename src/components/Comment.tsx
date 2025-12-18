@@ -433,7 +433,12 @@ const Comment: React.FC<CommentProps> = ({
                 >
                   <MessageSquare size={16} />
                 </button>
-                {appConfig.ai.base.type && (
+                {(() => {
+                  const activeAgent = appConfig.ai.agents.find(
+                    (a) => a.id === appConfig.ai.activeAgentId
+                  );
+                  return activeAgent?.config.type;
+                })() && (
                   <button
                     onClick={handleAutoReply}
                     title={`Auto Reply\nkey: shift + r`}

@@ -28,8 +28,18 @@ export interface AIBaseConfig {
   systemPrompt: string;
 }
 
+export interface Agent {
+  id: string;
+  name: string;
+  description?: string;
+  config: AIBaseConfig;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface AIConfig {
-  base: AIBaseConfig;
+  agents: Agent[];
+  activeAgentId: string | null;
 }
 
 export interface ExportConfig {
@@ -65,8 +75,96 @@ export const DEFAULT_AI_BASE_CONFIG: AIBaseConfig = {
     "You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user's questions or comments. Be professional but friendly in your communication style.",
 };
 
+export const DEFAULT_AGENTS: Agent[] = [
+  {
+    id: 'default-openai',
+    name: 'OpenAI GPT-4',
+    description: 'OpenAI GPT-4 for high-quality responses',
+    config: {
+      type: 'api',
+      provider: 'openai',
+      endpoint: 'https://api.openai.com/v1',
+      apiKey: '',
+      model: 'gpt-4',
+      temperature: 0.7,
+      topK: 50,
+      maxTokens: 2048,
+      seed: 42,
+      maxRetries: 3,
+      retryDelay: 1000,
+      systemPrompt: 'You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user\'s questions or comments. Be professional but friendly in your communication style.',
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    id: 'default-anthropic',
+    name: 'Claude 3.5 Sonnet',
+    description: 'Anthropic Claude for coding and analysis',
+    config: {
+      type: 'api',
+      provider: 'anthropic',
+      endpoint: 'https://api.anthropic.com/v1',
+      apiKey: '',
+      model: 'claude-3-5-sonnet-20241022',
+      temperature: 0.7,
+      topK: 50,
+      maxTokens: 2048,
+      seed: 42,
+      maxRetries: 3,
+      retryDelay: 1000,
+      systemPrompt: 'You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user\'s questions or comments. Be professional but friendly in your communication style.',
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    id: 'default-ollama',
+    name: 'Local Llama',
+    description: 'Run models locally with Ollama',
+    config: {
+      type: 'api',
+      provider: 'ollama',
+      endpoint: 'http://localhost:11434',
+      apiKey: '',
+      model: 'llama3.2:latest',
+      temperature: 0.7,
+      topK: 50,
+      maxTokens: 2048,
+      seed: 42,
+      maxRetries: 3,
+      retryDelay: 1000,
+      systemPrompt: 'You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user\'s questions or comments. Be professional but friendly in your communication style.',
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    id: 'default-chrome',
+    name: 'Chrome AI',
+    description: 'Browser built-in AI (Gemini Nano)',
+    config: {
+      type: 'window.ai',
+      provider: 'openai',
+      endpoint: '',
+      apiKey: '',
+      model: '',
+      temperature: 0.7,
+      topK: 50,
+      maxTokens: 2048,
+      seed: 42,
+      maxRetries: 3,
+      retryDelay: 1000,
+      systemPrompt: 'You are a helpful and knowledgeable assistant. Provide clear, accurate, and concise responses that directly address the user\'s questions or comments. Be professional but friendly in your communication style.',
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+];
+
 export const DEFAULT_AI_CONFIG: AIConfig = {
-  base: DEFAULT_AI_BASE_CONFIG,
+  agents: DEFAULT_AGENTS,
+  activeAgentId: 'default-ollama', // Local Ollama as default
 };
 
 export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
